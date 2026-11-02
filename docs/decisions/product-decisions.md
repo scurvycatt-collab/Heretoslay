@@ -110,3 +110,22 @@ Implementation phải giữ demo labels và không đổi reaction_demo/setup_de
 ## EF-FOLLOWUP-001-PM — 2026-11-02
 Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLLOWUP_DISPATCH.md: reuse END_TURN effect_demo no-pending activeactor→next3AP/newallowance, auth/stale/idempotency retained; own-hand-only fixedModifier delta/rollTarget metadata+kind-correct labels. DRAW_CARD và MOD-SELECT không mở. Projectsyntheticdemo policy, không official/cardauthoritychange.
 
+
+## Owner chốt RULES-001 Q-01..Q-12 (2026-11-02 12:46)
+
+| Q | Quyết định owner | Ghi chú triển khai |
+|---|---|---|
+| Q-01 | Party Leader KHÔNG thỏa slot class của Monster requirement. | MON-04 |
+| Q-02 | Thắng đồng thời → người đang có lượt (active player) thắng. | WIN-TIE |
+| Q-03 | Slay chỉ xảy ra sau khi mọi Modifier/Challenge đã resolve; slay đạt điều kiện thắng → GAME_OVER ngay. | WIN-SLAY-T; không resolve thêm gì sau |
+| Q-04 | Mask Item CÓ cộng thêm class cho Hero gắn nó (tính cho win 6 class và requirement Monster). | effectiveClasses = class Hero ∪ class từ Mask |
+| Q-05 | Duyệt default: penalty làm tối đa phần khả thi, không lỗi, không rollback. | MON-15 |
+| Q-06 | Duyệt default: Item thường → Hero của mình; Cursed Item → Hero bất kỳ. | |
+| Q-07 | Duyệt default: khoá target lúc PLAY, revalidate khi resolve; mất hiệu lực → discard, không hoàn AP. | |
+| Q-08 | Player tự chọn target; chỉ hiển thị/cho chọn option thỏa điều kiện thẻ. Server validate lại. | Áp dụng mọi Hero/Magic/Item có target |
+| Q-09 | Monster deck hết: KHÔNG refill. ATTACK bị từ chối khi không còn Monster face-up; game tiếp tục. | |
+| Q-10 | Hero roll và Monster attack roll: người chơi bấm Roll, server tạo kết quả. | Challenge giữ RULE-17 (server tự roll) cho tới khi owner đổi |
+| Q-11 | Passive Leader được tính vào roll và hiển thị như một mục riêng ghi rõ "passive của Leader". | CẦN XÁC NHẬN: có chiếm suất 1 Modifier/player không. Default triển khai: KHÔNG chiếm, cấu hình được |
+| Q-12 | Duyệt default: requirement chỉ kiểm lúc nhận ATTACK. | MON-07 |
+
+Đề xuất owner: engine side nhập luôn data cơ chế/effect của thẻ (status/function); art để Codex làm sau. Thay quyết định trước đó "Codex nhập data".
