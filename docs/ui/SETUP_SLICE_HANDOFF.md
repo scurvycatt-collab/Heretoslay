@@ -1,0 +1,9 @@
+# SL-02 setup UI handoff
+
+**Scope:** `apps/web/**`, `docs/ui/**`. The lobby now creates either `reaction_demo` or clearly labelled synthetic `setup_demo`; join retains the room-selected mode. Setup snapshots use the frozen `SetupDemoSnapshot` DTO and keep only the viewer’s hand visible.
+
+The setup surface follows server phase/state: host begins leader selection; only the sequential selector can select the next available fixture Leader; host starts only when server reports selection complete; turn actions are gated by snapshot active player/AP. Draw, Redraw and End Turn submit exact commands with server revision; no local AP, hand, deck, Monster, Leader, or turn mutation occurs. Base effects/art/expansion remain unsupported.
+
+PM review delta: the table now renders snapshot roster entries with nickname, selected Leader and hand count, current selector and active-turn marker. The eligible selector receives an explicit button per fixture Leader; already-selected IDs are visibly disabled, and the clicked ID is sent unchanged in `SELECT_PARTY_LEADER`.
+
+Reaction room UI and approved local design preview remain separate. For browser QA on an alternate local Worker, start Vite with PowerShell `$env:WORKER_PROXY_TARGET = "http://127.0.0.1:8789"; npm run dev --workspace=@here-to-slay/web`; omitting the variable retains the `http://127.0.0.1:8787` default. Setup roster has light contrast, wraps each player record safely, and renders `Leader X` rather than the raw fixture namespace. Command responses are typed; a rejected HTTP-200 command accepts its authoritative snapshot but displays its code and retains that notice through polling, while a successful command clears it. Restoring a saved room session starts without a lobby nickname prompt. No runtime flow was exercised here. `npm run typecheck --workspace=@here-to-slay/web` and `npm run build --workspace=@here-to-slay/web` passed on 2026-11-01 after this delta. Next: PM browser reverify.

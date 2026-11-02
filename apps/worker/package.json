@@ -1,0 +1,20 @@
+{
+  "name": "@here-to-slay/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "test": "node --test --experimental-strip-types tests/*.test.ts",
+    "smoke": "node --test --experimental-strip-types tests/smoke.test.ts"
+  },
+  "dependencies": {
+    "@here-to-slay/protocol": "0.0.0"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "wrangler": "4.154.0"
+  }
+}

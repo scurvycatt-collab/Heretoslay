@@ -1,0 +1,7 @@
+# PM browser review — PC-IMPL-BOTH, 2026-11-02
+IAB2clients at http://127.0.0.1:5173/, room ETA3C8. Created effect_demo, joined guest, handled STALE_REVISION start rejection with refreshed snapshot then retry. Start host3AP, host4cards, guest3,deck24.
+Critical Boost play→AP2/hand3; bothSkipChallenge→hand6/deck21; actor selected drawn inert discard→hand5/discard2/pendingcleared. Guest only sees ownhand and other's count; no discard choices.
+Dodgy play→AP1/hand4; bothSkipChallenge→Party+immediatechoice. ActorSkip leaves paid roll available. Paidroll spendslastAP, retainsactor throughModifier. Server dice2+3=5; bothSkip→nohandswap, pendingclear,turn2guest3AP. No browser claim of successfulswap/immediate-roll/Modifierdelta/restart; covered where reported by automated tests only.
+Screenshot C:/Users/hidey/.codex/visualizations/2026/10/29/01a185a2-a20f-7fa0-8aaa-0b9f63e172e5/effect-demo-review-2026-11-02.png.
+Browser tab1 trapped data-neterror after refused localhost; fresh tab at IPv4 succeeded after Infra corrected Vite IPv6-only binding. No firewall/security changes. Runtime handoff docs/infra/PLAY_CARD_RUNTIME_HANDOFF.md.
+Limitations recorded self-contained BACKLOG EF-TURN-001 (guest inert-only turn cannot progress with currentcommands) and EF-UI-001 (Modifier labels indistinguishable/misnamed). Synthetic two-card mechanic acceptance only, not complete repeatable game/base acceptance. No commit/push/deploy.

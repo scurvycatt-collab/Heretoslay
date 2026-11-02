@@ -1,0 +1,674 @@
+{
+  "observedDate": "2026-11-02",
+  "source": "PM direct-IAB DOM review",
+  "permalink": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_Base_Deck_-_Inventory_List&oldid=32728",
+  "historicalView": "access_denied_anonymous; public_current_DOM_observed",
+  "row_count": 95,
+  "rows": [
+    {
+      "card_id": "hts.base.v1.party-leader.the-charismatic-song",
+      "name": "The Charismatic Song",
+      "quantity": "1",
+      "inventory_section": "Party Leaders",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_The_Charismatic_Song"
+    },
+    {
+      "card_id": "hts.base.v1.party-leader.the-cloaked-sage",
+      "name": "The Cloaked Sage",
+      "quantity": "1",
+      "inventory_section": "Party Leaders",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_The_Cloaked_Sage"
+    },
+    {
+      "card_id": "hts.base.v1.party-leader.the-divine-arrow",
+      "name": "The Divine Arrow",
+      "quantity": "1",
+      "inventory_section": "Party Leaders",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_The_Divine_Arrow"
+    },
+    {
+      "card_id": "hts.base.v1.party-leader.the-fist-of-reason",
+      "name": "The Fist of Reason",
+      "quantity": "1",
+      "inventory_section": "Party Leaders",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_The_Fist_of_Reason"
+    },
+    {
+      "card_id": "hts.base.v1.party-leader.the-protecting-horn",
+      "name": "The Protecting Horn",
+      "quantity": "1",
+      "inventory_section": "Party Leaders",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_The_Protecting_Horn"
+    },
+    {
+      "card_id": "hts.base.v1.party-leader.the-shadow-claw",
+      "name": "The Shadow Claw",
+      "quantity": "1",
+      "inventory_section": "Party Leaders",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_The_Shadow_Claw"
+    },
+    {
+      "card_id": "hts.base.v1.monster.anuran-cauldron",
+      "name": "Anuran Cauldron",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Anuran_Cauldron"
+    },
+    {
+      "card_id": "hts.base.v1.monster.artic-aries",
+      "name": "Artic Aries",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Artic_Aries"
+    },
+    {
+      "card_id": "hts.base.v1.monster.bloodwing",
+      "name": "Bloodwing",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Bloodwing"
+    },
+    {
+      "card_id": "hts.base.v1.monster.orthus",
+      "name": "Orthus",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Orthus"
+    },
+    {
+      "card_id": "hts.base.v1.monster.corrupted-sabretooth",
+      "name": "Corrupted Sabretooth",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Corrupted_Sabretooth"
+    },
+    {
+      "card_id": "hts.base.v1.monster.crowned-serpent",
+      "name": "Crowned Serpent",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Crowned_Serpent"
+    },
+    {
+      "card_id": "hts.base.v1.monster.abyss-queen",
+      "name": "Abyss Queen",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Abyss_Queen"
+    },
+    {
+      "card_id": "hts.base.v1.monster.dracos",
+      "name": "Dracos",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Dracos"
+    },
+    {
+      "card_id": "hts.base.v1.monster.dark-dragon-king",
+      "name": "Dark Dragon King",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Dark_Dragon_King"
+    },
+    {
+      "card_id": "hts.base.v1.monster.malamammoth",
+      "name": "Malamammoth",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Malamammoth"
+    },
+    {
+      "card_id": "hts.base.v1.monster.rex-major",
+      "name": "Rex Major",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Rex_Major"
+    },
+    {
+      "card_id": "hts.base.v1.monster.terratuga",
+      "name": "Terratuga",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Terratuga"
+    },
+    {
+      "card_id": "hts.base.v1.monster.mega-slime",
+      "name": "Mega Slime",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Mega_Slime"
+    },
+    {
+      "card_id": "hts.base.v1.monster.titan-wyvern",
+      "name": "Titan Wyvern",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Titan_Wyvern"
+    },
+    {
+      "card_id": "hts.base.v1.monster.warworn-owlbear",
+      "name": "Warworn Owlbear",
+      "quantity": "1",
+      "inventory_section": "Monsters",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Warworn_Owlbear"
+    },
+    {
+      "card_id": "hts.base.v1.hero.dodgy-dealer",
+      "name": "Dodgy Dealer",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Dodgy_Dealer"
+    },
+    {
+      "card_id": "hts.base.v1.hero.fuzzy-cheeks",
+      "name": "Fuzzy Cheeks",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Fuzzy_Cheeks"
+    },
+    {
+      "card_id": "hts.base.v1.hero.greedy-cheeks",
+      "name": "Greedy Cheeks",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Greedy_Cheeks"
+    },
+    {
+      "card_id": "hts.base.v1.hero.lucky-bucky",
+      "name": "Lucky Bucky",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Lucky_Bucky"
+    },
+    {
+      "card_id": "hts.base.v1.hero.mellow-dee",
+      "name": "Mellow Dee",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Mellow_Dee"
+    },
+    {
+      "card_id": "hts.base.v1.hero.napping-nibbles",
+      "name": "Napping Nibbles",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Napping_Nibbles"
+    },
+    {
+      "card_id": "hts.base.v1.hero.peanut",
+      "name": "Peanut",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Peanut"
+    },
+    {
+      "card_id": "hts.base.v1.hero.tipsy-tootie",
+      "name": "Tipsy Tootie",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Tipsy_Tootie"
+    },
+    {
+      "card_id": "hts.base.v1.hero.bad-axe",
+      "name": "Bad Axe",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Bad_Axe"
+    },
+    {
+      "card_id": "hts.base.v1.hero.bear-claw",
+      "name": "Bear Claw",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Bear_Claw"
+    },
+    {
+      "card_id": "hts.base.v1.hero.beary-wise",
+      "name": "Beary Wise",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Beary_Wise"
+    },
+    {
+      "card_id": "hts.base.v1.hero.fury-knuckle",
+      "name": "Fury Knuckle",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Fury_Knuckle"
+    },
+    {
+      "card_id": "hts.base.v1.hero.heavy-bear",
+      "name": "Heavy Bear",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Heavy_Bear"
+    },
+    {
+      "card_id": "hts.base.v1.hero.pan-chucks",
+      "name": "Pan Chucks",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Pan_Chucks"
+    },
+    {
+      "card_id": "hts.base.v1.hero.qi-bear",
+      "name": "Qi Bear",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Qi_Bear"
+    },
+    {
+      "card_id": "hts.base.v1.hero.tough-teddy",
+      "name": "Tough Teddy",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Tough_Teddy"
+    },
+    {
+      "card_id": "hts.base.v1.hero.calming-voice",
+      "name": "Calming Voice",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Calming_Voice"
+    },
+    {
+      "card_id": "hts.base.v1.hero.guiding-light",
+      "name": "Guiding Light",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Guiding_Light"
+    },
+    {
+      "card_id": "hts.base.v1.hero.holy-curselifter",
+      "name": "Holy Curselifter",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Holy_Curselifter"
+    },
+    {
+      "card_id": "hts.base.v1.hero.iron-resolve",
+      "name": "Iron Resolve",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Iron_Resolve"
+    },
+    {
+      "card_id": "hts.base.v1.hero.mighty-blade",
+      "name": "Mighty Blade",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Mighty_Blade"
+    },
+    {
+      "card_id": "hts.base.v1.hero.radiant-horn",
+      "name": "Radiant Horn",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Radiant_Horn"
+    },
+    {
+      "card_id": "hts.base.v1.hero.vibrant-glow",
+      "name": "Vibrant Glow",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Vibrant_Glow"
+    },
+    {
+      "card_id": "hts.base.v1.hero.wise-shield",
+      "name": "Wise Shield",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Wise_Shield"
+    },
+    {
+      "card_id": "hts.base.v1.hero.bullseye",
+      "name": "Bullseye",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Bullseye"
+    },
+    {
+      "card_id": "hts.base.v1.hero.hook",
+      "name": "Hook",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Hook"
+    },
+    {
+      "card_id": "hts.base.v1.hero.lookie-rookie",
+      "name": "Lookie Rookie",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Lookie_Rookie"
+    },
+    {
+      "card_id": "hts.base.v1.hero.quick-draw",
+      "name": "Quick Draw",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Quick_Draw"
+    },
+    {
+      "card_id": "hts.base.v1.hero.serious-grey",
+      "name": "Serious Grey",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Serious_Grey"
+    },
+    {
+      "card_id": "hts.base.v1.hero.sharp-fox",
+      "name": "Sharp Fox",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Sharp_Fox"
+    },
+    {
+      "card_id": "hts.base.v1.hero.wildshot",
+      "name": "Wildshot",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Wildshot"
+    },
+    {
+      "card_id": "hts.base.v1.hero.wily-red",
+      "name": "Wily Red",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Wily_Red"
+    },
+    {
+      "card_id": "hts.base.v1.hero.kit-napper",
+      "name": "Kit Napper",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Kit_Napper"
+    },
+    {
+      "card_id": "hts.base.v1.hero.meowzio",
+      "name": "Meowzio",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Meowzio"
+    },
+    {
+      "card_id": "hts.base.v1.hero.plundering-puma",
+      "name": "Plundering Puma",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Plundering_Puma"
+    },
+    {
+      "card_id": "hts.base.v1.hero.shurikitty",
+      "name": "Shurikitty",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Shurikitty"
+    },
+    {
+      "card_id": "hts.base.v1.hero.silent-shadow",
+      "name": "Silent Shadow",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Silent_Shadow"
+    },
+    {
+      "card_id": "hts.base.v1.hero.slippery-paws",
+      "name": "Slippery Paws",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Slippery_Paws"
+    },
+    {
+      "card_id": "hts.base.v1.hero.sly-pickings",
+      "name": "Sly Pickings",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Sly_Pickings"
+    },
+    {
+      "card_id": "hts.base.v1.hero.smooth-mimimeow",
+      "name": "Smooth Mimimeow",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Smooth_Mimimeow"
+    },
+    {
+      "card_id": "hts.base.v1.hero.bun-bun",
+      "name": "Bun Bun",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Bun_Bun"
+    },
+    {
+      "card_id": "hts.base.v1.hero.buttons",
+      "name": "Buttons",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Buttons"
+    },
+    {
+      "card_id": "hts.base.v1.hero.fluffy",
+      "name": "Fluffy",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Fluffy"
+    },
+    {
+      "card_id": "hts.base.v1.hero.hopper",
+      "name": "Hopper",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Hopper"
+    },
+    {
+      "card_id": "hts.base.v1.hero.snowball",
+      "name": "Snowball",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Snowball"
+    },
+    {
+      "card_id": "hts.base.v1.hero.spooky",
+      "name": "Spooky",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Spooky"
+    },
+    {
+      "card_id": "hts.base.v1.hero.whiskers",
+      "name": "Whiskers",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Whiskers"
+    },
+    {
+      "card_id": "hts.base.v1.hero.wiggles",
+      "name": "Wiggles",
+      "quantity": "1",
+      "inventory_section": "Heroes",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Wiggles"
+    },
+    {
+      "card_id": "hts.base.v1.item.bard-mask",
+      "name": "Bard Mask",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Bard_Mask"
+    },
+    {
+      "card_id": "hts.base.v1.item.decoy-doll",
+      "name": "Decoy Doll",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Decoy_Doll"
+    },
+    {
+      "card_id": "hts.base.v1.item.fighter-mask",
+      "name": "Fighter Mask",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Fighter_Mask"
+    },
+    {
+      "card_id": "hts.base.v1.item.guardian-mask",
+      "name": "Guardian Mask",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Guardian_Mask"
+    },
+    {
+      "card_id": "hts.base.v1.item.particularly-rusty-coin",
+      "name": "Particularly Rusty Coin",
+      "quantity": "2",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Particularly_Rusty_Coin"
+    },
+    {
+      "card_id": "hts.base.v1.item.ranger-mask",
+      "name": "Ranger Mask",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Ranger_Mask"
+    },
+    {
+      "card_id": "hts.base.v1.item.really-big-ring",
+      "name": "Really Big Ring",
+      "quantity": "2",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Really_Big_Ring"
+    },
+    {
+      "card_id": "hts.base.v1.item.thief-mask",
+      "name": "Thief Mask",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Thief_Mask"
+    },
+    {
+      "card_id": "hts.base.v1.item.wizard-mask",
+      "name": "Wizard Mask",
+      "quantity": "1",
+      "inventory_section": "Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Wizard_Mask"
+    },
+    {
+      "card_id": "hts.base.v1.cursed-item.curse-of-the-snakes-eyes",
+      "name": "Curse of the Snake's Eyes",
+      "quantity": "2",
+      "inventory_section": "Cursed Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Curse_of_the_Snake%27s_Eyes"
+    },
+    {
+      "card_id": "hts.base.v1.cursed-item.sealing-key",
+      "name": "Sealing Key",
+      "quantity": "1",
+      "inventory_section": "Cursed Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Sealing_Key"
+    },
+    {
+      "card_id": "hts.base.v1.cursed-item.suspiciously-shiny-coin",
+      "name": "Suspiciously Shiny Coin",
+      "quantity": "1",
+      "inventory_section": "Cursed Items",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Suspiciously_Shiny_Coin"
+    },
+    {
+      "card_id": "hts.base.v1.modifier.modifier-plus-1-minus-3",
+      "name": "Modifier +1/-3",
+      "quantity": "4",
+      "inventory_section": "Modifiers",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Modifier_%2B1/-3"
+    },
+    {
+      "card_id": "hts.base.v1.modifier.modifier-plus-2-minus-2",
+      "name": "Modifier +2/-2",
+      "quantity": "9",
+      "inventory_section": "Modifiers",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Modifier_%2B2/-2"
+    },
+    {
+      "card_id": "hts.base.v1.modifier.modifier-plus-3-minus-1",
+      "name": "Modifier +3/-1",
+      "quantity": "4",
+      "inventory_section": "Modifiers",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Modifier_%2B3/-1"
+    },
+    {
+      "card_id": "hts.base.v1.modifier.modifier-plus-4",
+      "name": "Modifier +4",
+      "quantity": "4",
+      "inventory_section": "Modifiers",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Modifier_%2B4"
+    },
+    {
+      "card_id": "hts.base.v1.modifier.modifier-minus-4",
+      "name": "Modifier -4",
+      "quantity": "4",
+      "inventory_section": "Modifiers",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Modifier_-4"
+    },
+    {
+      "card_id": "hts.base.v1.magic.call-to-the-fallen",
+      "name": "Call to the Fallen",
+      "quantity": "1",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Call_to_the_Fallen"
+    },
+    {
+      "card_id": "hts.base.v1.magic.critical-boost",
+      "name": "Critical Boost",
+      "quantity": "2",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Critical_Boost"
+    },
+    {
+      "card_id": "hts.base.v1.magic.destructive-spell",
+      "name": "Destructive Spell",
+      "quantity": "2",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Destructive_Spell"
+    },
+    {
+      "card_id": "hts.base.v1.magic.enchanted-spell",
+      "name": "Enchanted Spell",
+      "quantity": "2",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Enchanted_Spell"
+    },
+    {
+      "card_id": "hts.base.v1.magic.entangling-trap",
+      "name": "Entangling Trap",
+      "quantity": "2",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Entangling_Trap"
+    },
+    {
+      "card_id": "hts.base.v1.magic.forced-exchange",
+      "name": "Forced Exchange",
+      "quantity": "1",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Forced_Exchange"
+    },
+    {
+      "card_id": "hts.base.v1.magic.forceful-winds",
+      "name": "Forceful Winds",
+      "quantity": "1",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Forceful_Winds"
+    },
+    {
+      "card_id": "hts.base.v1.magic.winds-of-change",
+      "name": "Winds of Change",
+      "quantity": "2",
+      "inventory_section": "Magic",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Winds_of_Change"
+    },
+    {
+      "card_id": "hts.base.v1.challenge.challenge",
+      "name": "Challenge",
+      "quantity": "14",
+      "inventory_section": "Challenges",
+      "inventory_card_url": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_-_Challenge"
+    }
+  ]
+}

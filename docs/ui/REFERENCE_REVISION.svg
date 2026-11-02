@@ -1,0 +1,212 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2480" height="1480" viewBox="0 0 2480 1480" role="img" aria-labelledby="title desc">
+<title id="title">Reference-informed tabletop and reaction mockups</title>
+<desc id="desc">Four desktop review mockups: game table, hero roll modifier, challenge prompt and challenge versus. All cards and values are placeholders.</desc>
+<style>.bg{fill:#101d2b}.board{fill:#f8f8f5;stroke:#060d17;stroke-width:12}.chrome{fill:#142336;stroke:#050a12;stroke-width:5}.panel{fill:#101722;stroke:#64748b;stroke-width:3}.card{fill:#19212c;stroke:#e9edf0;stroke-width:4}.monster{fill:#3b2530;stroke:#f0a85a;stroke-width:4}.ghost{fill:#eef0ed;stroke:#9ca3af;stroke-width:3}.txt{font-family:Consolas,monospace;fill:#eaf2f5;font-weight:700}.ink{font-family:Consolas,monospace;fill:#152231;font-weight:700}.small{font:15px Consolas,monospace}.mid{font:22px Consolas,monospace;font-weight:700}.big{font:32px Consolas,monospace;font-weight:700}.huge{font:72px Consolas,monospace;font-weight:700}.yellow{fill:#ffc21a}.green{fill:#36d27c}.red{fill:#ff6363}.blue{fill:#63a5ff}.muted{fill:#aab4c0}.cut{stroke:#ff9e28;stroke-width:3;fill:none}.dim{fill:#08101bcc}.label{font:13px Consolas,monospace;fill:#aab4c0;font-weight:700}.demo{font:12px Consolas,monospace;fill:#687585;font-weight:700}</style>
+<defs>
+<g id="chrome">
+<path class="chrome" d="M0 28L28 0H1172L1200 28V650L1172 680H28L0 650Z"/>
+<path class="cut" d="M18 45L45 18H1155M18 635L45 662H1155"/>
+</g>
+<g id="phcard">
+<rect width="130" height="185" rx="3" class="card"/>
+<path d="M9 45H121V120H9Z" fill="#31556e"/>
+<path d="M14 112L54 62L85 102L112 72V120H14Z" fill="#6c3b79"/>
+<rect x="10" y="10" width="36" height="19" fill="#31d281"/>
+<text x="28" y="25" text-anchor="middle" class="label">?</text>
+<text x="65" y="145" text-anchor="middle" class="txt small">CARD</text>
+<text x="65" y="165" text-anchor="middle" class="demo">PLACEHOLDER</text>
+</g>
+<g id="reactioncard">
+<rect width="185" height="266" rx="3" fill="#182333" stroke="#2f6eff" stroke-width="7"/>
+<path d="M16 59H169V177H16Z" fill="#5b346e"/>
+<path d="M23 168L60 82L101 142L148 90V177H23Z" fill="#18a3a0"/>
+<rect x="15" y="16" width="54" height="24" fill="#2dd782"/>
+<text x="92" y="207" text-anchor="middle" class="txt mid">ACTIVE CARD</text>
+<text x="92" y="232" text-anchor="middle" class="demo">DEMO ONLY</text>
+</g>
+<g id="roster">
+<rect width="252" height="190" rx="5" class="panel"/>
+<text x="18" y="29" class="txt small">REACTION ROSTER</text>
+<rect x="17" y="46" width="218" height="28" fill="#1d2a3a"/>
+<text x="28" y="66" class="txt small">P1 · WAITING</text>
+<rect x="17" y="82" width="218" height="28" fill="#1d2a3a"/>
+<text x="28" y="102" class="txt small green">P2 · COMPLETED</text>
+<rect x="17" y="118" width="218" height="28" fill="#1d2a3a"/>
+<text x="28" y="138" class="txt small">P3 · WAITING</text>
+<text x="18" y="173" class="demo">1 Modifier or Skip = Done · Base 2–6 / +Expansion max 8</text>
+</g>
+</defs>
+<rect class="bg" width="2480" height="1480"/>
+<text x="30" y="42" class="txt big">REFERENCE REVISION · DESKTOP REVIEW SHEET · ALL VALUES / CARDS ARE DEMO</text>
+<g transform="translate(30 70)">
+<use href="#chrome"/>
+<text x="40" y="49" class="txt mid">01 · TABLETOP · BASE 2–6 · +EXPANSION MAX 8</text>
+<text x="1010" y="49" class="demo">MOCKUP</text>
+<path class="board" d="M28 94L68 68H1132L1172 94V555L1132 585H68L28 555Z"/>
+<g transform="translate(90 144)">
+<circle r="31" fill="#5d90c8"/>
+<text y="7" text-anchor="middle" class="ink mid">A</text>
+<rect x="-49" y="40" width="98" height="25" class="panel"/>
+<text y="58" text-anchor="middle" class="txt small">OPPONENT</text>
+</g>
+<g transform="translate(600 122)">
+<circle r="31" fill="#d17c68"/>
+<text y="7" text-anchor="middle" class="ink mid">B</text>
+<rect x="-49" y="40" width="98" height="25" class="panel"/>
+<text y="58" text-anchor="middle" class="txt small">OPPONENT</text>
+</g>
+<g transform="translate(1090 144)">
+<circle r="31" fill="#76a979"/>
+<text y="7" text-anchor="middle" class="ink mid">C</text>
+<rect x="-49" y="40" width="98" height="25" class="panel"/>
+<text y="58" text-anchor="middle" class="txt small">OPPONENT</text>
+</g>
+<text x="600" y="205" text-anchor="middle" class="ink mid">3 MONSTERS</text>
+<g transform="translate(391 222)">
+<rect width="126" height="177" class="monster"/>
+<text x="63" y="75" text-anchor="middle" class="txt mid">MONSTER</text>
+<text x="63" y="101" text-anchor="middle" class="demo">PLACEHOLDER</text>
+</g>
+<g transform="translate(537 222)">
+<rect width="126" height="177" class="monster"/>
+<text x="63" y="75" text-anchor="middle" class="txt mid">MONSTER</text>
+<text x="63" y="101" text-anchor="middle" class="demo">PLACEHOLDER</text>
+</g>
+<g transform="translate(683 222)">
+<rect width="126" height="177" class="monster"/>
+<text x="63" y="75" text-anchor="middle" class="txt mid">MONSTER</text>
+<text x="63" y="101" text-anchor="middle" class="demo">PLACEHOLDER</text>
+</g>
+<rect x="82" y="300" width="90" height="122" class="ghost"/>
+<text x="127" y="351" text-anchor="middle" class="ink mid">DRAW</text>
+<text x="127" y="374" text-anchor="middle" class="demo">DECK</text>
+<rect x="184" y="326" width="75" height="96" class="ghost"/>
+<text x="221" y="367" text-anchor="middle" class="ink small">DISCARD</text>
+<g transform="translate(508 432)">
+<circle r="35" fill="#b06acb"/>
+<text y="8" text-anchor="middle" class="ink big">YOU</text>
+<rect x="-116" y="45" width="232" height="42" class="panel"/>
+<text y="71" text-anchor="middle" class="txt small">LEADER · PARTY ROW</text>
+</g>
+<g transform="translate(366 506) rotate(-13)">
+<use href="#phcard"/>
+</g>
+<g transform="translate(490 495) rotate(-5)">
+<use href="#phcard"/>
+</g>
+<g transform="translate(620 495) rotate(4)">
+<use href="#phcard"/>
+</g>
+<g transform="translate(746 506) rotate(12)">
+<use href="#phcard"/>
+</g>
+<rect x="890" y="485" width="122" height="40" fill="#ff8b20" stroke="#1a0d08" stroke-width="4"/>
+<text x="951" y="512" text-anchor="middle" class="ink mid">DRAW</text>
+<rect x="1025" y="485" width="132" height="40" fill="#e8eef4" stroke="#1a0d08" stroke-width="4"/>
+<text x="1091" y="512" text-anchor="middle" class="ink mid">REDEAL</text>
+<rect x="1015" y="537" width="142" height="35" fill="#172131"/>
+<text x="1086" y="561" text-anchor="middle" class="txt mid">END TURN</text>
+</g>
+<g transform="translate(1250 70)">
+<use href="#chrome"/>
+<text x="40" y="49" class="txt mid">02 · HERO ROLL / MODIFIER · 20s</text>
+<path class="board" d="M28 94L68 68H1132L1172 94V555L1132 585H68L28 555Z"/>
+<rect x="28" y="68" width="1144" height="517" class="dim"/>
+<text x="600" y="112" text-anchor="middle" class="txt big">ACTIVE HERO ROLL · DEMO</text>
+<text x="600" y="194" text-anchor="middle" class="yellow huge">20s</text>
+<text x="600" y="225" text-anchor="middle" class="txt mid">MODIFIER WINDOW</text>
+<g transform="translate(76 240)">
+<use href="#reactioncard"/>
+</g>
+<text x="372" y="288" text-anchor="middle" class="yellow mid">ROLLED</text>
+<text x="372" y="343" text-anchor="middle" class="txt huge">?</text>
+<text x="530" y="288" text-anchor="middle" class="yellow mid">MODIFIER</text>
+<text x="530" y="343" text-anchor="middle" class="txt huge">±?</text>
+<text x="690" y="288" text-anchor="middle" class="yellow mid">TOTAL</text>
+<text x="690" y="343" text-anchor="middle" class="txt huge">?</text>
+<text x="847" y="288" text-anchor="middle" class="yellow mid">REQUIRED</text>
+<text x="847" y="343" text-anchor="middle" class="txt huge">?</text>
+<g transform="translate(465 386) rotate(-18)">
+<rect width="48" height="48" fill="#9865d3" stroke="#eaeaea" stroke-width="4"/>
+<text x="24" y="34" text-anchor="middle" class="txt big">?</text>
+</g>
+<g transform="translate(555 405) rotate(15)">
+<rect width="48" height="48" fill="#6b9fe9" stroke="#eaeaea" stroke-width="4"/>
+<text x="24" y="34" text-anchor="middle" class="txt big">?</text>
+</g>
+<g transform="translate(882 235)">
+<use href="#roster"/>
+</g>
+<g transform="translate(391 492) rotate(-7)">
+<use href="#phcard"/>
+</g>
+<g transform="translate(522 490) rotate(5)">
+<use href="#phcard"/>
+</g>
+<rect x="842" y="510" width="274" height="47" fill="#ff8b20" stroke="#1a0d08" stroke-width="4"/>
+<text x="979" y="541" text-anchor="middle" class="ink big">SKIP</text>
+<text x="839" y="580" class="demo">one Modifier or Skip = Completed · all complete closes early</text>
+</g>
+<g transform="translate(30 780)">
+<use href="#chrome"/>
+<text x="40" y="49" class="txt mid">03 · CHALLENGE PROMPT · 20s</text>
+<path class="board" d="M28 94L68 68H1132L1172 94V555L1132 585H68L28 555Z"/>
+<rect x="28" y="68" width="1144" height="517" class="dim"/>
+<text x="600" y="118" text-anchor="middle" class="txt big">CARD PLAY · ELIGIBLE FOR CHALLENGE</text>
+<text x="600" y="198" text-anchor="middle" class="yellow huge">20s</text>
+<g transform="translate(76 230)">
+<use href="#reactioncard"/>
+</g>
+<text x="595" y="350" text-anchor="middle" class="txt huge">CHALLENGE?</text>
+<text x="595" y="385" text-anchor="middle" class="muted mid">Hero / Item / Magic play only</text>
+<text x="595" y="416" text-anchor="middle" class="yellow small">NOT A HERO-EFFECT ROLL</text>
+<g transform="translate(882 255)">
+<use href="#roster"/>
+</g>
+<rect x="760" y="500" width="344" height="52" fill="#ff8b20" stroke="#1a0d08" stroke-width="4"/>
+<text x="932" y="534" text-anchor="middle" class="ink big">SKIP</text>
+<text x="441" y="570" class="demo">Skip = Completed · all eligible complete closes early; no Continue implied.</text>
+</g>
+<g transform="translate(1250 780)">
+<use href="#chrome"/>
+<text x="40" y="49" class="txt mid">04 · CHALLENGE VERSUS · 20s</text>
+<path class="board" d="M28 94L68 68H1132L1172 94V555L1132 585H68L28 555Z"/>
+<rect x="28" y="68" width="1144" height="517" class="dim"/>
+<text x="600" y="120" text-anchor="middle" class="txt big">CHALLENGE RESOLUTION · DEMO</text>
+<text x="600" y="188" text-anchor="middle" class="yellow huge">20s</text>
+<g transform="translate(65 245)">
+<use href="#reactioncard"/>
+</g>
+<text x="432" y="260" text-anchor="middle" class="red big">ACTOR</text>
+<text x="758" y="260" text-anchor="middle" class="blue big">CHALLENGER</text>
+<g transform="translate(338 294)">
+<text x="0" y="0" class="yellow mid">ROLL</text>
+<text x="7" y="57" class="txt huge">?</text>
+<text x="125" y="0" class="yellow mid">MOD</text>
+<text x="139" y="57" class="txt huge">±?</text>
+<text x="255" y="0" class="yellow mid">TOTAL</text>
+<text x="272" y="57" class="txt huge">?</text>
+</g>
+<g transform="translate(687 294)">
+<text x="0" y="0" class="yellow mid">ROLL</text>
+<text x="7" y="57" class="txt huge">?</text>
+<text x="125" y="0" class="yellow mid">MOD</text>
+<text x="139" y="57" class="txt huge">±?</text>
+<text x="255" y="0" class="yellow mid">TOTAL</text>
+<text x="272" y="57" class="txt huge">?</text>
+</g>
+<text x="600" y="447" text-anchor="middle" class="yellow huge">VS</text>
+<g transform="translate(882 383)">
+<use href="#roster"/>
+</g>
+<g transform="translate(378 494) rotate(-6)">
+<use href="#phcard"/>
+</g>
+<g transform="translate(510 490) rotate(5)">
+<use href="#phcard"/>
+</g>
+<rect x="777" y="510" width="326" height="47" fill="#ff8b20" stroke="#1a0d08" stroke-width="4"/>
+<text x="940" y="541" text-anchor="middle" class="ink big">SKIP</text>
+<text x="640" y="580" class="demo">server rolls both sides; client displays dice / animation · first valid Challenge wins</text>
+</g>
+</svg>
