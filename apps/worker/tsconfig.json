@@ -3,6 +3,7 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "lib": ["ES2023", "DOM"],
+    "resolveJsonModule": true,
     "rewriteRelativeImportExtensions": true
   },
   "include": ["src/**/*.ts"]
