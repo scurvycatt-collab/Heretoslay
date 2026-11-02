@@ -1,7 +1,8 @@
 // Builds the real base-game decks from the CAT-001 reference catalog.
-// IDs/kinds only: no card text, effects or artwork (rights UNVERIFIED).
+// IDs/kinds + display name (GAME-004 data); no artwork (rights UNVERIFIED).
 
 import type { BaseCardKind, BaseCardView } from "@here-to-slay/protocol";
+import { BASE_CARDS_BY_ID } from "../content/base-cards.ts";
 import { BASE_REFERENCE_PHYSICAL_COPIES } from "../content/base-reference.ts";
 import type { BaseReferencePhysicalCopy } from "../content/types.ts";
 
@@ -38,9 +39,10 @@ export function baseLeaderPool(): string[] {
 export function monsterView(instanceId: string): BaseCardView {
   const card = MONSTER_BY_INSTANCE.get(instanceId);
   if (!card) throw new Error(`Unknown base monster instance ${instanceId}`);
-  return { ...card };
+  return cardView(card);
 }
 
 export function cardView(card: BaseCard): BaseCardView {
-  return { cardId: card.cardId, definitionId: card.definitionId, kind: card.kind };
+  const name = BASE_CARDS_BY_ID.get(card.definitionId)?.name ?? card.definitionId;
+  return { cardId: card.cardId, definitionId: card.definitionId, kind: card.kind, name };
 }

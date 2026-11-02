@@ -144,7 +144,8 @@ export type RoomSliceCommand =
   | ReactionCommand
   | OpenReactionDemoCommand
   | SetupSliceCommand
-  | EffectSliceCommand;
+  | EffectSliceCommand
+  | BaseTurnCommand;
 /** "base" is the real game (GAME-001); the *_demo modes use synthetic fixtures. */
 export type RoomCreateMode = "reaction_demo" | "setup_demo" | "effect_demo" | "base";
 export type DemoRoomMode = Exclude<RoomCreateMode, "base">;
@@ -342,7 +343,112 @@ export interface RoomSliceValidationResult {
   issues: string[];
 }
 
+const BASE_TURN_KINDS = new Set([
+  "PLAY_HAND_CARD",
+  "USE_HERO_EFFECT",
+  "ATTACK_MONSTER",
+  "IMMEDIATE_ROLL",
+  "REACT_CHALLENGE",
+  "REACT_MODIFIER",
+  "REACT_PASS",
+  "RESOLVE_CHOICE",
+  "LEADER_ACTION",
+]);
+
+function validateBaseTargets(value: unknown, issues: string[]): void {
+  if (value === undefined) return;
+  if (!isRecord(value)) {
+    issues.push("payload.targets must be an object");
+    return;
+  }
+  for (const key of Object.keys(value)) {
+    if (key !== "playerId" && key !== "heroInstanceIds") issues.push(`payload.targets.${key} is not allowed`);
+  }
+  if (value.playerId !== undefined && !isNonEmptyString(value.playerId)) {
+    issues.push("payload.targets.playerId must be a string");
+  }
+  if (
+    value.heroInstanceIds !== undefined &&
+    (!Array.isArray(value.heroInstanceIds) ||
+      value.heroInstanceIds.length > 2 ||
+      !value.heroInstanceIds.every(isNonEmptyString))
+  ) {
+    issues.push("payload.targets.heroInstanceIds must be up to 2 strings");
+  }
+}
+
+/** Shape validation for mode-"base" turn commands (GAME-002). Rules live in the worker. */
+function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValidationResult {
+  const issues: string[] = [];
+  if (!isNonEmptyString(value.commandId)) issues.push("commandId is required");
+  if (!Number.isInteger(value.expectedRevision) || Number(value.expectedRevision) < 0) {
+    issues.push("expectedRevision is required");
+  }
+  const payload = value.payload;
+  if (!isRecord(payload)) {
+    issues.push("payload is required");
+    return { ok: false, issues };
+  }
+  const need = (key: string) => {
+    if (!isNonEmptyString(payload[key])) issues.push(`payload.${key} is required`);
+  };
+  switch (value.kind) {
+    case "PLAY_HAND_CARD":
+      need("cardInstanceId");
+      validateBaseTargets(payload.targets, issues);
+      break;
+    case "USE_HERO_EFFECT":
+      need("heroInstanceId");
+      validateBaseTargets(payload.targets, issues);
+      break;
+    case "ATTACK_MONSTER":
+      need("monsterInstanceId");
+      break;
+    case "IMMEDIATE_ROLL":
+      if (payload.choice !== "roll" && payload.choice !== "skip") issues.push("payload.choice must be roll or skip");
+      validateBaseTargets(payload.targets, issues);
+      break;
+    case "REACT_CHALLENGE":
+      need("windowId");
+      need("cardInstanceId");
+      break;
+    case "REACT_MODIFIER":
+      need("windowId");
+      need("cardInstanceId");
+      if (!Number.isInteger(payload.value)) issues.push("payload.value must be an integer");
+      if (payload.side !== undefined && payload.side !== "challenger" && payload.side !== "defender") {
+        issues.push("payload.side must be challenger or defender");
+      }
+      if (payload.leaderBonus !== undefined && payload.leaderBonus !== 1 && payload.leaderBonus !== -1) {
+        issues.push("payload.leaderBonus must be 1 or -1");
+      }
+      break;
+    case "REACT_PASS":
+      need("windowId");
+      break;
+    case "RESOLVE_CHOICE":
+      need("choiceId");
+      if (
+        !Array.isArray(payload.cardInstanceIds) ||
+        payload.cardInstanceIds.length > 10 ||
+        !payload.cardInstanceIds.every(isNonEmptyString)
+      ) {
+        issues.push("payload.cardInstanceIds must be an array of strings");
+      }
+      break;
+    case "LEADER_ACTION":
+      need("targetPlayerId");
+      break;
+  }
+  return issues.length === 0
+    ? { ok: true, command: value as unknown as BaseTurnCommand, issues }
+    : { ok: false, issues };
+}
+
 export function validateRoomSliceCommand(value: unknown): RoomSliceValidationResult {
+  if (isRecord(value) && typeof value.kind === "string" && BASE_TURN_KINDS.has(value.kind)) {
+    return validateBaseTurnCommand(value);
+  }
   if (isRecord(value) && value.kind === "OPEN_REACTION_DEMO") {
     const issues: string[] = [];
     if (!isNonEmptyString(value.commandId)) issues.push("commandId is required");
@@ -783,6 +889,21 @@ export interface EffectDemoSnapshot {
 export type RoomSliceSnapshot = ReactionSliceSnapshot | SetupDemoSnapshot | EffectDemoSnapshot;
 
 export type {
+  AttackMonsterCommand,
+  BaseChainView,
+  BaseGameSettings,
+  BaseRollView,
+  BaseTargets,
+  BaseTurnCommand,
+  BaseTurnCommandKind,
+  ImmediateRollCommand,
+  LeaderActionCommand,
+  PlayHandCardCommand,
+  ReactChallengeCommand,
+  ReactModifierCommand,
+  ReactPassCommand,
+  ResolveChoiceCommand,
+  UseHeroEffectCommand,
   BaseCardKind,
   BaseCardView,
   BaseGameCommand,
@@ -790,7 +911,7 @@ export type {
   BaseGamePhase,
   BaseGameSnapshot,
 } from "./game/base";
-import type { BaseGameSnapshot } from "./game/base";
+import type { BaseGameSnapshot, BaseTurnCommand } from "./game/base";
 export type {
   CardData,
   CardDataFile,

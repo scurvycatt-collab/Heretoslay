@@ -24,7 +24,9 @@ import {
 } from "@here-to-slay/protocol";
 import {
   applyBaseCommand,
+  baseNextDeadline,
   initialBaseGameState,
+  settleBaseGame,
   isBaseGameCommand,
   projectBaseGame,
   type BaseGameState,
@@ -784,6 +786,7 @@ function consumeCard(
 }
 
 function nextEffectDeadline(state: PersistedRoomState): number | null {
+  if (roomMode(state) === "base") return state.game ? baseNextDeadline(state.game) : null;
   const reactionDeadline = state.reaction && !state.reaction.resolved
     ? state.reaction.deadlineAt
     : null;
@@ -985,6 +988,10 @@ export class RoomDurableObject {
       if (roomMode(state) === "effect_demo") {
         await this.settleExpiredEffect(state, now, txn);
       }
+      if (roomMode(state) === "base" && state.game) {
+        // Expired windows/choices close before the command is judged (timer never resets).
+        if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) state.revision += 1;
+      }
       await txn.put(ROOM_STATE_KEY, state);
       return { state, player };
     });
@@ -1033,6 +1040,10 @@ export class RoomDurableObject {
       if (roomMode(state) === "effect_demo") {
         await this.settleExpiredEffect(state, now, txn);
       }
+      if (roomMode(state) === "base" && state.game) {
+        // Expired windows/choices close before the command is judged (timer never resets).
+        if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) state.revision += 1;
+      }
 
       if (
         roomMode(state) === "base" ||
@@ -1060,7 +1071,9 @@ export class RoomDurableObject {
         }
         let outcome: CommandOutcome;
         if (roomMode(state) === "base") {
-          outcome = this.applyBaseGameCommand(state, player, command);
+          outcome = this.applyBaseGameCommand(state, player, command, now);
+          const deadline = state.game ? baseNextDeadline(state.game) : null;
+          if (deadline !== null) await txn.setAlarm(deadline);
         } else if (command.kind === "OPEN_REACTION_DEMO") {
           outcome =
             roomMode(state) === "reaction_demo"
@@ -1087,7 +1100,10 @@ export class RoomDurableObject {
         return { state, player, outcome };
       }
 
-      if (roomMode(state) !== "reaction_demo" && roomMode(state) !== "effect_demo") {
+      if (
+        (roomMode(state) !== "reaction_demo" && roomMode(state) !== "effect_demo") ||
+        (command.kind !== "PLAY_CHALLENGE" && command.kind !== "PLAY_MODIFIER" && command.kind !== "SKIP_REACTION")
+      ) {
         const outcome = this.commandOutcome(state, command.commandId, "MODE_MISMATCH");
         await txn.put(ROOM_STATE_KEY, state);
         return { state, player, outcome };
@@ -1152,10 +1168,15 @@ export class RoomDurableObject {
   }
 
   /** Mode "base": DO keeps revision/idempotency; game rules live in ./game/base-game.ts. */
+  baseDeps(now: number) {
+    return { newId: this.randomUUID, shuffle: this.shuffle, rollDice: this.rollDice, now: () => now };
+  }
+
   applyBaseGameCommand(
     state: PersistedRoomState,
     player: PersistedPlayer,
     command: RoomSliceCommand,
+    now: number,
   ): CommandOutcome {
     const game = (state.game ??= initialBaseGameState());
     if (!isBaseGameCommand(command)) {
@@ -1164,10 +1185,7 @@ export class RoomDurableObject {
     if (command.expectedRevision !== state.revision) {
       return this.commandOutcome(state, command.commandId, "STALE_REVISION");
     }
-    const code = applyBaseCommand(game, baseRoster(state), player.playerId, command, {
-      newId: this.randomUUID,
-      shuffle: this.shuffle,
-    });
+    const code = applyBaseCommand(game, baseRoster(state), player.playerId, command, this.baseDeps(now));
     if (code !== "ACCEPTED") return this.commandOutcome(state, command.commandId, code);
     state.revision += 1;
     return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
@@ -1656,6 +1674,16 @@ export class RoomDurableObject {
       const stored = await txn.get<PersistedRoomState>(ROOM_STATE_KEY);
       if (!stored) return;
       const state = normalizeState(stored);
+      if (roomMode(state) === "base") {
+        if (!state.game) return;
+        if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) {
+          state.revision += 1;
+          await txn.put(ROOM_STATE_KEY, state);
+        }
+        const deadline = baseNextDeadline(state.game);
+        if (deadline !== null) await txn.setAlarm(deadline);
+        return;
+      }
       if (roomMode(state) === "effect_demo") {
         await this.settleExpiredEffect(state, now, txn);
         await txn.put(ROOM_STATE_KEY, state);

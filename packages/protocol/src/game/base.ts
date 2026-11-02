@@ -24,9 +24,105 @@ export interface BaseCardView {
   cardId: string;
   definitionId: string;
   kind: BaseCardKind;
+  /** Display name from card data (GAME-004). */
+  name: string;
 }
 
-export type BaseGamePhase = "lobby" | "leader_selection" | "turn_active";
+export type BaseGamePhase = "lobby" | "leader_selection" | "turn_active" | "game_over";
+
+/**
+ * Targets chosen up front (Q-08) for a card/Hero effect; re-validated on resolve.
+ * Shape per card `target` rule (docs/content/BASE_CARD_DATA.md):
+ * other_player → playerId; hero_other_party / own_hero / any_hero_with_item /
+ * own_hero_with_cursed_item → heroInstanceIds[0]; two_heroes_other_party → 2 ids;
+ * hero_other_party_and_own_hero → [theirHero, ownHero]. Items: heroInstanceIds[0] = equip target.
+ */
+export interface BaseTargets {
+  playerId?: string;
+  heroInstanceIds?: string[];
+}
+
+interface BaseCommandBase {
+  commandId: string;
+  expectedRevision: number;
+}
+
+/** 1 AP: play a Hero, Item/Cursed Item or Magic from hand (opens the Challenge window). */
+export interface PlayHandCardCommand extends BaseCommandBase {
+  kind: "PLAY_HAND_CARD";
+  payload: { cardInstanceId: string; targets?: BaseTargets };
+}
+
+/** 1 AP: roll for the effect of a Hero in your Party (once per Hero per turn). Pressing Roll = this command; server rolls (Q-10). */
+export interface UseHeroEffectCommand extends BaseCommandBase {
+  kind: "USE_HERO_EFFECT";
+  payload: { heroInstanceId: string; targets?: BaseTargets };
+}
+
+/** 2 AP: attack a face-up Monster; server rolls (Q-10). */
+export interface AttackMonsterCommand extends BaseCommandBase {
+  kind: "ATTACK_MONSTER";
+  payload: { monsterInstanceId: string };
+}
+
+/** Free: after a Hero enters your Party from your hand, roll its effect now (no AP) or skip. */
+export interface ImmediateRollCommand extends BaseCommandBase {
+  kind: "IMMEDIATE_ROLL";
+  payload: { choice: "roll" | "skip"; targets?: BaseTargets };
+}
+
+/** Reaction: CHALLENGE the pending card (first valid wins). */
+export interface ReactChallengeCommand extends BaseCommandBase {
+  kind: "REACT_CHALLENGE";
+  payload: { windowId: string; cardInstanceId: string };
+}
+
+/**
+ * Reaction: play one Modifier on the open roll. `value` must be one of the card's
+ * options. `side` is required on a Challenge roll (whose roll to modify).
+ */
+export interface ReactModifierCommand extends BaseCommandBase {
+  kind: "REACT_MODIFIER";
+  payload: {
+    windowId: string;
+    cardInstanceId: string;
+    value: number;
+    side?: "challenger" | "defender";
+    /** The Protecting Horn passive: extra +1 or -1 on the same roll (Q-11 display). */
+    leaderBonus?: 1 | -1;
+  };
+}
+
+/** Reaction: Skip (completes this player's part of the window). */
+export interface ReactPassCommand extends BaseCommandBase {
+  kind: "REACT_PASS";
+  payload: { windowId: string };
+}
+
+/** Answer a pending choice (discard / sacrifice / give / take from discard ...). */
+export interface ResolveChoiceCommand extends BaseCommandBase {
+  kind: "RESOLVE_CHOICE";
+  payload: { choiceId: string; cardInstanceIds: string[] };
+}
+
+/** Leader skill that costs AP (base: The Shadow Claw, 1 AP, once per turn). */
+export interface LeaderActionCommand extends BaseCommandBase {
+  kind: "LEADER_ACTION";
+  payload: { targetPlayerId: string };
+}
+
+export type BaseTurnCommand =
+  | PlayHandCardCommand
+  | UseHeroEffectCommand
+  | AttackMonsterCommand
+  | ImmediateRollCommand
+  | ReactChallengeCommand
+  | ReactModifierCommand
+  | ReactPassCommand
+  | ResolveChoiceCommand
+  | LeaderActionCommand;
+
+export type BaseTurnCommandKind = BaseTurnCommand["kind"];
 
 /**
  * Commands accepted in mode "base" (GAME-001). Same shapes and validation as the
@@ -34,7 +130,7 @@ export type BaseGamePhase = "lobby" | "leader_selection" | "turn_active";
  * command interfaces to this union, to `validateRoomSliceCommand`, and a handler
  * in apps/worker/src/game/base-game.ts `BASE_TURN_HANDLERS`.
  */
-export type BaseGameCommand = SetupSliceCommand;
+export type BaseGameCommand = SetupSliceCommand | BaseTurnCommand;
 export type BaseGameCommandKind = BaseGameCommand["kind"];
 
 export interface BaseGameSnapshot {
@@ -52,8 +148,14 @@ export interface BaseGameSnapshot {
     handCount: number;
     /** Party Leader definitionId (placed in Party per RULE-03), or null. */
     leaderId: string | null;
-    /** Non-leader Party cards (Heroes/Items). Empty until GAME-002. */
-    party: BaseCardView[];
+    /** Leader class (for the 6-class win; Leader counts, RULE-23). */
+    leaderClass: string | null;
+    /** Heroes in Party with their equipped Item (if any). */
+    party: Array<{ hero: BaseCardView; item: BaseCardView | null; classes: string[] }>;
+    slainMonsters: BaseCardView[];
+    /** Distinct classes in Party incl. Leader (6 = class win at end of own turn). */
+    partyClasses: string[];
+    protections: Array<"no_destroy" | "no_steal">;
   }>;
   /** Viewer-private: only the requesting seat's hand is ever serialized. */
   yourHand: BaseCardView[];
@@ -72,5 +174,80 @@ export interface BaseGameSnapshot {
     monsterDeckCount: number;
     faceUpMonsters: BaseCardView[];
     discardCount: number;
+    /** Hero instance ids whose effect was already rolled this turn. */
+    heroRollsUsed: string[];
+    /** Current turn's +N to all rolls of the active player (Wise Shield etc.). */
+    turnRollBonus: number;
+    /** What is being resolved right now (null = free for turn actions). */
+    chain: BaseChainView | null;
+    winnerPlayerId: string | null;
+    winReason: "slay_3" | "six_classes" | null;
+    /** Last public events, newest last (bounded). */
+    log: Array<{ seq: number; text: string }>;
+    settings: BaseGameSettings;
   };
 }
+
+export interface BaseGameSettings {
+  reactionSeconds: number;
+  choiceSeconds: number;
+  /** Q-01: owner chose false (Leader does not fill a Monster class slot). */
+  leaderFillsClassSlot: boolean;
+  /** Q-04: owner chose "add" (Mask adds its class); card text reads "replace". */
+  maskMode: "add" | "replace";
+  /** Q-11: owner default false — Leader passive does not use the player's Modifier slot. */
+  leaderPassiveUsesModifierSlot: boolean;
+}
+
+export interface BaseRollView {
+  kind: "hero_effect" | "attack" | "challenge";
+  rollerPlayerId: string;
+  dice: [number, number];
+  /** Challenge only: the challenger's dice. */
+  challengerPlayerId?: string;
+  challengerDice?: [number, number];
+  modifiers: Array<{ playerId: string; cardId: string; value: number; side?: "challenger" | "defender" }>;
+  /** Passive bonuses (Leader, slain Monster, Item, turn buffs) shown separately (Q-11). */
+  passives: Array<{ source: string; label: string; value: number; side?: "challenger" | "defender" }>;
+  total: number;
+  challengerTotal?: number;
+  /** For hero_effect: threshold; for attack: monster card. */
+  heroInstanceId?: string;
+  monsterInstanceId?: string;
+  threshold?: number;
+}
+
+export type BaseChainView =
+  | {
+      step: "challenge_window";
+      windowId: string;
+      deadlineAt: number;
+      actorPlayerId: string;
+      pendingCard: BaseCardView;
+      responders: Record<string, "pending" | "passed">;
+    }
+  | {
+      step: "modifier_window";
+      windowId: string;
+      deadlineAt: number;
+      roll: BaseRollView;
+      responders: Record<string, "pending" | "passed" | "played">;
+    }
+  | {
+      step: "immediate_roll_choice";
+      deadlineAt: number;
+      actorPlayerId: string;
+      hero: BaseCardView;
+    }
+  | {
+      step: "choice";
+      choiceId: string;
+      deadlineAt: number;
+      playerId: string;
+      kind: "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set";
+      min: number;
+      max: number;
+      prompt: string;
+      /** Only for the chooser (and only public/own cards): what may be picked. */
+      options?: BaseCardView[];
+    };
