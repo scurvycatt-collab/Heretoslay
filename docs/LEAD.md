@@ -5,11 +5,13 @@
 Visual/content (card art, text, UI polish) do Codex — không dispatch sang đây.
 
 ## Khởi động mỗi chat mới
-Repo chưa có remote GitHub. Nguồn sự thật trong session cloud: /home/claude/hts (git, nhánh main).
-Máy owner (E:\Code\here-to-slay-web) nhận bản sync tại mỗi checkpoint (tar các file đổi qua bridge).
-Session mới: tar repo trên máy → stage → `git init` lại nếu container mất; hoặc gắn remote GitHub (khuyến nghị, xem Chờ owner quyết).
-Sau đó: `npm ci && npm run verify`, đọc LEAD.md + board.
-Query board: tasks với status != done. Đọc ticket liên quan, không đọc code trước khi có task.
+Nguồn sự thật: GitHub https://github.com/scurvycatt-collab/heretoslay (nhánh main).
+```
+git clone https://github.com/scurvycatt-collab/heretoslay hts && cd hts
+git config core.hooksPath .githooks && npm ci && npm run verify
+```
+Đọc docs/LEAD.md (Trạng thái + Việc tiếp theo) + CLAUDE.md + board. Không đọc code trước khi có task.
+Máy owner: E:\Code\here-to-slay-web (chưa có git) — sync bằng tar qua bridge khi chat Lead có link máy.
 
 ## Công cụ & link
 - Board: https://claude.ai/artifact/1efXb5aNZ26Y6GwgsGjQyh
@@ -59,18 +61,19 @@ Chưa setup. Cần: wrangler secret, domain, Cloudflare account của owner.
 ---
 
 ## Trạng thái
-**2026-11-02 12:35 — CHECKPOINT 82% session usage.** Không giao task mới.
-- main (cloud /home/claude/hts): baseline + T00 (npm ci fix, verify, hook, type=module) + RULES-001 merged.
-- GAME-001 xong trên nhánh agent/arch-heavy/GAME-001 (verify xanh: worker 29, protocol 11, integration 22/1 skip). Đang chờ reviewer độc lập → merge.
-- RULES-001: docs/rules/RULES-001_TURN_LOOP_SPEC.md, Q-01..Q-12 chờ owner trả lời TỪNG câu (owner chọn xem từng câu).
-- Card data: owner chốt Codex nhập, engine làm schema (GAME-004). Card Maker: xem ADR-003.
-- GitHub scurvycatt-collab/heretoslay: clone được, PUSH BỊ TỪ CHỐI (chưa cài Claude GitHub App).
+**2026-11-02 12:50** — main đã push GitHub. Merged: T00, RULES-001, GAME-001 (base room thật, logic ở apps/worker/src/game/).
+Owner đã chốt Q-01..Q-12 (docs/decisions/product-decisions.md, mục cuối). Q-11 còn chờ xác nhận chi tiết (default: passive Leader không chiếm suất Modifier, cấu hình được).
+Owner đổi: engine side nhập luôn data cơ chế/effect của thẻ; art do Codex sau.
+Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
 
-## Việc tiếp theo
-1. Reviewer GAME-001 → sửa finding → merge main → push GitHub (khi có quyền).
-2. GAME-004 schema + validator + CARD_TEMPLATE_SPEC (ADR-003) — arch sonnet low.
-3. Sau khi owner trả lời Q-01..12: ghi product-decisions → GAME-002 (arch-heavy opus medium) → GAME-003.
-4. UI-001 wiring lobby base mode; QA-001.
+## Việc tiếp theo (theo thứ tự)
+1. GAME-004 — schema card data + nhập data cơ chế base + validator + CARD_TEMPLATE_SPEC (ADR-003).
+2. GAME-002 — turn loop đầy đủ theo RULES-001 spec + product decisions.
+3. GAME-003 — win condition.
+4. MOD-005 — chọn Modifier cụ thể + option giá trị.
+5. QA-001 — test end-to-end + các nit từ review GAME-001.
+6. UI-001 — wiring lobby/bàn chơi base tối thiểu (style để Codex).
+Deploy Cloudflare (DEPL-001) để SAU khi sản phẩm xong.
 
 ## Chờ owner quyết
 - Gắn remote GitHub để có PR/CI thật (hiện merge cục bộ trong session cloud)
