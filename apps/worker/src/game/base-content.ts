@@ -43,6 +43,8 @@ export function monsterView(instanceId: string): BaseCardView {
 }
 
 export function cardView(card: BaseCard): BaseCardView {
-  const name = BASE_CARDS_BY_ID.get(card.definitionId)?.name ?? card.definitionId;
-  return { cardId: card.cardId, definitionId: card.definitionId, kind: card.kind, name };
+  const data = BASE_CARDS_BY_ID.get(card.definitionId);
+  const view: BaseCardView = { cardId: card.cardId, definitionId: card.definitionId, kind: card.kind, name: data?.name ?? card.definitionId };
+  if (data?.kind === "modifier") view.modifierOptions = [...data.options];
+  return view;
 }
