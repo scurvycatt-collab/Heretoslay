@@ -9,7 +9,7 @@
 | EF-UI-CLEANUP-001 | ui | done | One renderer; webtypecheck/build PASS |
 | GAME-001 | arch | done | Base room thật (merged trước session cloud) |
 | UI-001 | ui | todo | Lobby UI (deps: GAME-001) |
-| GAME-002 | arch-heavy | doing | Turn loop đầy đủ base (deps: GAME-004) |
+| GAME-002 | arch-heavy | done | Turn loop base: PLAY/Challenge/Modifier window, hero roll, ATTACK, choice, deadline qua DO alarm; review 0 critical, MAJOR đã sửa; worker 46 / integ 25 |
 | GAME-003 | arch | todo | Win condition (deps: GAME-002) |
 | MOD-005 | arch | todo | MOD-SELECT picker (deps: GAME-001) |
 | GAME-004 | arch-heavy | done | Card schema + data 95 def/136 copy có provenance, validator, CARD_TEMPLATE_SPEC.json; review sửa xong; verify worker 34 / protocol 11 / integ 22+1skip |

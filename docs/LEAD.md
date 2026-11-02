@@ -61,7 +61,7 @@ Chưa setup. Cần: wrangler secret, domain, Cloudflare account của owner.
 ---
 
 ## Trạng thái
-**2026-11-02 (cloud)** — GAME-004 DONE: `packages/protocol/src/cards.ts` + `apps/worker/src/content/base-cards.{json,ts}` + `docs/contracts/CARD_TEMPLATE_SPEC.json`; nguồn/sai lệch ở `docs/content/BASE_CARD_DATA.md`. Đang GAME-002.
+**2026-11-02 (cloud)** — GAME-004 DONE: `packages/protocol/src/cards.ts` + `apps/worker/src/content/base-cards.{json,ts}` + `docs/contracts/CARD_TEMPLATE_SPEC.json`; nguồn/sai lệch ở `docs/content/BASE_CARD_DATA.md`. GAME-002 DONE: engine `apps/worker/src/game/base-engine.ts` (+ base-rules.ts), contract GAME_ROOM_API.md. Đang GAME-003.
 
 **2026-11-02 12:50** — main đã push GitHub. Merged: T00, RULES-001, GAME-001 (base room thật, logic ở apps/worker/src/game/).
 Owner đã chốt Q-01..Q-12 (docs/decisions/product-decisions.md, mục cuối). Q-11 còn chờ xác nhận chi tiết (default: passive Leader không chiếm suất Modifier, cấu hình được).
@@ -77,6 +77,9 @@ Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
 Deploy Cloudflare (DEPL-001) để SAU khi sản phẩm xong.
 
 ## Chờ owner quyết
+- **Default hết giờ choice** (discard/sacrifice/give/lấy từ discard): server chọn `min` lá đầu tiên. Owner có muốn random hay khác?
+- **"may" có lợi cho chính chủ** (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma) đang áp dụng tự động. Owner có muốn hỏi người chơi?
+- Effect chưa mô hình hoá (log no-op): Fuzzy Cheeks, Mellow Dee, Pan Chucks, Qi Bear, Beary Wise, Bullseye, Hook, Quick Draw, Sharp Fox, Silent Shadow, Snowball, Wiggles, phần "play immediately"; skill slain Corrupted Sabretooth/Malamammoth/Orthus/Rex Major. Cần task tiếp (GAME-005?).
 - **Q-01 vs rulebook**: bản text rulebook retail (Wayback) ghi class requirement có thể thỏa bởi "a Hero card or the <class> Party Leader card". Engine theo Q-01 (Leader KHÔNG thỏa), có setting `leaderFillsClassSlot` để đổi.
 - **Q-04 vs card text**: Mask ghi "considered a <class> **instead of** its original class" (thay, không cộng). Engine theo Q-04 (cộng), setting `maskMode: add|replace`.
 - Data thẻ chỉ từ nguồn community (không scan retail): 1 lệch penalty (Dark Dragon King 4- vs 7-), DISCARD 1 vs 2 cho 6 Monster — chọn đa số, ghi trong BASE_CARD_DATA.md.
