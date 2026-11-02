@@ -67,7 +67,19 @@ Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settin
 "with a <class> in their Party" (Tough Teddy, Smooth Mimimeow) counts the Leader's class: the Leader is in the Party (RB). Q-01 only concerns Monster requirement slots.
 
 ### Effects
-Effects run as data steps keyed by card `effectId` (GAME-004). Implemented: see `buildEffect` in `apps/worker/src/game/base-engine.ts`. Not yet modelled (logged no-op): Fuzzy Cheeks, Mellow Dee, Pan Chucks, Qi Bear, Beary Wise, Bullseye, Hook, Quick Draw, Sharp Fox, Silent Shadow, Snowball, Wiggles, and "may play it immediately" parts; slain-Monster passives Corrupted Sabretooth, Malamammoth, Orthus, Rex Major. "may" clauses (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma's victim draw) open a `confirm` choice for that player (owner 2026-11-02).
+Effects run as data steps keyed by card `effectId` (GAME-004); every base Hero/Magic `effectId` has a handler (GAME-005). An unknown id is a logged no-op. Interactive parts use `chain.step = "choice"`:
+
+| `kind` | used by | answer (`RESOLVE_CHOICE`) |
+|---|---|---|
+| `discard` / `discard_from_set` / `sacrifice_hero` / `give_card` / `take_from_discard` | penalties, Heavy Bear, Hopper, Spooky, Greedy Cheeks, Guiding Light…, Beary Wise (from the discarded cards) | card ids |
+| `confirm` | every "may" (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma, Rex Major, Pan Chucks reveal, Corrupted Sabretooth steal-instead) | `cardInstanceIds: []`, `accept` |
+| `play_card` | "play it immediately": Fuzzy Cheeks, Hook (mandatory), Mellow Dee, Lucky Bucky, Sly Pickings, Buttons, Snowball, Quick Draw, Malamammoth, Orthus (optional, `[]` = skip) | 1 card id + its `targets`; played free (no AP), can still be Challenged |
+| `destroy_hero` | Pan Chucks, Qi Bear (one per discarded card) | 1 Hero id in another Party |
+| `take_from_top` | Bullseye (top 3, private) | 1 id; the other 2 stay on top in the same order (order choice not offered) |
+| `view_hand` | Sharp Fox (private) | `[]` to close |
+| `take_from_hand` | Silent Shadow (private) | 1 id |
+
+Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
 
 ## Outcome
 
