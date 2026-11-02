@@ -145,7 +145,9 @@ export type RoomSliceCommand =
   | OpenReactionDemoCommand
   | SetupSliceCommand
   | EffectSliceCommand;
-export type RoomCreateMode = "reaction_demo" | "setup_demo" | "effect_demo";
+/** "base" is the real game (GAME-001); the *_demo modes use synthetic fixtures. */
+export type RoomCreateMode = "reaction_demo" | "setup_demo" | "effect_demo" | "base";
+export type DemoRoomMode = Exclude<RoomCreateMode, "base">;
 
 interface ServerEventBase {
   eventId: string;
@@ -779,6 +781,19 @@ export interface EffectDemoSnapshot {
 }
 
 export type RoomSliceSnapshot = ReactionSliceSnapshot | SetupDemoSnapshot | EffectDemoSnapshot;
+
+export type {
+  BaseCardKind,
+  BaseCardView,
+  BaseGameCommand,
+  BaseGameCommandKind,
+  BaseGamePhase,
+  BaseGameSnapshot,
+} from "./game/base";
+import type { BaseGameSnapshot } from "./game/base";
+
+/** Every snapshot shape a room can return: demo slices plus the real base game. */
+export type RoomSnapshot = RoomSliceSnapshot | BaseGameSnapshot;
 
 export function projectRoomForPlayer(
   state: AuthoritativeRoomState,
