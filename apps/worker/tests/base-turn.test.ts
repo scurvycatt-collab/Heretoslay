@@ -299,3 +299,24 @@ test("privacy: choice options only for the chooser; other hands never serialized
   assert.ok(theirs.game.chain?.step === "choice" && theirs.game.chain.options === undefined);
   assert.equal(JSON.stringify(theirs).includes(seat(t, me).hand[0].cardId), false);
 });
+
+test("Tipsy Tootie: blocked STEAL (Calming Voice) → Tootie stays; Magic stays out of a reshuffle while resolving", () => {
+  const t = table();
+  const me = active(t);
+  const them = other(t);
+  const tootie = placeHero(t, me, "tipsy-tootie");
+  const target = placeHero(t, them, "peanut");
+  seat(t, them).protections.noSteal = true;
+  t.dice.push([6, 6]);
+  t.run(me, "USE_HERO_EFFECT", { heroInstanceId: tootie.cardId, targets: { heroInstanceIds: [target.cardId] } });
+  passAll(t);
+  assert.deepEqual(seat(t, me).party.map((h) => h.card.cardId), [tootie.cardId]);
+  assert.deepEqual(seat(t, them).party.map((h) => h.card.cardId), [target.cardId]);
+
+  const boost = give(t, me, "hts.base.v1.magic.critical-boost");
+  t.game.mainDeck = [];
+  t.game.discard = [];
+  t.run(me, "PLAY_HAND_CARD", { cardInstanceId: boost.cardId });
+  passAll(t);
+  assert.equal(seat(t, me).hand.some((card) => card.cardId === boost.cardId), false);
+});

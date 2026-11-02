@@ -131,7 +131,8 @@ export type Step =
     }
   | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string }
   | { op: "steal"; heroCardId: string; toPlayerId: string }
-  | { op: "move_hero"; heroCardId: string; toPlayerId: string }
+  | { op: "move_hero"; heroCardId: string; toPlayerId: string; onlyIfOwns?: { heroCardId: string; playerId: string } }
+  | { op: "discard_card"; card: BaseCard }
   | { op: "trade_hands"; a: string; b: string }
   | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean }
   | { op: "roll_bonus"; n: number }
@@ -334,7 +335,11 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
     case "hero.tipsy-tootie": {
       const victim = ownerOf(h[0]);
       return sourceCardId
-        ? [{ op: "steal", heroCardId: h[0], toPlayerId: actorId }, { op: "move_hero", heroCardId: sourceCardId, toPlayerId: victim }]
+        ? [
+            { op: "steal", heroCardId: h[0], toPlayerId: actorId },
+            // "and move this card to that player's Party" — only if the steal happened.
+            { op: "move_hero", heroCardId: sourceCardId, toPlayerId: victim, onlyIfOwns: { heroCardId: h[0], playerId: actorId } },
+          ]
         : [{ op: "steal", heroCardId: h[0], toPlayerId: actorId }];
     }
     case "hero.meowzio": {
@@ -421,7 +426,7 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       const victim = ownerOf(h[0]);
       return [
         { op: "steal", heroCardId: h[0], toPlayerId: actorId },
-        { op: "move_hero", heroCardId: h[1], toPlayerId: victim },
+        { op: "move_hero", heroCardId: h[1], toPlayerId: victim, onlyIfOwns: { heroCardId: h[0], playerId: actorId } },
       ];
     }
     case "magic.forceful-winds":
@@ -529,11 +534,18 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       const found = findHero(game, step.heroCardId);
       const to = seatOf(game, step.toPlayerId);
       if (!found || !to || found.seat === to) return false;
+      if (step.onlyIfOwns && findHero(game, step.onlyIfOwns.heroCardId)?.seat.playerId !== step.onlyIfOwns.playerId) {
+        log(game, "Không STEAL được — không chuyển Hero");
+        return false;
+      }
       found.seat.party.splice(found.index, 1);
       to.party.push(found.hero);
       log(game, `${cardName(found.hero.card.definitionId)} chuyển sang Party của ${whoName(game, step.toPlayerId)}`);
       return false;
     }
+    case "discard_card":
+      game.discard.push(step.card);
+      return false;
     case "trade_hands": {
       const a = seatOf(game, step.a);
       const b = seatOf(game, step.b);
@@ -945,9 +957,10 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     const steps = invalid
       ? [{ op: "log", text: `${cardName(card.definitionId)}: mục tiêu không còn hợp lệ — không có hiệu ứng` } as Step]
       : buildEffect(game, data?.effectId ?? null, attempt.actorId, attempt.targets, card.cardId);
-    game.discard.push(card);
     // The Cloaked Sage: "Each time you play a Magic card, DRAW a card."
     if (leaderIs(actor, "the-cloaked-sage")) steps.push({ op: "draw", playerId: attempt.actorId, n: 1 });
+    // PC-CB-04: the Magic card stays pending (not reshufflable) until its effect resolved.
+    steps.push({ op: "discard_card", card });
     game.queue.push(...steps);
   }
 }
@@ -1022,6 +1035,9 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     const index = game.faceUpMonsters.indexOf(roll.monsterId);
     if (index >= 0) game.faceUpMonsters.splice(index, 1);
     roller.slain.push(roll.monsterId);
+    if (UNMODELLED_SLAIN.has(monster.definitionId)) {
+      log(game, `Kỹ năng của ${monster.name} chưa được hỗ trợ — bỏ qua (no-op)`);
+    }
     if (hooks.afterSlay(game, roller)) return; // WIN-SLAY-T: stop, no refill (Q-03)
     // DECK-03 refill; Q-09: no refill when the Monster deck is empty.
     const next = game.monsterDeck.shift();
@@ -1040,6 +1056,14 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     );
   }
 }
+
+/** Slain-Monster skills not modelled yet (logged no-op on slay). */
+const UNMODELLED_SLAIN = new Set([
+  "hts.base.v1.monster.corrupted-sabretooth",
+  "hts.base.v1.monster.malamammoth",
+  "hts.base.v1.monster.orthus",
+  "hts.base.v1.monster.rex-major",
+]);
 
 // ---------------------------------------------------------------- deadlines
 
