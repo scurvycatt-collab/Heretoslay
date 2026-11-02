@@ -67,7 +67,8 @@ export interface HeroCardData extends CardCommon {
   heroClass: HeroClass;
   /** Effect succeeds when final roll ≥ rollThreshold. */
   rollThreshold: number;
-  effectId: string;
+  /** null only when the effect is UNVERIFIED (engine then no-ops with a log line). */
+  effectId: string | null;
   target: TargetRule;
 }
 
@@ -79,7 +80,7 @@ export interface MonsterCardData extends CardCommon {
   penalty: MonsterPenalty;
   penaltyText: string;
   /** Passive granted while the Monster is slain in your Party. */
-  slainEffectId: string;
+  slainEffectId: string | null;
 }
 
 export interface ItemCardData extends CardCommon {
@@ -88,12 +89,12 @@ export interface ItemCardData extends CardCommon {
   equip: "own_hero" | "any_hero";
   /** Mask class (Q-04: added to the equipped Hero's classes). null for non-Mask. */
   maskClass: HeroClass | null;
-  effectId: string;
+  effectId: string | null;
 }
 
 export interface MagicCardData extends CardCommon {
   kind: "magic";
-  effectId: string;
+  effectId: string | null;
   target: TargetRule;
 }
 
@@ -110,7 +111,7 @@ export interface ChallengeCardData extends CardCommon {
 export interface LeaderCardData extends CardCommon {
   kind: "party_leader";
   heroClass: HeroClass;
-  effectId: string;
+  effectId: string | null;
   /** Player counts in which this Leader may not be chosen (Shadow Claw: [2]). */
   bannedPlayerCounts: number[];
 }

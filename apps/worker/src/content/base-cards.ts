@@ -76,6 +76,8 @@ export function validateCardData(file: CardDataFile): string[] {
   if (file.rightsStatus !== "UNVERIFIED") errors.push("rightsStatus must stay UNVERIFIED");
   const sourceKeys = new Set(Object.keys(file.sources ?? {}));
   const seen = new Set<string>();
+  const effectIds = new Set<string>();
+  const effectIdOk = (value: string | null, prefix: string) => value === null || value.startsWith(prefix);
 
   for (const card of file.cards) {
     const where = card.definitionId ?? "<missing id>";
@@ -92,21 +94,34 @@ export function validateCardData(file: CardDataFile): string[] {
         continue;
       }
       if (!FIELD_STATUSES.includes(entry.status)) errors.push(`${where}: bad status for ${field}`);
-      for (const source of entry.sources) {
+      if (!Array.isArray(entry.sources)) {
+        errors.push(`${where}: sources for ${field} must be an array`);
+        continue;
+      }
+      const distinct = new Set(entry.sources);
+      if (distinct.size !== entry.sources.length) errors.push(`${where}: duplicate source on ${field}`);
+      for (const source of distinct) {
         if (!sourceKeys.has(source)) errors.push(`${where}: unknown source ${source} on ${field}`);
       }
-      if (entry.status !== "UNVERIFIED" && entry.status !== "derived" && entry.sources.length === 0) {
+      if (entry.status !== "UNVERIFIED" && entry.status !== "derived" && distinct.size === 0) {
         errors.push(`${where}: ${field} is ${entry.status} without sources`);
       }
-      if (entry.status === "corroborated" && entry.sources.length < 2) {
-        errors.push(`${where}: ${field} corroborated needs ≥2 sources`);
+      if ((entry.status === "corroborated" || entry.status === "majority") && distinct.size < 2) {
+        errors.push(`${where}: ${field} ${entry.status} needs ≥2 distinct sources`);
       }
       const value = (card as unknown as Record<string, unknown>)[field];
       if (value === null && entry.status !== "UNVERIFIED" && !NULLABLE_FIELDS.has(field)) {
         errors.push(`${where}: ${field} is null but not UNVERIFIED`);
       }
-      if (entry.status === "UNVERIFIED" && value !== null && field !== "effectId") {
+      if (entry.status === "UNVERIFIED" && value !== null) {
         errors.push(`${where}: ${field} is UNVERIFIED but has a value`);
+      }
+    }
+    for (const field of ["effectId", "slainEffectId"]) {
+      const value = (card as unknown as Record<string, unknown>)[field];
+      if (typeof value === "string") {
+        if (effectIds.has(value)) errors.push(`${where}: duplicate ${field} ${value}`);
+        effectIds.add(value);
       }
     }
     if (card.text !== null && typeof card.text !== "string") errors.push(`${where}: text`);
@@ -118,7 +133,7 @@ export function validateCardData(file: CardDataFile): string[] {
           errors.push(`${where}: rollThreshold`);
         }
         if (!TARGET_RULES.includes(card.target)) errors.push(`${where}: target`);
-        if (!card.effectId?.startsWith("hero.")) errors.push(`${where}: effectId`);
+        if (!effectIdOk(card.effectId, "hero.")) errors.push(`${where}: effectId`);
         break;
       case "monster":
         errors.push(...validateMonster(card));
@@ -131,11 +146,14 @@ export function validateCardData(file: CardDataFile): string[] {
         if (card.maskClass !== null && !HERO_CLASSES.includes(card.maskClass)) {
           errors.push(`${where}: maskClass`);
         }
-        if (!card.effectId?.startsWith("item.")) errors.push(`${where}: effectId`);
+        if ((card.maskClass !== null) !== / Mask$/.test(card.name)) {
+          errors.push(`${where}: maskClass only on Mask items`);
+        }
+        if (!effectIdOk(card.effectId, "item.")) errors.push(`${where}: effectId`);
         break;
       case "magic":
         if (!TARGET_RULES.includes(card.target)) errors.push(`${where}: target`);
-        if (!card.effectId?.startsWith("magic.")) errors.push(`${where}: effectId`);
+        if (!effectIdOk(card.effectId, "magic.")) errors.push(`${where}: effectId`);
         break;
       case "modifier":
         if (!Array.isArray(card.options) || card.options.length === 0 || !card.options.every(isInt)) {
@@ -147,8 +165,11 @@ export function validateCardData(file: CardDataFile): string[] {
         break;
       case "party_leader":
         if (!HERO_CLASSES.includes(card.heroClass)) errors.push(`${where}: heroClass`);
-        if (!card.effectId?.startsWith("leader.")) errors.push(`${where}: effectId`);
-        if (!Array.isArray(card.bannedPlayerCounts) || !card.bannedPlayerCounts.every(isInt)) {
+        if (!effectIdOk(card.effectId, "leader.")) errors.push(`${where}: effectId`);
+        if (
+          !Array.isArray(card.bannedPlayerCounts) ||
+          !card.bannedPlayerCounts.every((count) => isInt(count) && count >= 2 && count <= 6)
+        ) {
           errors.push(`${where}: bannedPlayerCounts`);
         }
         break;
@@ -186,7 +207,10 @@ function validateMonster(card: MonsterCardData): string[] {
       errors.push(`${where}: requirement slot`);
     }
   }
-  if (!isRoll(card.slay) || !isRoll(card.penaltyRange)) errors.push(`${where}: roll ranges`);
+  const inDiceRange = (roll: { value: number }) => roll.value >= 2 && roll.value <= 12;
+  if (!isRoll(card.slay) || !isRoll(card.penaltyRange) || !inDiceRange(card.slay) || !inDiceRange(card.penaltyRange)) {
+    errors.push(`${where}: roll ranges`);
+  }
   else {
     // Ranges must not overlap: a final roll is SLAY, PENALTY or NONE, never two.
     const overlaps =
@@ -203,7 +227,11 @@ function validateMonster(card: MonsterCardData): string[] {
   ) {
     errors.push(`${where}: penalty`);
   }
-  if (!card.slainEffectId?.startsWith("monster.")) errors.push(`${where}: slainEffectId`);
+  if (penalty && typeof card.penaltyText === "string") {
+    const expected = penalty.effectId === "penalty.discard" ? `DISCARD ${penalty.count}` : "SACRIFICE";
+    if (!card.penaltyText.includes(expected)) errors.push(`${where}: penaltyText does not match penalty`);
+  } else errors.push(`${where}: penaltyText`);
+  if (card.slainEffectId !== null && !card.slainEffectId?.startsWith("monster.")) errors.push(`${where}: slainEffectId`);
   return errors;
 }
 

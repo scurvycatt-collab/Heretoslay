@@ -89,12 +89,34 @@ test("validator rejects bad data", () => {
 
   const overlap = clone();
   const monster = overlap.cards.find((card) => card.kind === "monster")!;
-  if (monster.kind === "monster") monster.penaltyRange = { op: "lte", value: 99 };
+  if (monster.kind === "monster") monster.penaltyRange = { op: "lte", value: 12 };
   assert.match(validateCardData(overlap).join("\n"), /overlap/);
 
   const missingCard = clone();
   missingCard.cards = missingCard.cards.slice(1);
   assert.match(validateCardData(missingCard).join("\n"), /missing from card data/);
+
+  const duplicateSource = clone();
+  const corroborated = duplicateSource.cards.find((card) => card.provenance.text.status === "corroborated")!;
+  corroborated.provenance.text.sources = ["S", "S"];
+  assert.match(validateCardData(duplicateSource).join("\n"), /duplicate source on text/);
+
+  const sameOp = clone();
+  const dracos = sameOp.cards.find((card) => card.definitionId === "hts.base.v1.monster.dracos")!;
+  if (dracos.kind === "monster") dracos.penaltyRange = { op: "lte", value: 3 };
+  assert.match(validateCardData(sameOp).join("\n"), /dracos: slay and penalty ranges overlap/);
+
+  const unverifiedEffect = clone();
+  const someHero = unverifiedEffect.cards.find((card) => card.kind === "hero")!;
+  if (someHero.kind === "hero") someHero.effectId = null;
+  assert.match(validateCardData(unverifiedEffect).join("\n"), /effectId is null but not UNVERIFIED/);
+  someHero.provenance.effectId = { status: "UNVERIFIED", sources: [] };
+  assert.doesNotMatch(validateCardData(unverifiedEffect).join("\n"), /effectId/);
+
+  const strayMask = clone();
+  const doll = strayMask.cards.find((card) => card.definitionId === "hts.base.v1.item.decoy-doll")!;
+  if (doll.kind === "item") doll.maskClass = "bard";
+  assert.match(validateCardData(strayMask).join("\n"), /maskClass only on Mask items/);
 
   const badQty = clone();
   badQty.cards[0].quantity = 7;

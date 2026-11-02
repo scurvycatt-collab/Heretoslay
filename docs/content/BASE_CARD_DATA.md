@@ -20,9 +20,9 @@ Ngày: 2026-11-02. Owner: arch-heavy. Trạng thái: DONE (data secondary, right
 | N | 1nk-bl0t/HereToSlay `HereToSlayMain.py` | text Magic (Forceful Winds chỉ có ở đây) |
 | F | fandom wikitext (dump trong DavidManiaM/HereToSlay @0dad4c7) | text/requirement một số thẻ |
 | RB | bản text rulebook retail (Wayback copy, cùng repo DavidManiaM) | Shadow Claw cấm 2 người |
-| PM | `BASE_LEADER_ARTIFACT_CHECK.md` | class/skill Leader |
+| PM | `BASE_LEADER_ARTIFACT_CHECK.md` | chỉ ghi chú nhất quán (kiểm tra nội bộ, không tính là nguồn độc lập) |
 
-Mỗi field cơ chế có `provenance[field] = { status, sources, note? }`; `status` ∈ `corroborated` (≥2 nguồn khớp) · `single_source` · `majority` (lệch, lấy đa số, ghi bất đồng) · `derived` (annotation engine suy từ text: effectId, target) · `UNVERIFIED` (null). Hiện không field nào UNVERIFIED.
+Mỗi field cơ chế có `provenance[field] = { status, sources, note? }`; `status` ∈ `corroborated` (≥2 nguồn khớp) · `single_source` · `majority` (lệch, lấy đa số, ghi bất đồng) · `derived` (annotation engine suy từ text: effectId, target) · `UNVERIFIED` (null). Hiện không field nào UNVERIFIED. `effectId`/`slainEffectId` được phép null khi UNVERIFIED (engine no-op + log).
 
 ## Độ phủ
 - Hero 48: class + roll khớp **S·J·L** (3/3) cho cả 48. Text: 33 corroborated, 15 single_source.
@@ -42,7 +42,9 @@ Mỗi field cơ chế có `provenance[field] = { status, sources, note? }`; `sta
 1. **Q-01** (Leader không thỏa slot class): text rulebook retail (bản Wayback) ghi *"you must have a Wizard in your Party (either a Hero card or the Wizard Party Leader card)"*. Engine theo Q-01 nhưng để cấu hình được.
 2. **Q-04** (Mask cộng class): text thẻ ghi *"considered a Bard **instead of** its original class"*. Engine theo Q-04 (union) nhưng để cấu hình được (`replace`).
 
-## Target rule (`derived`)
+## Target rule (`derived`, nguồn S + RB glossary)
+RB định nghĩa: *DESTROY = move a card from another player's Party*, *STEAL = … from another player's Party to your own*, *SACRIFICE = from your own Party*. Vì vậy target DESTROY/STEAL chỉ là Hero trong Party người khác.
+
 `none` · `other_player` · `hero_other_party` · `two_heroes_other_party` · `hero_other_party_and_own_hero` · `own_hero` · `own_hero_with_cursed_item` · `any_hero_with_item`. Chọn lúc PLAY/ROLL (Q-08), server validate lại khi resolve.
 
 ## Cập nhật data
