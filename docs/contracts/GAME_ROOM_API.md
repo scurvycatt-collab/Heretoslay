@@ -39,11 +39,11 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 | `PLAY_HAND_CARD` | `{ cardInstanceId, targets? }` | current player, ≥1 AP, nothing pending | Hero/Item/Cursed Item/Magic from hand → `pending`, −1 AP, opens Challenge window (skipped if uncatchable: Iron Resolve, Warworn Owlbear for Items). Item target `targets.heroInstanceIds[0]`: Item → own Hero, Cursed → any Hero (Q-06), Hero without Item. Magic targets per card `target` rule (Q-08) |
 | `USE_HERO_EFFECT` | `{ heroInstanceId, targets? }` | current player, ≥1 AP | once per Hero per turn; −1 AP; server rolls 2d6 (Q-10) → Modifier window → effect if total ≥ threshold. Sealing Key → `HERO_EFFECT_BLOCKED` |
 | `IMMEDIATE_ROLL` | `{ choice: "roll"\|"skip", targets? }` | actor, after own Hero entered Party | free roll of that Hero's effect (consumes its allowance) or skip; timeout = skip |
-| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12, Leader never fills a slot by default — Q-01); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, refill from Monster deck unless empty — Q-09) / PENALTY (choice) / nothing |
+| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12); the Leader fills a matching class slot but never an "any" slot (retail rulebook, owner 2026-11-02 — `leaderFillsClassSlot`); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, refill from Monster deck unless empty — Q-09) / PENALTY (choice) / nothing |
 | `REACT_CHALLENGE` | `{ windowId, cardInstanceId }` | any non-actor while the Challenge window is open | first valid wins; server rolls both (RULE-17), then a Modifier window; challenger wins ties |
 | `REACT_MODIFIER` | `{ windowId, cardInstanceId, value, side?, leaderBonus? }` | any player, once per window | `value` ∈ card options; `side` (`challenger`\|`defender`) required only on Challenge rolls; `leaderBonus` ±1 only with The Protecting Horn |
 | `REACT_PASS` | `{ windowId }` | eligible responder | Skip; window closes early when all responded |
-| `RESOLVE_CHOICE` | `{ choiceId, cardInstanceIds }` | chooser | discard / sacrifice / give / take-from-discard; count in `[min,max]` |
+| `RESOLVE_CHOICE` | `{ choiceId, cardInstanceIds, accept? }` | chooser | discard / sacrifice / give / take-from-discard: ids, count in `[min,max]`; `confirm` (a "may" clause): `cardInstanceIds: []` + `accept: true\|false` |
 | `LEADER_ACTION` | `{ targetPlayerId }` | The Shadow Claw holder, 1 AP, once per turn | pull 1 random card from target's hand |
 
 While `game.chain` is non-null or effect steps are queued, turn commands return `CHAIN_PENDING` (G-02). AP may reach 0 during a chain; the turn ends automatically once it closes (G-03). Empty main deck on draw: discard is reshuffled in (RG-DEPL); deck+discard empty → draw 0, AP still spent.
@@ -52,22 +52,22 @@ While `game.chain` is non-null or effect steps are queued, turn commands return 
 
 | kind | payload | Who / when | Effect |
 |---|---|---|---|
-| `CONFIGURE_GAME` | `Partial<{ reactionSeconds, choiceSeconds (10..120), leaderFillsClassSlot, maskMode: "add"\|"replace", leaderPassiveUsesModifierSlot }>` | host, `lobby`/`leader_selection` | per-room rule switches (defaults: 20 s, 30 s, Q-01 false, Q-04 "add", Q-11 false); nothing changed → `NO_CHANGE` |
+| `CONFIGURE_GAME` | `Partial<{ reactionSeconds, choiceSeconds (10..120), leaderFillsClassSlot, maskMode: "add"\|"replace", leaderPassiveUsesModifierSlot }>` | host, `lobby`/`leader_selection` | per-room rule switches (defaults: 20 s, 30 s, `leaderFillsClassSlot` true, `maskMode` "replace", Q-11 false); nothing changed → `NO_CHANGE` |
 
 ### Modifier (MOD-005)
 `REACT_MODIFIER` names the exact card instance and one of its `options` (`Modifier +1/-3` → 1 or -3). Wrong card/kind/value/side → rejected, hand unchanged. One Modifier or Skip per player per window; a retry with the same `commandId` replays the stored outcome (no second card consumed). Leader passives (+1 Divine Arrow, +2 Fist of Reason, +1 Charismatic Song, ±1 Protecting Horn via `leaderBonus`) go to `roll.passives` labelled "passive của Leader: …", not to `roll.modifiers`. With `leaderPassiveUsesModifierSlot = true` (Q-11 alternative) a player whose Leader passive applies to the roll starts the window as `played`.
 
 ### Win / GAME_OVER (GAME-003)
 - **3 Monsters slain** → `game_over` in the same transition (after all Modifiers resolved, Q-03); no refill, open chain and queued effects dropped. `winReason: "slay_3"`.
-- **6 distinct classes** (Leader class + Hero classes, Mask per `settings.maskMode`) when the active player's turn ends (`END_TURN` or auto-end at 0 AP after the chain closes). Only the active player is checked. `winReason: "six_classes"`.
+- **6 distinct classes** (Leader class + Hero classes, Mask replaces the Hero's class by default (`settings.maskMode`)) when the active player's turn ends (`END_TURN` or auto-end at 0 AP after the chain closes). Only the active player is checked. `winReason: "six_classes"`.
 - Simultaneous (Q-02): the active player wins. After `game_over` every command returns `GAME_OVER`; `currentPlayerId` is null; deadlines stop.
 
 ### Deadlines (DO alarm)
-Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settings.choiceSeconds` (30 s); the timer never resets. On expiry (alarm, or before the next command): Challenge window → no challenge; Modifier window → closes; immediate roll → skip; choice → **server picks the first `min` eligible cards** (default, owner may change). Each settle bumps `revision` once — so a command sent right after an expiry gets `STALE_REVISION` and must be resent (new `commandId`) against the fresh snapshot.
+Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settings.choiceSeconds` (30 s); the timer never resets. On expiry (alarm, or before the next command): Challenge window → no challenge; Modifier window → closes; immediate roll → skip; choice → **skip** (nothing chosen, nothing happens; a "may" is declined) — owner 2026-11-02. Each settle bumps `revision` once — so a command sent right after an expiry gets `STALE_REVISION` and must be resent (new `commandId`) against the fresh snapshot.
 "with a <class> in their Party" (Tough Teddy, Smooth Mimimeow) counts the Leader's class: the Leader is in the Party (RB). Q-01 only concerns Monster requirement slots.
 
 ### Effects
-Effects run as data steps keyed by card `effectId` (GAME-004). Implemented: see `buildEffect` in `apps/worker/src/game/base-engine.ts`. Not yet modelled (logged no-op): Fuzzy Cheeks, Mellow Dee, Pan Chucks, Qi Bear, Beary Wise, Bullseye, Hook, Quick Draw, Sharp Fox, Silent Shadow, Snowball, Wiggles, and "may play it immediately" parts; slain-Monster passives Corrupted Sabretooth, Malamammoth, Orthus, Rex Major. "may" passives that only benefit their owner (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma's victim draw) are applied automatically and logged.
+Effects run as data steps keyed by card `effectId` (GAME-004). Implemented: see `buildEffect` in `apps/worker/src/game/base-engine.ts`. Not yet modelled (logged no-op): Fuzzy Cheeks, Mellow Dee, Pan Chucks, Qi Bear, Beary Wise, Bullseye, Hook, Quick Draw, Sharp Fox, Silent Shadow, Snowball, Wiggles, and "may play it immediately" parts; slain-Monster passives Corrupted Sabretooth, Malamammoth, Orthus, Rex Major. "may" clauses (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma's victim draw) open a `confirm` choice for that player (owner 2026-11-02).
 
 ## Outcome
 

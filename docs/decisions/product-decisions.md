@@ -129,3 +129,12 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 | Q-12 | Duyệt default: requirement chỉ kiểm lúc nhận ATTACK. | MON-07 |
 
 Đề xuất owner: engine side nhập luôn data cơ chế/effect của thẻ (status/function); art để Codex làm sau. Thay quyết định trước đó "Codex nhập data".
+
+## Owner chốt lần 2 (2026-11-02, sau GAME-004..UI-001)
+
+| # | Quyết định | Triển khai |
+|---|---|---|
+| Q-01 (đổi) | Theo rulebook retail: Party Leader **thỏa** slot class của Monster requirement (không thỏa slot "Hero bất kỳ"). | `settings.leaderFillsClassSlot = true` |
+| Q-04 (đổi) | Mask **thay** class của Hero (text thẻ "instead of"), không cộng thêm. | `settings.maskMode = "replace"` (áp dụng cả win 6 class và requirement) |
+| CHOICE-TIMEOUT | Hết giờ lựa chọn → **skip**, không chọn gì, không có hiệu ứng. | `settleDeadlines` |
+| MAY | Mệnh đề "may" → **hỏi người chơi** (choice `confirm`, hết giờ = từ chối). | Arctic Aries, Crowned Serpent, Dracos, Plundering Puma |

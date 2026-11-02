@@ -104,7 +104,8 @@ export interface ReactPassCommand extends BaseCommandBase {
 /** Answer a pending choice (discard / sacrifice / give / take from discard ...). */
 export interface ResolveChoiceCommand extends BaseCommandBase {
   kind: "RESOLVE_CHOICE";
-  payload: { choiceId: string; cardInstanceIds: string[] };
+  /** `accept` answers a "confirm" choice (a "may" clause); omit it for card choices. */
+  payload: { choiceId: string; cardInstanceIds: string[]; accept?: boolean };
 }
 
 /** Leader skill that costs AP (base: The Shadow Claw, 1 AP, once per turn). */
@@ -200,9 +201,9 @@ export interface BaseGameSnapshot {
 export interface BaseGameSettings {
   reactionSeconds: number;
   choiceSeconds: number;
-  /** Q-01: owner chose false (Leader does not fill a Monster class slot). */
+  /** Q-01 (owner 2026-11-02): true = retail rulebook, Leader fills a Monster class slot. */
   leaderFillsClassSlot: boolean;
-  /** Q-04: owner chose "add" (Mask adds its class); card text reads "replace". */
+  /** Q-04 (owner 2026-11-02): "replace" = card text, Mask replaces the Hero's class. */
   maskMode: "add" | "replace";
   /** Q-11: owner default false — Leader passive does not use the player's Modifier slot. */
   leaderPassiveUsesModifierSlot: boolean;
@@ -253,7 +254,7 @@ export type BaseChainView =
       choiceId: string;
       deadlineAt: number;
       playerId: string;
-      kind: "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set";
+      kind: "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set" | "confirm";
       min: number;
       max: number;
       prompt: string;

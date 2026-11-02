@@ -128,11 +128,19 @@ test("WIN-CLASS: auto END_TURN at 0 AP checks the class win; 6 classes lost mid-
   assert.equal(t2.game.phase, "turn_active");
 });
 
-test("WIN-CLASS with a Mask (Q-04 add): Mask class counts for the 6", () => {
+test("WIN-CLASS with a Mask (owner: replace): the Mask class replaces the Hero's class", () => {
   const t = table(["the-cloaked-sage", "the-charismatic-song"]);
   const me = t.active(); // Bard leader
-  for (const slug of [FIGHTER, GUARDIAN, RANGER, THIEF]) t.hero(me, slug);
-  t.seat(me).party[0].item = t.take("hts.base.v1.item.wizard-mask");
+  for (const slug of [FIGHTER, GUARDIAN, RANGER, THIEF, "bear-claw"]) t.hero(me, slug);
+  // Second Fighter wears a Wizard Mask → counts as Wizard only → 6 classes.
+  t.seat(me).party[4].item = t.take("hts.base.v1.item.wizard-mask");
   assert.equal(t.run(me, "END_TURN"), "ACCEPTED");
   assert.equal(t.game.winReason, "six_classes");
+
+  const t2 = table(["the-cloaked-sage", "the-charismatic-song"]);
+  const me2 = t2.active();
+  for (const slug of [FIGHTER, GUARDIAN, RANGER, THIEF]) t2.hero(me2, slug);
+  t2.seat(me2).party[0].item = t2.take("hts.base.v1.item.wizard-mask"); // Fighter → Wizard: still 5
+  assert.equal(t2.run(me2, "END_TURN"), "ACCEPTED");
+  assert.equal(t2.game.phase, "turn_active");
 });

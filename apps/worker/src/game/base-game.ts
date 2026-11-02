@@ -457,7 +457,7 @@ const resolveChoiceHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.kind !== "RESOLVE_CHOICE") return "MODE_MISMATCH";
   const guard = reactGuard(game);
   if (guard) return guard;
-  return resolveChoice(game, seat.playerId, command.payload.choiceId, command.payload.cardInstanceIds, deps, HOOKS);
+  return resolveChoice(game, seat.playerId, command.payload.choiceId, command.payload.cardInstanceIds, deps, HOOKS, command.payload.accept);
 };
 
 /** The Shadow Claw: "Once per turn on your turn, you may spend an action point to pull a card from another player's hand." */

@@ -38,9 +38,9 @@ Mỗi field cơ chế có `provenance[field] = { status, sources, note? }`; `sta
 | Dracos | ngược: slay **5-**, penalty **8+** (S, J, L khớp) | `slay {op:"lte"}`; schema hỗ trợ cả hai chiều |
 | Mega Slime | F ghi thêm "Draw 2 cards" khi slay; không nguồn nào khác | không mô hình hoá (ghi `notes`) |
 
-## Mâu thuẫn với quyết định owner (cần owner xem)
-1. **Q-01** (Leader không thỏa slot class): text rulebook retail (bản Wayback) ghi *"you must have a Wizard in your Party (either a Hero card or the Wizard Party Leader card)"*. Engine theo Q-01 nhưng để cấu hình được.
-2. **Q-04** (Mask cộng class): text thẻ ghi *"considered a Bard **instead of** its original class"*. Engine theo Q-04 (union) nhưng để cấu hình được (`replace`).
+## Mâu thuẫn với quyết định owner — ĐÃ CHỐT 2026-11-02 (theo rulebook/text thẻ)
+1. **Q-01** (Leader không thỏa slot class): text rulebook retail (bản Wayback) ghi *"you must have a Wizard in your Party (either a Hero card or the Wizard Party Leader card)"*. Owner chốt theo rulebook: `leaderFillsClassSlot = true`.
+2. **Q-04** (Mask cộng class): text thẻ ghi *"considered a Bard **instead of** its original class"*. Owner chốt theo text: `maskMode = "replace"`.
 
 ## Target rule (`derived`, nguồn S + RB glossary)
 RB định nghĩa: *DESTROY = move a card from another player's Party*, *STEAL = … from another player's Party to your own*, *SACRIFICE = from your own Party*. Vì vậy target DESTROY/STEAL chỉ là Hero trong Party người khác.

@@ -78,7 +78,8 @@ export type RollState =
       passives: SidedPassive[];
     };
 
-export type ChoiceKind = "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set";
+/** "confirm": a yes/no for a "may" clause (owner 2026-11-02: ask the player). */
+export type ChoiceKind = "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set" | "confirm";
 
 export interface PendingChoice {
   choiceId: string;
@@ -94,6 +95,8 @@ export interface PendingChoice {
   fromCardIds?: string[];
   /** give_card: who receives. */
   recipientId?: string;
+  /** confirm: steps run only if the player accepts. */
+  then?: Step[];
 }
 
 export type Chain =
@@ -128,6 +131,7 @@ export type Step =
       filterKinds?: BaseCardKind[];
       fromCardIds?: string[];
       recipientId?: string;
+      then?: Step[];
     }
   | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string }
   | { op: "steal"; heroCardId: string; toPlayerId: string }
@@ -245,11 +249,16 @@ function decoyDollSaves(game: EngineState, hero: PartyHero): boolean {
   return true;
 }
 
-/** Hero destroyed: Dracos slain passive "may DRAW" — applied automatically (simplification, logged). */
+/** A "may" clause: the player is asked (owner 2026-11-02); timeout = decline. */
+export function may(playerId: string, prompt: string, then: Step[]): Step {
+  return { op: "choice", playerId, kind: "confirm", count: 1, prompt, then };
+}
+
+/** Dracos slain skill: "Each time a Hero card in your Party is destroyed, you may DRAW a card." */
 function afterHeroDestroyed(game: EngineState, owner: BaseSeat, deps: EngineDeps): void {
+  void deps;
   if (slainHas(owner, "dracos")) {
-    owner.hand.push(...drawCards(game, game, 1, deps.shuffle));
-    log(game, `${whoName(game, owner.playerId)} rút 1 lá (Dracos, tự động)`);
+    game.queue.unshift(may(owner.playerId, "Dracos: DRAW 1 lá?", [{ op: "draw", playerId: owner.playerId, n: 1 }]));
   }
 }
 
@@ -370,8 +379,7 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
     case "hero.plundering-puma":
       return [
         { op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 2 },
-        { op: "draw", playerId: p, n: 1 },
-        { op: "log", text: "Plundering Puma: người bị rút được DRAW 1 (\"may\" — áp dụng tự động)" },
+        may(p, "Plundering Puma: bạn có muốn DRAW 1 lá?", [{ op: "draw", playerId: p, n: 1 }]),
       ];
     case "hero.slippery-paws":
       // "then DISCARD one of those cards": the choice is restricted to the pulled cards.
@@ -442,7 +450,9 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
   const seat = seatOf(game, step.playerId);
   if (!seat) return false;
   const available =
-    step.kind === "sacrifice_hero"
+    step.kind === "confirm"
+      ? 1
+      : step.kind === "sacrifice_hero"
       ? seat.party.length
       : step.kind === "take_from_discard"
         ? game.discard.filter((card) => !step.filterKinds || step.filterKinds.includes(card.kind)).length
@@ -461,13 +471,14 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
       choiceId: deps.newId(),
       playerId: step.playerId,
       kind: step.kind,
-      min: step.upTo ? 0 : max,
+      min: step.upTo || step.kind === "confirm" ? 0 : max,
       max,
       prompt: step.prompt,
       deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
       ...(step.filterKinds ? { filterKinds: step.filterKinds } : {}),
       ...(step.fromCardIds ? { fromCardIds: step.fromCardIds } : {}),
       ...(step.recipientId ? { recipientId: step.recipientId } : {}),
+      ...(step.then ? { then: step.then } : {}),
     },
   };
   return true;
@@ -675,12 +686,21 @@ export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks)
 
 // ---------------------------------------------------------------- choices
 
-export function resolveChoice(game: EngineState, playerId: string, choiceId: string, cardIds: string[], deps: EngineDeps, hooks: EngineHooks): string {
+export function resolveChoice(game: EngineState, playerId: string, choiceId: string, cardIds: string[], deps: EngineDeps, hooks: EngineHooks, accept?: boolean): string {
   const chain = game.chain;
   if (!chain || chain.step !== "choice") return "NO_PENDING_CHOICE";
   const choice = chain.choice;
   if (choice.choiceId !== choiceId) return "STALE_CHOICE";
   if (choice.playerId !== playerId) return "NOT_YOUR_CHOICE";
+  if (choice.kind === "confirm") {
+    if (cardIds.length !== 0 || accept === undefined) return "INVALID_CHOICE";
+    game.chain = null;
+    log(game, `${whoName(game, playerId)} ${accept ? "đồng ý" : "từ chối"}: ${choice.prompt}`);
+    if (accept && choice.then) game.queue.unshift(...choice.then);
+    advance(game, deps, hooks);
+    return "ACCEPTED";
+  }
+  if (accept !== undefined) return "INVALID_CHOICE";
   const unique = new Set(cardIds);
   if (unique.size !== cardIds.length || cardIds.length < choice.min || cardIds.length > choice.max) return "INVALID_CHOICE";
   const seat = seatOf(game, playerId)!;
@@ -702,6 +722,8 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       return game.discard.filter((card) => !choice.filterKinds || choice.filterKinds.includes(card.kind));
     case "discard_from_set":
       return seat.hand.filter((card) => choice.fromCardIds?.includes(card.cardId));
+    case "confirm":
+      return [];
     default:
       return [...seat.hand];
   }
@@ -740,6 +762,8 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
         }
       }
       return;
+    case "confirm":
+      return;
     case "sacrifice_hero":
       for (const id of cardIds) {
         const found = findHero(game, id);
@@ -753,10 +777,6 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
   }
 }
 
-/** Timeout default for a choice: the first `min` eligible cards (documented default, see GAME_ROOM_API). */
-function defaultChoice(game: EngineState, choice: PendingChoice): string[] {
-  return eligibleChoiceCards(game, choice).slice(0, choice.min).map((card) => card.cardId);
-}
 
 // ---------------------------------------------------------------- windows
 
@@ -890,9 +910,11 @@ export function playModifier(
   if (owner && rollOwner !== playerId && slainHas(owner, "abyss-queen")) {
     roll.passives.push({ source: "hts.base.v1.monster.abyss-queen", label: "Abyss Queen (đã slay)", value: 1, ...(side ? { side } : {}) });
   }
-  // Crowned Serpent: "Each time any player (including you) plays a Modifier card, you may DRAW a card." (auto)
+  // Crowned Serpent: "Each time any player (including you) plays a Modifier card, you may DRAW a card."
   for (const holder of game.seats) {
-    if (slainHas(holder, "crowned-serpent")) game.queue.push({ op: "draw", playerId: holder.playerId, n: 1 });
+    if (slainHas(holder, "crowned-serpent")) {
+      game.queue.push(may(holder.playerId, "Crowned Serpent: DRAW 1 lá?", [{ op: "draw", playerId: holder.playerId, n: 1 }]));
+    }
   }
   log(game, `${whoName(game, playerId)} chơi Modifier ${payload.value > 0 ? "+" : ""}${payload.value}${side ? ` (${side})` : ""}`);
   chain.responders[playerId] = "played";
@@ -1041,8 +1063,10 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     if (item === "hts.base.v1.cursed-item.suspiciously-shiny-coin") {
       game.queue.push({ op: "choice", playerId: roll.rollerId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Suspiciously Shiny Coin)" });
     }
-    // Arctic Aries: "Each time you successfully roll to use a Hero card's effect, you may DRAW a card." (auto)
-    if (slainHas(roller, "arctic-aries")) game.queue.push({ op: "draw", playerId: roll.rollerId, n: 1 });
+    // Arctic Aries: "Each time you successfully roll to use a Hero card's effect, you may DRAW a card."
+    if (slainHas(roller, "artic-aries")) {
+      game.queue.push(may(roll.rollerId, "Arctic Aries: DRAW 1 lá?", [{ op: "draw", playerId: roll.rollerId, n: 1 }]));
+    }
     return;
   }
   // attack
@@ -1116,10 +1140,8 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
       game.chain = null;
       log(game, "Hết giờ — bỏ qua roll ngay");
     } else {
-      const picks = defaultChoice(game, chain.choice);
-      const seat = seatOf(game, chain.choice.playerId)!;
-      log(game, `Hết giờ chọn — server chọn mặc định cho ${whoName(game, seat.playerId)}`);
-      applyChoice(game, chain.choice, seat, picks, deps);
+      // Owner 2026-11-02: timeout = skip (nothing chosen, nothing happens; "may" declined).
+      log(game, `Hết giờ chọn — ${whoName(game, chain.choice.playerId)} bỏ qua (${chain.choice.prompt})`);
       game.chain = null;
     }
     advance(game, deps, hooks);

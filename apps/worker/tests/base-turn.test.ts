@@ -139,7 +139,7 @@ test("Hero roll: Modifier value/side validated, effect on success, once per Hero
   assert.equal(t.game.actionPoints, 2);
 });
 
-test("ATTACK: Leader does not fill a slot (Q-01); requirement, slay + refill, penalty choice", () => {
+test("ATTACK: Leader is not a Hero for an \"any\" slot; requirement, slay + refill, penalty choice", () => {
   const t = table();
   const me = active(t);
   t.game.faceUpMonsters = ["hts.base.v1.monster.dracos#01", "hts.base.v1.monster.terratuga#01", "hts.base.v1.monster.mega-slime#01"];
@@ -182,7 +182,7 @@ test("ATTACK penalty: SACRIFICE choice; last AP → auto END_TURN only after the
   assert.deepEqual(t.game.faceUpMonsters, ["hts.base.v1.monster.terratuga#01"]);
 });
 
-test("Items: own Hero only for Item (Q-06), any Hero for Cursed, one Item per Hero; Mask adds class (Q-04)", () => {
+test("Items: own Hero only for Item (Q-06), any Hero for Cursed, one Item per Hero; Mask replaces the class (owner 2026-11-02)", () => {
   const t = table();
   const me = active(t);
   const them = other(t);
@@ -195,7 +195,7 @@ test("Items: own Hero only for Item (Q-06), any Hero for Cursed, one Item per He
   passAll(t);
   assert.equal(seat(t, me).party[0].item?.cardId, mask.cardId);
   const view = projectBaseGame(t.game, t.roster, { roomCode: "X", revision: 1, serverNow: 0 }, me);
-  assert.deepEqual(view.players.find((p) => p.playerId === me)!.party[0].classes, ["bard", "wizard"]);
+  assert.deepEqual(view.players.find((p) => p.playerId === me)!.party[0].classes, ["wizard"]);
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: curse.cardId, targets: { heroInstanceIds: [mine.cardId] } }), "INVALID_TARGET");
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: curse.cardId, targets: { heroInstanceIds: [theirs.cardId] } }), "ACCEPTED");
   passAll(t);
@@ -319,4 +319,57 @@ test("Tipsy Tootie: blocked STEAL (Calming Voice) → Tootie stays; Magic stays 
   t.run(me, "PLAY_HAND_CARD", { cardInstanceId: boost.cardId });
   passAll(t);
   assert.equal(seat(t, me).hand.some((card) => card.cardId === boost.cardId), false);
+});
+
+test("owner 2026-11-02: Leader fills a class slot (retail rulebook); a Mask replaces the Hero's class for requirements", () => {
+  const t = table(["p1", "p2"], ["the-charismatic-song", "the-cloaked-sage"]); // p2 (Wizard Leader) starts
+  const me = active(t);
+  t.game.faceUpMonsters = ["hts.base.v1.monster.orthus#01"]; // 1 Wizard + 1 Hero
+  const fighter = placeHero(t, me, "bad-axe");
+  t.dice.push([1, 1]);
+  assert.equal(t.run(me, "ATTACK_MONSTER", { monsterInstanceId: "hts.base.v1.monster.orthus#01" }), "ACCEPTED");
+  passAll(t);
+  // Mask replace: a Bard Hero wearing a Fighter Mask is no longer a Bard.
+  const t2 = table(["p1", "p2"], ["the-cloaked-sage", "the-fist-of-reason"]);
+  const me2 = active(t2);
+  t2.game.faceUpMonsters = ["hts.base.v1.monster.dark-dragon-king#01"]; // 1 Bard + 1 Hero
+  const bard = placeHero(t2, me2, "peanut");
+  placeHero(t2, me2, "bad-axe");
+  const mask = give(t2, me2, "hts.base.v1.item.fighter-mask");
+  seat(t2, me2).hand.splice(seat(t2, me2).hand.indexOf(mask), 1);
+  seat(t2, me2).party.find((h) => h.card.cardId === bard.cardId)!.item = mask;
+  assert.equal(t2.run(me2, "ATTACK_MONSTER", { monsterInstanceId: "hts.base.v1.monster.dark-dragon-king#01" }), "REQUIREMENT_NOT_MET");
+  void fighter;
+});
+
+test("owner 2026-11-02: \"may\" asks the player (confirm); choice timeout = skip", () => {
+  const t = table();
+  const me = active(t);
+  const them = other(t);
+  const peanut = placeHero(t, me, "peanut");
+  seat(t, me).slain = ["hts.base.v1.monster.artic-aries#01"];
+  t.dice.push([6, 6]);
+  t.run(me, "USE_HERO_EFFECT", { heroInstanceId: peanut.cardId });
+  passAll(t);
+  const chain = t.game.chain;
+  assert.ok(chain?.step === "choice" && chain.choice.kind === "confirm");
+  const choiceId = (chain as { choice: { choiceId: string } }).choice.choiceId;
+  const hand = seat(t, me).hand.length;
+  assert.equal(t.run(me, "RESOLVE_CHOICE", { choiceId, cardInstanceIds: [] }), "INVALID_CHOICE");
+  assert.equal(t.run(me, "RESOLVE_CHOICE", { choiceId, cardInstanceIds: [], accept: true }), "ACCEPTED");
+  assert.equal(seat(t, me).hand.length, hand + 1);
+
+  // Penalty DISCARD times out → nothing discarded.
+  t.game.faceUpMonsters = ["hts.base.v1.monster.terratuga#01"];
+  t.game.actionPoints = 2;
+  void them;
+  t.dice.push([1, 1]);
+  assert.equal(t.run(me, "ATTACK_MONSTER", { monsterInstanceId: "hts.base.v1.monster.terratuga#01" }), "ACCEPTED");
+  passAll(t);
+  assert.equal(t.game.chain?.step, "choice");
+  const party = seat(t, me).party.length;
+  t.clock.now += 30_000;
+  settleBaseGame(t.game, t.roster, t.deps);
+  assert.equal(seat(t, me).party.length, party);
+  assert.equal(t.game.chain, null);
 });
