@@ -1,0 +1,10 @@
+/* UI-001: functional flow layout only (no visual design — Codex owns styling). */
+.base-table { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+.base-status { display: flex; flex-wrap: wrap; gap: 16px; font-weight: 600; }
+.base-block { position: static; border: 1px solid currentColor; padding: 8px 12px; }
+.base-block h2 { margin: 0 0 6px; font-size: 1rem; }
+.base-block > div, .base-block li { margin: 4px 0; }
+.base-chain { border-width: 2px; }
+.base-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.base-targets { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.base-table button { margin: 2px 4px; }
