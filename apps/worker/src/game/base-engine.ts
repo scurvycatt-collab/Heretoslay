@@ -830,8 +830,24 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
     windowId: deps.newId(),
     deadlineAt: deps.now() + game.settings.reactionSeconds * 1000,
     roll,
-    responders: responders(game, null, "pending"),
+    responders: modifierResponders(game, roll),
   };
+}
+
+/**
+ * Everyone may play one Modifier or Skip. Q-11 (configurable, default off): if
+ * `leaderPassiveUsesModifierSlot`, a player whose Leader passive already applies
+ * to this roll has used their one Modifier slot ("played").
+ */
+function modifierResponders(game: EngineState, roll: RollState): Record<string, "pending" | "passed" | "played"> {
+  const result: Record<string, "pending" | "passed" | "played"> = responders(game, null, "pending");
+  if (!game.settings.leaderPassiveUsesModifierSlot) return result;
+  for (const passive of roll.passives) {
+    if (!passive.source.startsWith("hts.base.v1.party-leader.")) continue;
+    const owner = roll.kind === "challenge" && passive.side === "challenger" ? roll.challengerId : roll.rollerId;
+    if (owner in result) result[owner] = "played";
+  }
+  return result;
 }
 
 export function playModifier(

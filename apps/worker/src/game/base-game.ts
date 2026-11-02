@@ -480,7 +480,17 @@ const leaderActionHandler: Handler = (game, seat, command, _roster, deps) => {
  * Command table for mode "base". Handlers validate before mutating and return
  * "ACCEPTED" only when state changed.
  */
+/** Host-only rule settings, only before START_GAME ("cấu hình trước ván"). */
+const configureHandler: Handler = (game, seat, command, roster) => {
+  if (command.kind !== "CONFIGURE_GAME") return "MODE_MISMATCH";
+  if (seat.playerId !== roster.hostPlayerId) return "FORBIDDEN";
+  if (game.phase !== "lobby" && game.phase !== "leader_selection") return "INVALID_PHASE";
+  game.settings = { ...game.settings, ...command.payload };
+  return "ACCEPTED";
+};
+
 export const BASE_TURN_HANDLERS: Readonly<Record<BaseGameCommandKind, Handler>> = {
+  CONFIGURE_GAME: configureHandler,
   BEGIN_LEADER_SELECTION: setupHandler,
   SELECT_PARTY_LEADER: setupHandler,
   START_GAME: setupHandler,

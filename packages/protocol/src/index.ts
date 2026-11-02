@@ -344,6 +344,7 @@ export interface RoomSliceValidationResult {
 }
 
 const BASE_TURN_KINDS = new Set([
+  "CONFIGURE_GAME",
   "PLAY_HAND_CARD",
   "USE_HERO_EFFECT",
   "ATTACK_MONSTER",
@@ -393,6 +394,23 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
     if (!isNonEmptyString(payload[key])) issues.push(`payload.${key} is required`);
   };
   switch (value.kind) {
+    case "CONFIGURE_GAME": {
+      const allowed = ["reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode", "leaderPassiveUsesModifierSlot"];
+      for (const key of Object.keys(payload)) if (!allowed.includes(key)) issues.push(`payload.${key} is not allowed`);
+      for (const key of ["reactionSeconds", "choiceSeconds"]) {
+        const seconds = payload[key];
+        if (seconds !== undefined && (!Number.isInteger(seconds) || Number(seconds) < 10 || Number(seconds) > 120)) {
+          issues.push(`payload.${key} must be an integer 10..120`);
+        }
+      }
+      for (const key of ["leaderFillsClassSlot", "leaderPassiveUsesModifierSlot"]) {
+        if (payload[key] !== undefined && typeof payload[key] !== "boolean") issues.push(`payload.${key} must be boolean`);
+      }
+      if (payload.maskMode !== undefined && payload.maskMode !== "add" && payload.maskMode !== "replace") {
+        issues.push("payload.maskMode must be add or replace");
+      }
+      break;
+    }
     case "PLAY_HAND_CARD":
       need("cardInstanceId");
       validateBaseTargets(payload.targets, issues);
@@ -890,6 +908,7 @@ export type RoomSliceSnapshot = ReactionSliceSnapshot | SetupDemoSnapshot | Effe
 
 export type {
   AttackMonsterCommand,
+  ConfigureGameCommand,
   BaseChainView,
   BaseGameSettings,
   BaseRollView,
