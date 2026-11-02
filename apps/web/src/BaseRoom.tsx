@@ -3,6 +3,7 @@
 // commands and never computes game state.
 import { useState } from "react";
 import type { BaseCardView, BaseGameSnapshot, BaseTargets } from "@here-to-slay/protocol";
+import "./base-room.css";
 
 type Send = (kind: string, payload: object) => void;
 
@@ -21,7 +22,7 @@ function TargetPicker({ state, value, onChange }: { state: BaseGameSnapshot; val
     onChange({ ...value, heroInstanceIds: cleaned.length ? cleaned : undefined });
   };
   return (
-    <div className="target-picker">
+    <div className="base-targets">
       <label>
         Target player{" "}
         <select value={value.playerId ?? ""} onChange={(event) => onChange({ ...value, playerId: event.target.value || undefined })}>
@@ -61,7 +62,7 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
   if (chain.step === "challenge_window") {
     const mine = chain.responders[me];
     return (
-      <section className="reaction-layer" aria-live="polite">
+      <section className="base-block base-chain" aria-live="polite">
         <h2>CHALLENGE? · <Countdown deadlineAt={chain.deadlineAt} serverNow={serverNow} /></h2>
         <p>{name(chain.actorPlayerId)} plays {chain.pendingCard.name}</p>
         <p>{Object.entries(chain.responders).map(([id, s]) => `${name(id)}: ${s}`).join(" · ")}</p>
@@ -81,7 +82,7 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
     const mine = chain.responders[me];
     const hasHorn = state.players.find((p) => p.playerId === me)?.leaderId === "hts.base.v1.party-leader.the-protecting-horn";
     return (
-      <section className="reaction-layer" aria-live="polite">
+      <section className="base-block base-chain" aria-live="polite">
         <h2>MODIFIER · {roll.kind.replace("_", " ")} · <Countdown deadlineAt={chain.deadlineAt} serverNow={serverNow} /></h2>
         {roll.kind === "challenge" ? (
           <p>
@@ -133,7 +134,7 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
   }
   if (chain.step === "immediate_roll_choice") {
     return (
-      <section className="reaction-layer">
+      <section className="base-block base-chain">
         <h2>{chain.hero.name} entered the Party · <Countdown deadlineAt={chain.deadlineAt} serverNow={serverNow} /></h2>
         {chain.actorPlayerId === me ? (
           <>
@@ -148,7 +149,7 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
   // choice
   const toggle = (id: string) => setPicked((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]));
   return (
-    <section className="reaction-layer">
+    <section className="base-block base-chain">
       <h2>CHOICE · <Countdown deadlineAt={chain.deadlineAt} serverNow={serverNow} /></h2>
       <p>{name(chain.playerId)}: {chain.prompt}{chain.kind !== "confirm" && ` (${chain.min === chain.max ? chain.max : `${chain.min}–${chain.max}`})`} · timeout = skip</p>
       {chain.playerId === me && chain.kind === "confirm" && (
@@ -189,8 +190,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
         <div><b>HERE TO SLAY</b><span>BASE GAME · ROOM {state.roomCode}</span></div>
         <button onClick={onLobby}>LOBBY</button>
       </header>
-      <section className="table-frame" aria-label="Base game table">
-        <div className="table-status">
+      <section className="base-table" aria-label="Base game table">
+        <div className="base-status">
           <span>{game.phase.replaceAll("_", " ").toUpperCase()}</span>
           {game.phase === "turn_active" && <span>TURN {game.turnNumber} · {state.players.find((p) => p.playerId === game.currentPlayerId)?.nickname} · AP {ap}{game.turnRollBonus ? ` · rolls +${game.turnRollBonus}` : ""}</span>}
           <span>DECK {game.mainDeckCount} · DISCARD {game.discardCount} · MONSTER DECK {game.monsterDeckCount}</span>
@@ -203,14 +204,14 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
         )}
 
         {game.phase === "lobby" && (
-          <div className="turn-actions">
+          <div className="base-actions">
             <p>Players: {state.players.map((p) => p.nickname).join(", ")} ({state.players.length}/6). Share room code <b>{state.roomCode}</b>.</p>
             {state.you.isHost && <button disabled={pending || state.players.length < 2} onClick={() => send("BEGIN_LEADER_SELECTION", {})}>BEGIN LEADER SELECTION</button>}
           </div>
         )}
 
         {game.phase === "leader_selection" && (
-          <div className="turn-actions">
+          <div className="base-actions">
             <p>{game.selectionPlayerId ? `Picking: ${state.players.find((p) => p.playerId === game.selectionPlayerId)?.nickname}` : "All Leaders picked."}</p>
             {game.selectionPlayerId === me && game.leaderPool.map((id) => (
               <button key={id} disabled={pending || game.selectedLeaderIds.includes(id)} onClick={() => send("SELECT_PARTY_LEADER", { leaderId: id })}>
@@ -223,7 +224,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
 
         {(game.phase === "turn_active" || game.phase === "game_over") && (
           <>
-            <section className="monsters">
+            <section className="base-block">
               <h2>MONSTERS</h2>
               {game.faceUpMonsters.map((monster) => (
                 <div key={monster.cardId}>
@@ -233,7 +234,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               ))}
             </section>
 
-            <section className="roster">
+            <section className="base-block">
               <h2>PLAYERS</h2>
               {state.players.map((player) => (
                 <div key={player.playerId}>
@@ -262,7 +263,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
 
             <ChainPanel state={state} send={send} pending={pending} serverNow={serverNow} targets={targets} />
 
-            <section className="hand" aria-label="Your hand">
+            <section className="base-block" aria-label="Your hand">
               <h2>YOUR HAND</h2>
               {state.yourHand.map((card) => (
                 <div key={card.cardId}>
@@ -275,7 +276,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
             </section>
 
             {active && game.phase === "turn_active" && (
-              <div className="turn-actions">
+              <div className="base-actions">
                 <TargetPicker state={state} value={targets} onChange={setTargets} />
                 <button disabled={pending || !free || ap < 1} onClick={() => send("DRAW_CARD", {})}>DRAW · 1 AP</button>
                 <button disabled={pending || !free || ap < 3} onClick={() => send("REDRAW_HAND", {})}>REDRAW · 3 AP</button>
@@ -287,7 +288,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
             )}
 
-            <section aria-label="Game log">
+            <section className="base-block" aria-label="Game log">
               <h2>LOG</h2>
               <ol>{game.log.slice(-12).map((entry) => <li key={entry.seq}>{entry.text}</li>)}</ol>
             </section>
