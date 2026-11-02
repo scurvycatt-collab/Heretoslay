@@ -87,7 +87,7 @@ export interface ItemCardData extends CardCommon {
   kind: "item" | "cursed_item";
   /** Q-06: Item → own Hero; Cursed Item → any Hero. */
   equip: "own_hero" | "any_hero";
-  /** Mask class (Q-04: added to the equipped Hero's classes). null for non-Mask. */
+  /** Mask class (Q-04, owner 2026-11-02: replaces the equipped Hero's class). null for non-Mask. */
   maskClass: HeroClass | null;
   effectId: string | null;
 }

@@ -150,8 +150,14 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
   return (
     <section className="reaction-layer">
       <h2>CHOICE · <Countdown deadlineAt={chain.deadlineAt} serverNow={serverNow} /></h2>
-      <p>{name(chain.playerId)}: {chain.prompt} ({chain.min === chain.max ? chain.max : `${chain.min}–${chain.max}`})</p>
-      {chain.playerId === me && chain.options && (
+      <p>{name(chain.playerId)}: {chain.prompt}{chain.kind !== "confirm" && ` (${chain.min === chain.max ? chain.max : `${chain.min}–${chain.max}`})`} · timeout = skip</p>
+      {chain.playerId === me && chain.kind === "confirm" && (
+        <>
+          <button disabled={pending} onClick={() => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: [], accept: true })}>YES</button>
+          <button disabled={pending} onClick={() => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: [], accept: false })}>NO</button>
+        </>
+      )}
+      {chain.playerId === me && chain.kind !== "confirm" && chain.options && (
         <>
           {chain.options.map((card) => (
             <label key={card.cardId}><input type="checkbox" checked={picked.includes(card.cardId)} onChange={() => toggle(card.cardId)} /> {card.name}</label>

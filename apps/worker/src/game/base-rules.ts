@@ -30,8 +30,10 @@ export interface RulesSeat {
 export const DEFAULT_SETTINGS: BaseGameSettings = {
   reactionSeconds: 20,
   choiceSeconds: 30,
-  leaderFillsClassSlot: false,
-  maskMode: "add",
+  /** Owner 2026-11-02: follow the retail rulebook (Leader can fill a class slot). */
+  leaderFillsClassSlot: true,
+  /** Owner 2026-11-02: Mask replaces the Hero's class (card text "instead of"). */
+  maskMode: "replace",
   leaderPassiveUsesModifierSlot: false,
 };
 
@@ -54,7 +56,7 @@ export function leaderClass(seat: { leaderId: string | null }): HeroClass | null
   return seat.leaderId ? cardDataOfKind(seat.leaderId, "party_leader")?.heroClass ?? null : null;
 }
 
-/** Classes a Party Hero counts as (Q-04: Mask adds its class; `replace` follows the card text). */
+/** Classes a Party Hero counts as (owner 2026-11-02: Mask replaces the class; `add` kept as a setting). */
 export function heroClasses(hero: PartyHero, settings: BaseGameSettings): HeroClass[] {
   const own = cardDataOfKind(hero.card.definitionId, "hero")?.heroClass;
   const mask = hero.item ? cardDataOfKind(hero.item.definitionId, "item")?.maskClass ?? null : null;
@@ -80,8 +82,8 @@ export function hasClassInParty(seat: RulesSeat, heroClass: HeroClass, settings:
 
 /**
  * MON-01..06: injective assignment of Party Heroes to requirement slots (bipartite
- * matching, needed once Masks give a Hero two classes). The Leader is never a Hero
- * (does not fill `any`); it fills a class slot only if `leaderFillsClassSlot` (Q-01).
+ * matching). The Leader is never a Hero (does not fill `any`); it fills a class
+ * slot when `leaderFillsClassSlot` (default true, retail rulebook — owner 2026-11-02).
  */
 export function meetsRequirement(seat: RulesSeat, monster: MonsterCardData, settings: BaseGameSettings): boolean {
   type Unit = HeroClass[] | { leader: HeroClass };
