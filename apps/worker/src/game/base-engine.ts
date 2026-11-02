@@ -314,17 +314,25 @@ function offerPlay(playerId: string, cards: BaseCard[], prompt: string, thenIfPi
  * reveal it and DRAW a second card."
  */
 export function afterDraw(game: EngineState, seat: BaseSeat, drawn: BaseCard[]): void {
+  // Prompts are public: never name the drawn (hidden) card; the chooser sees it in `options`.
+  const offers: Step[] = [];
   for (const card of drawn) {
     if ((card.kind === "item" || card.kind === "cursed_item") && slainHas(seat, "malamammoth")) {
-      game.queue.push(offerPlay(seat.playerId, [card], `Malamammoth: chơi ngay ${cardName(card.definitionId)}?`));
+      offers.push(offerPlay(seat.playerId, [card], "Malamammoth: chơi ngay Item vừa rút?"));
     }
     if (card.kind === "magic" && slainHas(seat, "orthus")) {
-      game.queue.push(offerPlay(seat.playerId, [card], `Orthus: chơi ngay ${cardName(card.definitionId)}?`));
+      offers.push(offerPlay(seat.playerId, [card], "Orthus: chơi ngay Magic vừa rút?"));
     }
     if (card.kind === "modifier" && slainHas(seat, "rex-major")) {
-      game.queue.push(may(seat.playerId, `Rex Major: lộ ${cardName(card.definitionId)} để DRAW thêm 1 lá?`, [{ op: "draw", playerId: seat.playerId, n: 1 }]));
+      offers.push(
+        may(seat.playerId, "Rex Major: lộ Modifier vừa rút để DRAW thêm 1 lá?", [
+          { op: "log", text: `${whoName(game, seat.playerId)} lộ ${cardName(card.definitionId)} (Rex Major)` },
+          { op: "draw", playerId: seat.playerId, n: 1 },
+        ]),
+      );
     }
   }
+  game.queue.unshift(...offers); // right after the draw, before later effect steps
 }
 
 /** Dracos slain skill: "Each time a Hero card in your Party is destroyed, you may DRAW a card." */
@@ -935,7 +943,8 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       return seat.hand.filter(
         (card) =>
           (!choice.fromCardIds || choice.fromCardIds.includes(card.cardId)) &&
-          (!choice.filterKinds || choice.filterKinds.includes(card.kind)),
+          (!choice.filterKinds || choice.filterKinds.includes(card.kind)) &&
+          canPlaySomewhere(game, seat, card),
       );
     case "destroy_hero":
       return game.seats.filter((other) => other !== seat).flatMap((other) => other.party.map((hero) => hero.card));
@@ -1206,6 +1215,13 @@ function closeModifierWindow(game: EngineState, deps: EngineDeps, hooks: EngineH
   game.chain = null;
   resolveRoll(game, chain.roll, deps, hooks);
   advance(game, deps, hooks);
+}
+
+/** An Item needs a legal Hero to equip; other playable kinds are always offered (targets checked on play). */
+function canPlaySomewhere(game: EngineState, seat: BaseSeat, card: BaseCard): boolean {
+  if (card.kind === "item") return seat.party.some((hero) => !hero.item);
+  if (card.kind === "cursed_item") return game.seats.some((other) => other.party.some((hero) => !hero.item));
+  return card.kind === "hero" || card.kind === "magic";
 }
 
 /** Validation shared by PLAY_HAND_CARD and free plays (RULE-08, Q-06, Q-08). */

@@ -212,3 +212,23 @@ test("every Hero/Magic effectId has a handler (no silent no-op left)", () => {
   const steps = buildEffect(t.game, "hero.does-not-exist", t.me, {});
   assert.equal(steps[0].op, "log");
 });
+
+test("review: hidden drawn card is never named in public prompt/log unless revealed; unplayable Item not offered", () => {
+  const t = table();
+  t.seat(t.me).slain = ["hts.base.v1.monster.orthus#01"];
+  const spell = t.toDeckTop("hts.base.v1.magic.enchanted-spell");
+  t.run(t.me, "DRAW_CARD");
+  const theirs = projectBaseGame(t.game, t.roster, { roomCode: "X", revision: 1, serverNow: 0 }, t.them);
+  assert.equal(JSON.stringify(theirs).includes("Enchanted Spell"), false);
+  assert.equal(JSON.stringify(theirs).includes(spell.cardId), false);
+  t.run(t.me, "RESOLVE_CHOICE", { choiceId: t.choice().choiceId, cardInstanceIds: [] });
+
+  const t2 = table();
+  const hook = t2.toParty(t2.me, "hook");
+  t2.seat(t2.me).party[0].item = t2.take("hts.base.v1.item.decoy-doll"); // only Hero already equipped
+  for (const card of [...t2.seat(t2.me).hand]) if (card.kind !== "item") t2.game.discard.push(t2.seat(t2.me).hand.splice(t2.seat(t2.me).hand.indexOf(card), 1)[0]);
+  t2.toHand(t2.me, "hts.base.v1.item.really-big-ring");
+  t2.roll(hook);
+  // No legal target for the Item → no choice opens; Hook still DRAWs.
+  assert.equal(t2.game.chain, null);
+});
