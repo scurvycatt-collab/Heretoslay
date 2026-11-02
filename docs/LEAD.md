@@ -77,6 +77,6 @@ Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
 Deploy Cloudflare (DEPL-001) để SAU khi sản phẩm xong.
 
 ## Chờ owner quyết
-- Effect chưa mô hình hoá (log no-op): Fuzzy Cheeks, Mellow Dee, Pan Chucks, Qi Bear, Beary Wise, Bullseye, Hook, Quick Draw, Sharp Fox, Silent Shadow, Snowball, Wiggles, phần "play immediately"; skill slain Corrupted Sabretooth/Malamammoth/Orthus/Rex Major → đề xuất task GAME-005.
+- Bullseye: "return the other two … in any order" — hiện giữ nguyên thứ tự (chưa cho chọn).
 - Deploy infra (Cloudflare account, domain).
 - Đã chốt 2026-11-02 (lần 2): Q-01 theo rulebook, Mask thay class, timeout choice = skip, "may" hỏi người chơi (product-decisions.md cuối file).

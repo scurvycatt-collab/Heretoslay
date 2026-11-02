@@ -159,10 +159,11 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
       )}
       {chain.playerId === me && chain.kind !== "confirm" && chain.options && (
         <>
+          {chain.kind === "play_card" && <p>Card targets (if needed): use the target picker below.</p>}
           {chain.options.map((card) => (
-            <label key={card.cardId}><input type="checkbox" checked={picked.includes(card.cardId)} onChange={() => toggle(card.cardId)} /> {card.name}</label>
+            <label key={card.cardId}>{chain.kind !== "view_hand" && <input type="checkbox" checked={picked.includes(card.cardId)} onChange={() => toggle(card.cardId)} />} {card.name}</label>
           ))}
-          <button disabled={pending} onClick={() => { send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked }); setPicked([]); }}>CONFIRM</button>
+          <button disabled={pending} onClick={() => { send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked, ...(chain.kind === "play_card" && picked.length ? { targets } : {}) }); setPicked([]); }}>{chain.kind === "view_hand" ? "CLOSE" : picked.length === 0 && chain.min === 0 ? "SKIP" : "CONFIRM"}</button>
         </>
       )}
     </section>
