@@ -48,6 +48,15 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 
 While `game.chain` is non-null or effect steps are queued, turn commands return `CHAIN_PENDING` (G-02). AP may reach 0 during a chain; the turn ends automatically once it closes (G-03). Empty main deck on draw: discard is reshuffled in (RG-DEPL); deck+discard empty → draw 0, AP still spent.
 
+### Lobby settings (MOD-005)
+
+| kind | payload | Who / when | Effect |
+|---|---|---|---|
+| `CONFIGURE_GAME` | `Partial<{ reactionSeconds, choiceSeconds (10..120), leaderFillsClassSlot, maskMode: "add"\|"replace", leaderPassiveUsesModifierSlot }>` | host, `lobby`/`leader_selection` | per-room rule switches (defaults: 20 s, 30 s, Q-01 false, Q-04 "add", Q-11 false); nothing changed → `NO_CHANGE` |
+
+### Modifier (MOD-005)
+`REACT_MODIFIER` names the exact card instance and one of its `options` (`Modifier +1/-3` → 1 or -3). Wrong card/kind/value/side → rejected, hand unchanged. One Modifier or Skip per player per window; a retry with the same `commandId` replays the stored outcome (no second card consumed). Leader passives (+1 Divine Arrow, +2 Fist of Reason, +1 Charismatic Song, ±1 Protecting Horn via `leaderBonus`) go to `roll.passives` labelled "passive của Leader: …", not to `roll.modifiers`. With `leaderPassiveUsesModifierSlot = true` (Q-11 alternative) a player whose Leader passive applies to the roll starts the window as `played`.
+
 ### Win / GAME_OVER (GAME-003)
 - **3 Monsters slain** → `game_over` in the same transition (after all Modifiers resolved, Q-03); no refill, open chain and queued effects dropped. `winReason: "slay_3"`.
 - **6 distinct classes** (Leader class + Hero classes, Mask per `settings.maskMode`) when the active player's turn ends (`END_TURN` or auto-end at 0 AP after the chain closes). Only the active player is checked. `winReason: "six_classes"`.

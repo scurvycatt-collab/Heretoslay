@@ -111,7 +111,14 @@ export interface LeaderActionCommand extends BaseCommandBase {
   payload: { targetPlayerId: string };
 }
 
+/** Host-only, before START_GAME: per-room rule settings (reaction time, Q-01/Q-04/Q-11 switches). */
+export interface ConfigureGameCommand extends BaseCommandBase {
+  kind: "CONFIGURE_GAME";
+  payload: Partial<BaseGameSettings>;
+}
+
 export type BaseTurnCommand =
+  | ConfigureGameCommand
   | PlayHandCardCommand
   | UseHeroEffectCommand
   | AttackMonsterCommand

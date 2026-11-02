@@ -394,7 +394,7 @@ const useHeroEffectHandler: Handler = (game, seat, command, _roster, deps) => {
   const error = heroRollError(game, seat, command.payload.heroInstanceId, targets);
   if (error) return error;
   spendAp(game, HERO_EFFECT_COST);
-  startHeroRoll(game, seat.playerId, command.payload.heroInstanceId, targets, deps);
+  startHeroRoll(game, seat.playerId, command.payload.heroInstanceId, targets, deps, HOOKS);
   return "ACCEPTED";
 };
 
@@ -414,7 +414,7 @@ const immediateRollHandler: Handler = (game, seat, command, _roster, deps) => {
   const error = heroRollError(game, seat, chain.heroCardId, targets);
   if (error) return error;
   game.chain = null;
-  startHeroRoll(game, seat.playerId, chain.heroCardId, targets, deps);
+  startHeroRoll(game, seat.playerId, chain.heroCardId, targets, deps, HOOKS);
   return "ACCEPTED";
 };
 
@@ -427,7 +427,7 @@ const attackHandler: Handler = (game, seat, command, _roster, deps) => {
   if (!game.faceUpMonsters.includes(monsterId)) return "MONSTER_NOT_AVAILABLE"; // MON-01, Q-09
   if (!meetsRequirement(seat, monsterData(monsterId), game.settings)) return "REQUIREMENT_NOT_MET"; // Q-12
   spendAp(game, ATTACK_COST);
-  startAttack(game, seat.playerId, monsterId, deps);
+  startAttack(game, seat.playerId, monsterId, deps, HOOKS);
   return "ACCEPTED";
 };
 
@@ -435,7 +435,7 @@ const reactChallengeHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.kind !== "REACT_CHALLENGE") return "MODE_MISMATCH";
   const guard = reactGuard(game);
   if (guard) return guard;
-  const code = challenge(game, seat.playerId, command.payload.windowId, command.payload.cardInstanceId, deps);
+  const code = challenge(game, seat.playerId, command.payload.windowId, command.payload.cardInstanceId, deps, HOOKS);
   return code;
 };
 
@@ -480,7 +480,19 @@ const leaderActionHandler: Handler = (game, seat, command, _roster, deps) => {
  * Command table for mode "base". Handlers validate before mutating and return
  * "ACCEPTED" only when state changed.
  */
+/** Host-only rule settings, only before START_GAME ("cấu hình trước ván"). */
+const configureHandler: Handler = (game, seat, command, roster) => {
+  if (command.kind !== "CONFIGURE_GAME") return "MODE_MISMATCH";
+  if (seat.playerId !== roster.hostPlayerId) return "FORBIDDEN";
+  if (game.phase !== "lobby" && game.phase !== "leader_selection") return "INVALID_PHASE";
+  const changes = Object.entries(command.payload).filter(([key, value]) => game.settings[key as keyof typeof game.settings] !== value);
+  if (changes.length === 0) return "NO_CHANGE";
+  game.settings = { ...game.settings, ...Object.fromEntries(changes) };
+  return "ACCEPTED";
+};
+
 export const BASE_TURN_HANDLERS: Readonly<Record<BaseGameCommandKind, Handler>> = {
+  CONFIGURE_GAME: configureHandler,
   BEGIN_LEADER_SELECTION: setupHandler,
   SELECT_PARTY_LEADER: setupHandler,
   START_GAME: setupHandler,
