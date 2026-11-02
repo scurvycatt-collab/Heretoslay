@@ -87,3 +87,6 @@ Privacy: only the requester's hand is serialized; other seats expose `handCount`
 ## Extension (GAME-002)
 
 Add command interfaces to `BaseGameCommand` + `validateRoomSliceCommand` in protocol, then a handler in `BASE_TURN_HANDLERS` (`apps/worker/src/game/base-game.ts`). The Durable Object needs no change for new turn actions; reaction windows/alarms will need a DO hook (see ADR-002).
+
+## Retry sau khi bị từ chối
+Receipt được lưu cho cả command bị từ chối (kể cả `STALE_REVISION`). Client phải dùng `commandId` MỚI sau khi bị từ chối; gửi lại cùng `commandId` sẽ nhận lại đúng kết quả cũ.
