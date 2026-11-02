@@ -13,7 +13,8 @@ export const FACE_UP_MONSTERS = 3;
 export const DRAW_COST = 1;
 export const REDRAW_COST = 3;
 
-export type SetupPhase = "lobby" | "leader_selection" | "turn_active";
+/** "game_over" is only reached in mode "base" (GAME-003). */
+export type SetupPhase = "lobby" | "leader_selection" | "turn_active" | "game_over";
 
 export interface CardLike {
   cardId: string;

@@ -256,7 +256,7 @@ export function cardData(definitionId: string): CardData {
 export function cardDataOfKind<K extends CardData["kind"]>(
   definitionId: string,
   kind: K,
-): Extract<CardData, { kind: K }> | null {
+): (CardData & { kind: K }) | null {
   const card = BASE_CARDS_BY_ID.get(definitionId);
-  return card && card.kind === kind ? (card as Extract<CardData, { kind: K }>) : null;
+  return card && card.kind === kind ? (card as CardData & { kind: K }) : null;
 }

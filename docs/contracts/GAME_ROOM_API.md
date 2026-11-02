@@ -1,6 +1,6 @@
 # GAME_ROOM_API — real base game room (mode `base`)
 
-Task: GAME-001 (2026-11-02). Owner: Architecture. Status: IMPLEMENTED for setup + DRAW/REDRAW/END_TURN; play/attack loop is GAME-002 (waiting on rule spec).
+Task: GAME-001 + GAME-002 (2026-11-02). Owner: Architecture. Status: IMPLEMENTED — setup, DRAW/REDRAW/END_TURN, full turn loop (play/challenge/modifier/hero roll/attack/choices). Win = GAME-003.
 
 Types: `packages/protocol/src/game/base.ts` (`BaseGameSnapshot`, `BaseGameCommand`, `BaseCardView`), re-exported from `@here-to-slay/protocol`. `RoomSnapshot = RoomSliceSnapshot | BaseGameSnapshot`.
 Rules: `docs/rules/BASE_SPEC.md` RULE-01..05, `docs/rules/SETUP_VERIFIED.md`. Cards: CAT-001 reference catalog (`apps/worker/src/content/`), IDs/kinds only, rights UNVERIFIED, no artwork.
@@ -36,7 +36,24 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 | `REDRAW_HAND` | `{}` | current player, ≥3 AP | discard whole hand (if any), draw 5, −3 AP |
 | `END_TURN` | `{}` | current player | next player clockwise, fresh 3 AP (no carry-over) |
 
-The turn ends automatically when AP reaches 0. Empty main deck on draw: discard is reshuffled in (setup-slice behaviour; rulebook depletion is UNVERIFIED, SETUP_VERIFIED ambiguity #2).
+| `PLAY_HAND_CARD` | `{ cardInstanceId, targets? }` | current player, ≥1 AP, nothing pending | Hero/Item/Cursed Item/Magic from hand → `pending`, −1 AP, opens Challenge window (skipped if uncatchable: Iron Resolve, Warworn Owlbear for Items). Item target `targets.heroInstanceIds[0]`: Item → own Hero, Cursed → any Hero (Q-06), Hero without Item. Magic targets per card `target` rule (Q-08) |
+| `USE_HERO_EFFECT` | `{ heroInstanceId, targets? }` | current player, ≥1 AP | once per Hero per turn; −1 AP; server rolls 2d6 (Q-10) → Modifier window → effect if total ≥ threshold. Sealing Key → `HERO_EFFECT_BLOCKED` |
+| `IMMEDIATE_ROLL` | `{ choice: "roll"\|"skip", targets? }` | actor, after own Hero entered Party | free roll of that Hero's effect (consumes its allowance) or skip; timeout = skip |
+| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12, Leader never fills a slot by default — Q-01); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, refill from Monster deck unless empty — Q-09) / PENALTY (choice) / nothing |
+| `REACT_CHALLENGE` | `{ windowId, cardInstanceId }` | any non-actor while the Challenge window is open | first valid wins; server rolls both (RULE-17), then a Modifier window; challenger wins ties |
+| `REACT_MODIFIER` | `{ windowId, cardInstanceId, value, side?, leaderBonus? }` | any player, once per window | `value` ∈ card options; `side` (`challenger`\|`defender`) required only on Challenge rolls; `leaderBonus` ±1 only with The Protecting Horn |
+| `REACT_PASS` | `{ windowId }` | eligible responder | Skip; window closes early when all responded |
+| `RESOLVE_CHOICE` | `{ choiceId, cardInstanceIds }` | chooser | discard / sacrifice / give / take-from-discard; count in `[min,max]` |
+| `LEADER_ACTION` | `{ targetPlayerId }` | The Shadow Claw holder, 1 AP, once per turn | pull 1 random card from target's hand |
+
+While `game.chain` is non-null or effect steps are queued, turn commands return `CHAIN_PENDING` (G-02). AP may reach 0 during a chain; the turn ends automatically once it closes (G-03). Empty main deck on draw: discard is reshuffled in (RG-DEPL); deck+discard empty → draw 0, AP still spent.
+
+### Deadlines (DO alarm)
+Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settings.choiceSeconds` (30 s); the timer never resets. On expiry (alarm, or before the next command): Challenge window → no challenge; Modifier window → closes; immediate roll → skip; choice → **server picks the first `min` eligible cards** (default, owner may change). Each settle bumps `revision` once — so a command sent right after an expiry gets `STALE_REVISION` and must be resent (new `commandId`) against the fresh snapshot.
+"with a <class> in their Party" (Tough Teddy, Smooth Mimimeow) counts the Leader's class: the Leader is in the Party (RB). Q-01 only concerns Monster requirement slots.
+
+### Effects
+Effects run as data steps keyed by card `effectId` (GAME-004). Implemented: see `buildEffect` in `apps/worker/src/game/base-engine.ts`. Not yet modelled (logged no-op): Fuzzy Cheeks, Mellow Dee, Pan Chucks, Qi Bear, Beary Wise, Bullseye, Hook, Quick Draw, Sharp Fox, Silent Shadow, Snowball, Wiggles, and "may play it immediately" parts; slain-Monster passives Corrupted Sabretooth, Malamammoth, Orthus, Rex Major. "may" passives that only benefit their owner (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma's victim draw) are applied automatically and logged.
 
 ## Outcome
 
@@ -58,6 +75,16 @@ The turn ends automatically when AP reaches 0. Empty main deck on draw: discard 
 | `INSUFFICIENT_CARDS` | deck too small to deal (should not occur with the base catalog) |
 | `NOT_YOUR_TURN` | turn action from a non-current player |
 | `INSUFFICIENT_AP` | not enough AP for the action |
+| `CHAIN_PENDING` | a window/choice/effect is in progress |
+| `CARD_NOT_IN_HAND` / `CARD_NOT_PLAYABLE` | card missing or wrong kind (Modifier/Challenge are reactions only) |
+| `INVALID_TARGET` | targets do not match the card's target rule |
+| `HERO_NOT_IN_PARTY` / `HERO_ALREADY_ROLLED` / `HERO_EFFECT_BLOCKED` | hero roll guards |
+| `MONSTER_NOT_AVAILABLE` / `REQUIREMENT_NOT_MET` | attack guards |
+| `NO_OPEN_WINDOW` / `STALE_WINDOW` / `WINDOW_CLOSED` / `NOT_ELIGIBLE` / `ALREADY_RESPONDED` | reaction guards |
+| `INVALID_MODIFIER_VALUE` / `INVALID_MODIFIER_SIDE` / `INVALID_LEADER_BONUS` | Modifier guards |
+| `NO_PENDING_CHOICE` / `STALE_CHOICE` / `NOT_YOUR_CHOICE` / `INVALID_CHOICE` / `NO_PENDING_ROLL_CHOICE` | choice guards |
+| `LEADER_ACTION_UNAVAILABLE` | not The Shadow Claw, or already used this turn |
+| `GAME_OVER` | game finished (GAME-003) |
 
 ## HTTP errors
 
@@ -70,23 +97,28 @@ The turn ends automatically when AP reaches 0. Empty main deck on draw: discard 
   mode: "base"; roomCode; revision; serverNow; hostPlayerId;
   you: { playerId; nickname; isHost };
   players: Array<{ playerId; nickname; joinIndex; isHost;
-                   handCount; leaderId: string | null; party: BaseCardView[] }>;
+                   handCount; leaderId: string | null; leaderClass: string | null;
+    party: Array<{ hero: BaseCardView; item: BaseCardView | null; classes: string[] }>;
+    slainMonsters: BaseCardView[]; partyClasses: string[]; protections: ("no_destroy"|"no_steal")[] }>;
   yourHand: BaseCardView[];              // viewer-private
   game: {
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
     mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount;
+    heroRollsUsed: string[]; turnRollBonus: number;
+    chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice
+    winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;
   };
 }
-BaseCardView = { cardId /* "<definitionId>#NN" instance */, definitionId, kind }
+BaseCardView = { cardId /* "<definitionId>#NN" instance */, definitionId, kind, name }
 ```
 
-Privacy: only the requester's hand is serialized; other seats expose `handCount` only; deck order, monster deck order, discard contents and token hashes are never sent. No `demo`/`demoLabel` field. `party` excludes the Leader (see `leaderId`) and stays empty until GAME-002.
+Privacy: only the requester's hand is serialized; other seats expose `handCount` only; deck order, monster deck order and token hashes are never sent. `chain.options` (choice candidates) is sent only to the chooser. Pulled cards are logged without identity. No `demo`/`demoLabel` field. `party` excludes the Leader (see `leaderId`). Passive bonuses appear in `roll.passives` separately from `roll.modifiers` (Q-11, labelled "passive của Leader: …").
 
-## Extension (GAME-002)
+## Extension
 
-Add command interfaces to `BaseGameCommand` + `validateRoomSliceCommand` in protocol, then a handler in `BASE_TURN_HANDLERS` (`apps/worker/src/game/base-game.ts`). The Durable Object needs no change for new turn actions; reaction windows/alarms will need a DO hook (see ADR-002).
+New turn action = protocol union + `validateBaseTurnCommand` + handler in `BASE_TURN_HANDLERS` (`apps/worker/src/game/base-game.ts`). New effect = case in `buildEffect` (`base-engine.ts`). The DO hook for deadlines is `settleBaseGame` / `baseNextDeadline`.
 
 ## Retry sau khi bị từ chối
 Receipt được lưu cho cả command bị từ chối (kể cả `STALE_REVISION`). Client phải dùng `commandId` MỚI sau khi bị từ chối; gửi lại cùng `commandId` sẽ nhận lại đúng kết quả cũ.
