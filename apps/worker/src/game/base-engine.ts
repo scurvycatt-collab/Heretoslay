@@ -787,7 +787,7 @@ export function openChallengeWindow(game: EngineState, attempt: Attempt, deps: E
   };
 }
 
-export function challenge(game: EngineState, playerId: string, windowId: string, cardId: string, deps: EngineDeps): string {
+export function challenge(game: EngineState, playerId: string, windowId: string, cardId: string, deps: EngineDeps, hooks: EngineHooks): string {
   const chain = game.chain;
   if (!chain || chain.step !== "challenge_window") return "NO_OPEN_WINDOW";
   if (chain.windowId !== windowId) return "STALE_WINDOW";
@@ -809,7 +809,7 @@ export function challenge(game: EngineState, playerId: string, windowId: string,
   ];
   const dice = [...deps.rollDice()] as [number, number];
   const challengerDice = [...deps.rollDice()] as [number, number];
-  openModifierWindow(game, { kind: "challenge", rollerId: attempt.actorId, dice, challengerId: playerId, challengerDice, attempt, modifiers: [], passives }, deps);
+  openModifierWindow(game, { kind: "challenge", rollerId: attempt.actorId, dice, challengerId: playerId, challengerDice, attempt, modifiers: [], passives }, deps, hooks);
   // Bloodwing slain passive: "Each time another player CHALLENGES you, that player must DISCARD a card."
   if (slainHas(defender, "bloodwing")) {
     game.queue.unshift({ op: "choice", playerId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Bloodwing)" });
@@ -817,7 +817,7 @@ export function challenge(game: EngineState, playerId: string, windowId: string,
   return "ACCEPTED";
 }
 
-function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps): void {
+function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
   const { total, challengerTotal } = rollTotals(roll);
   log(
     game,
@@ -832,6 +832,8 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
     roll,
     responders: modifierResponders(game, roll),
   };
+  // Q-11 switch on: every slot may already be used → close at once.
+  maybeCloseModifierWindow(game, deps, hooks);
 }
 
 /**
@@ -982,7 +984,7 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
 }
 
 /** Starts a Hero effect roll (paid or immediate). Caller validated eligibility/targets. */
-export function startHeroRoll(game: EngineState, actorId: string, heroCardId: string, targets: BaseTargets, deps: EngineDeps): void {
+export function startHeroRoll(game: EngineState, actorId: string, heroCardId: string, targets: BaseTargets, deps: EngineDeps, hooks: EngineHooks): void {
   const seat = seatOf(game, actorId)!;
   const found = findHero(game, heroCardId)!;
   const data = cardDataOfKind(found.hero.card.definitionId, "hero")!;
@@ -990,15 +992,15 @@ export function startHeroRoll(game: EngineState, actorId: string, heroCardId: st
   const dice = [...deps.rollDice()] as [number, number];
   const passives = rollPassives(seat, "hero_effect", { hero: found.hero, turnRollBonus: game.turnRollBonus });
   log(game, `${whoName(game, actorId)} roll hiệu ứng ${data.name} (cần ${data.rollThreshold}+)`);
-  openModifierWindow(game, { kind: "hero_effect", rollerId: actorId, dice, heroCardId, threshold: data.rollThreshold, targets, modifiers: [], passives }, deps);
+  openModifierWindow(game, { kind: "hero_effect", rollerId: actorId, dice, heroCardId, threshold: data.rollThreshold, targets, modifiers: [], passives }, deps, hooks);
 }
 
-export function startAttack(game: EngineState, actorId: string, monsterId: string, deps: EngineDeps): void {
+export function startAttack(game: EngineState, actorId: string, monsterId: string, deps: EngineDeps, hooks: EngineHooks): void {
   const seat = seatOf(game, actorId)!;
   const dice = [...deps.rollDice()] as [number, number];
   const passives = rollPassives(seat, "attack", { turnRollBonus: game.turnRollBonus });
   log(game, `${whoName(game, actorId)} ATTACK ${cardName(monsterData(monsterId).definitionId)}`);
-  openModifierWindow(game, { kind: "attack", rollerId: actorId, dice, monsterId, modifiers: [], passives }, deps);
+  openModifierWindow(game, { kind: "attack", rollerId: actorId, dice, monsterId, modifiers: [], passives }, deps, hooks);
 }
 
 function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {

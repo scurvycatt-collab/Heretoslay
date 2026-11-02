@@ -156,3 +156,30 @@ test("CONFIGURE_GAME: host-only, before START_GAME; reactionSeconds drives the w
   assert.equal(applyBaseCommand(lobby, roster, "h", cmd, t.deps), "ACCEPTED");
   assert.equal(lobby.settings.maskMode, "replace");
 });
+
+test("Q-11 on: window closes at once when every slot is used; CONFIGURE_GAME with no change → NO_CHANGE", () => {
+  const t = table(["the-fist-of-reason", "the-charismatic-song"], { leaderPassiveUsesModifierSlot: true });
+  assert.equal(t.run("p1", "CONFIGURE_GAME", {}), "INVALID_PHASE");
+  const me = t.active(); // p2 (Charismatic Song: +1 hero roll)
+  const them = t.game.turnOrder.find((id) => id !== me)!; // p1 (Fist of Reason: +2 challenge)
+  const hero = t.give(me, "hts.base.v1.hero.peanut");
+  const challengeCard = t.give(them, "hts.base.v1.challenge.challenge");
+  t.run(me, "PLAY_HAND_CARD", { cardInstanceId: hero.cardId });
+  t.dice.push([6, 6], [1, 1]);
+  assert.equal(t.run(them, "REACT_CHALLENGE", { windowId: t.windowId(), cardInstanceId: challengeCard.cardId }), "ACCEPTED");
+  // Defender (me) has no challenge passive → still pending; window stays open.
+  assert.equal(t.game.chain?.step, "modifier_window");
+  t.passRest();
+  // Peanut entered the Party; immediate roll: Charismatic Song passive uses my slot, opponent still pending.
+  t.dice.push([3, 3]);
+  assert.equal(t.run(me, "IMMEDIATE_ROLL", { choice: "roll" }), "ACCEPTED");
+  const chain = t.game.chain;
+  assert.ok(chain?.step === "modifier_window" && chain.responders[me] === "played" && chain.responders[them] === "pending");
+  assert.equal(t.run(them, "REACT_PASS", { windowId: t.windowId() }), "ACCEPTED");
+  assert.notEqual(t.game.chain?.step, "modifier_window");
+
+  const lobby = initialBaseGameState();
+  const roster: BaseRoster = { hostPlayerId: "h", players: [{ playerId: "h", nickname: "H" }, { playerId: "g", nickname: "G" }] };
+  const cmd = (payload: Record<string, unknown>) => ({ commandId: "x", expectedRevision: 0, kind: "CONFIGURE_GAME", payload }) as BaseGameCommand;
+  assert.equal(applyBaseCommand(lobby, roster, "h", cmd({ reactionSeconds: 20 }), t.deps), "NO_CHANGE");
+});
