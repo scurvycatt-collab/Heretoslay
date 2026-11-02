@@ -1,2 +1,2 @@
 #!/bin/sh
-npm run verify
+npm run verify --silent >/tmp/verify.log 2>&1 || { tail -40 /tmp/verify.log; echo "verify FAILED"; exit 1; }
