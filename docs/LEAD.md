@@ -61,13 +61,14 @@ Chưa setup. Cần: wrangler secret, domain, Cloudflare account của owner.
 ---
 
 ## Trạng thái
+**2026-11-02 (cloud)** — GAME-004 DONE: `packages/protocol/src/cards.ts` + `apps/worker/src/content/base-cards.{json,ts}` + `docs/contracts/CARD_TEMPLATE_SPEC.json`; nguồn/sai lệch ở `docs/content/BASE_CARD_DATA.md`. Đang GAME-002.
+
 **2026-11-02 12:50** — main đã push GitHub. Merged: T00, RULES-001, GAME-001 (base room thật, logic ở apps/worker/src/game/).
 Owner đã chốt Q-01..Q-12 (docs/decisions/product-decisions.md, mục cuối). Q-11 còn chờ xác nhận chi tiết (default: passive Leader không chiếm suất Modifier, cấu hình được).
 Owner đổi: engine side nhập luôn data cơ chế/effect của thẻ; art do Codex sau.
 Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
 
 ## Việc tiếp theo (theo thứ tự)
-1. GAME-004 — schema card data + nhập data cơ chế base + validator + CARD_TEMPLATE_SPEC (ADR-003).
 2. GAME-002 — turn loop đầy đủ theo RULES-001 spec + product decisions.
 3. GAME-003 — win condition.
 4. MOD-005 — chọn Modifier cụ thể + option giá trị.
@@ -76,6 +77,9 @@ Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
 Deploy Cloudflare (DEPL-001) để SAU khi sản phẩm xong.
 
 ## Chờ owner quyết
+- **Q-01 vs rulebook**: bản text rulebook retail (Wayback) ghi class requirement có thể thỏa bởi "a Hero card or the <class> Party Leader card". Engine theo Q-01 (Leader KHÔNG thỏa), có setting `leaderFillsClassSlot` để đổi.
+- **Q-04 vs card text**: Mask ghi "considered a <class> **instead of** its original class" (thay, không cộng). Engine theo Q-04 (cộng), setting `maskMode: add|replace`.
+- Data thẻ chỉ từ nguồn community (không scan retail): 1 lệch penalty (Dark Dragon King 4- vs 7-), DISCARD 1 vs 2 cho 6 Monster — chọn đa số, ghi trong BASE_CARD_DATA.md.
 - Gắn remote GitHub để có PR/CI thật (hiện merge cục bộ trong session cloud)
 - Deploy infra (Cloudflare account, domain)
 - MOD-SELECT scope (sau GAME-001/002)
