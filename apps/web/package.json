@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json && vite build"
   },
   "dependencies": {
-    "@here-to-slay/protocol": "workspace:*",
+    "@here-to-slay/protocol": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

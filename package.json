@@ -13,6 +13,7 @@
     "typecheck": "npm run typecheck --workspaces",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces --if-present && npm run test:integration",
-    "test:integration": "node --test --experimental-strip-types tests/*.test.ts"
+    "test:integration": "node --test --experimental-strip-types tests/*.test.ts",
+    "verify": "npm run typecheck && npm test"
   }
 }
