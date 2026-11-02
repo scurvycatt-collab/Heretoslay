@@ -5,10 +5,10 @@
 Visual/content (card art, text, UI polish) do Codex — không dispatch sang đây.
 
 ## Khởi động mỗi chat mới
-```
-git -C <repo> pull --depth 1
-cat docs/LEAD.md docs/STATUS.md
-```
+Repo chưa có remote GitHub. Nguồn sự thật trong session cloud: /home/claude/hts (git, nhánh main).
+Máy owner (E:\Code\here-to-slay-web) nhận bản sync tại mỗi checkpoint (tar các file đổi qua bridge).
+Session mới: tar repo trên máy → stage → `git init` lại nếu container mất; hoặc gắn remote GitHub (khuyến nghị, xem Chờ owner quyết).
+Sau đó: `npm ci && npm run verify`, đọc LEAD.md + board.
 Query board: tasks với status != done. Đọc ticket liên quan, không đọc code trước khi có task.
 
 ## Công cụ & link
@@ -49,6 +49,9 @@ Chờ owner: contract change mới, deploy lần đầu, expansion scope.
 Chưa setup. Cần: wrangler secret, domain, Cloudflare account của owner.
 
 ## Bẫy môi trường
+- `workspace:*` là cú pháp pnpm/yarn → npm ci lỗi. Dùng `"*"` (đã sửa T00).
+- Worktree: copy `node_modules` bằng `cp -a` (symlink workspace là tương đối); KHÔNG symlink cả thư mục.
+- Pre-commit hook chạy `npm run verify` (core.hooksPath=.githooks).
 - GitHub GraphQL/Actions từ phiên bị chặn → dùng REST API
 - `npm run test:integration` cần node >= 22 (--experimental-strip-types)
 - Miniflare trong tests — không cần wrangler up
@@ -63,6 +66,7 @@ Effect EndTurn/labels/UI cleanup accepted. Chưa có full game mode nào playabl
 Xem board tasks. Priority: GAME-001 (room join/create thật) → GAME-002 (turn loop) → GAME-003 (win condition).
 
 ## Chờ owner quyết
+- Gắn remote GitHub để có PR/CI thật (hiện merge cục bộ trong session cloud)
 - Deploy infra (Cloudflare account, domain)
 - MOD-SELECT scope (sau GAME-001/002)
 - Card catalog strategy (base rules verified → catalog agent)
