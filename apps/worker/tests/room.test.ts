@@ -365,16 +365,41 @@ test("deadline command and alarm resolve exactly once while incomplete players w
   assert.equal(storage.alarmAt, deadlineAt);
 });
 
-test("create rejects base mode and expansion/capacity config without issuing a session", async () => {
+test("create accepts the real base mode but rejects unknown modes and expansion/capacity config", async () => {
   const { room } = harness();
+  const unknown = await room.fetch(
+    roomRequest("/api/rooms/ABC234", "POST", {
+      body: { nickname: "Host", mode: "base_plus_expansion" },
+      internalCreate: true,
+    }),
+  );
+  assert.equal(unknown.status, 400);
+  const unknownBody = await body(unknown);
+  assert.equal(unknownBody.error.code, "INVALID_MODE");
+  assert.equal("sessionToken" in unknownBody, false);
+
+  for (const unsupported of [
+    { nickname: "BaseExpansion", mode: "base", enabledSetIds: ["fixture.expansion"] },
+    { nickname: "BaseReaction", mode: "base", reactionSeconds: 30 },
+  ]) {
+    const rejected = await room.fetch(
+      roomRequest("/api/rooms/ABC234", "POST", { body: unsupported, internalCreate: true }),
+    );
+    assert.equal(rejected.status, 409);
+    assert.equal((await body(rejected)).error.code, "EXPANSION_UNSUPPORTED");
+  }
+
   const response = await room.fetch(
     roomRequest("/api/rooms/ABC234", "POST", {
       body: { nickname: "Host", mode: "base" },
       internalCreate: true,
     }),
   );
-  assert.equal(response.status, 400);
-  assert.equal((await body(response)).error.code, "INVALID_MODE");
+  assert.equal(response.status, 201);
+  const created = await body(response);
+  assert.equal(created.snapshot.mode, "base");
+  assert.equal("demo" in created.snapshot, false);
+  assert.equal("demoLabel" in created.snapshot, false);
 
   for (const unsupported of [
     { nickname: "Expansion", mode: "setup_demo", enabledSetIds: ["fixture.expansion"] },

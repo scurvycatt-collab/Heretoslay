@@ -16,11 +16,21 @@ import {
   type ReactionWindowState,
   type ServerCard,
   type RoomCreateMode,
-  type RoomSliceSnapshot,
+  type RoomSliceCommand,
+  type RoomSnapshot,
   type SetupDemoSnapshot,
   type SetupSliceCommand,
   type StoredIdempotencyOutcome,
 } from "@here-to-slay/protocol";
+import {
+  applyBaseCommand,
+  initialBaseGameState,
+  isBaseGameCommand,
+  projectBaseGame,
+  type BaseGameState,
+  type BaseRoster,
+} from "./game/base-game.ts";
+import { applySetupCommand as applySharedSetupCommand } from "./game/setup-core.ts";
 
 export interface DurableObjectTransactionLike {
   get<T>(key: string): Promise<T | undefined>;
@@ -146,6 +156,8 @@ interface PersistedRoomState {
   rateLimits: Record<string, RateBucket>;
   setup?: PersistedSetupState | null;
   effect?: PersistedEffectState | null;
+  /** Real base game state (mode "base"); owned by ./game/base-game.ts. */
+  game?: BaseGameState | null;
 }
 
 const ROOM_STATE_KEY = "room-state-v2";
@@ -215,8 +227,17 @@ function createModeFrom(value: unknown): RoomCreateMode {
     return "reaction_demo";
   }
   const mode = (value as { mode?: unknown }).mode;
-  if (mode !== "reaction_demo" && mode !== "setup_demo" && mode !== "effect_demo") {
-    throw new ApiFault("INVALID_MODE", "mode must be reaction_demo, setup_demo, or effect_demo", 400);
+  if (
+    mode !== "reaction_demo" &&
+    mode !== "setup_demo" &&
+    mode !== "effect_demo" &&
+    mode !== "base"
+  ) {
+    throw new ApiFault(
+      "INVALID_MODE",
+      "mode must be base, reaction_demo, setup_demo, or effect_demo",
+      400,
+    );
   }
   return mode;
 }
@@ -230,7 +251,7 @@ function assertSupportedCreateShape(value: unknown): void {
   if (unsupported.length > 0) {
     throw new ApiFault(
       "EXPANSION_UNSUPPORTED",
-      "Create supports only nickname and demo mode; expansion/capacity config is unavailable",
+      "Create supports only nickname and mode; expansion/capacity config is unavailable",
       409,
     );
   }
@@ -327,6 +348,7 @@ function normalizeState(state: PersistedRoomState): PersistedRoomState {
   if (!state.mode) state.mode = "reaction_demo";
   if (state.setup === undefined) state.setup = null;
   if (state.effect === undefined) state.effect = null;
+  if (state.game === undefined) state.game = null;
   for (const player of state.players) {
     if (player.leaderId === undefined) player.leaderId = null;
     if (player.party === undefined) player.party = [];
@@ -602,11 +624,26 @@ function effectSnapshot(
   };
 }
 
+function baseRoster(state: PersistedRoomState): BaseRoster {
+  return {
+    hostPlayerId: state.hostPlayerId,
+    players: state.players.map(({ playerId, nickname }) => ({ playerId, nickname })),
+  };
+}
+
 function snapshot(
   state: PersistedRoomState,
   viewer: PersistedPlayer,
   now: number,
-): RoomSliceSnapshot {
+): RoomSnapshot {
+  if (roomMode(state) === "base") {
+    return projectBaseGame(
+      state.game ?? initialBaseGameState(),
+      baseRoster(state),
+      { roomCode: state.roomCode, revision: state.revision, serverNow: now },
+      viewer.playerId,
+    );
+  }
   return roomMode(state) === "setup_demo"
     ? setupSnapshot(state, viewer, now)
     : roomMode(state) === "effect_demo"
@@ -625,9 +662,7 @@ function canonicalValue(value: unknown): unknown {
   );
 }
 
-function commandFingerprint(
-  command: OpenReactionDemoCommand | SetupSliceCommand | EffectSliceCommand,
-): string {
+function commandFingerprint(command: RoomSliceCommand): string {
   return JSON.stringify(canonicalValue({ kind: command.kind, payload: command.payload }));
 }
 
@@ -879,6 +914,7 @@ export class RoomDurableObject {
         rateLimits: {},
         setup: mode === "setup_demo" ? initialSetupState() : null,
         effect: mode === "effect_demo" ? initialEffectState(reactionSeconds) : null,
+        game: mode === "base" ? initialBaseGameState() : null,
       };
       await txn.put(ROOM_STATE_KEY, created);
       return created;
@@ -901,6 +937,9 @@ export class RoomDurableObject {
       enforceRate(state, "join", 30, now);
       if (roomMode(state) === "setup_demo" && state.setup?.phase !== "lobby") {
         throw new ApiFault("SETUP_LOCKED", "Join is locked after selection begins", 409);
+      }
+      if (roomMode(state) === "base" && state.game?.phase !== "lobby") {
+        throw new ApiFault("SETUP_LOCKED", "Join is locked after leader selection begins", 409);
       }
       if (roomMode(state) === "effect_demo" && state.effect?.phase !== "lobby") {
         throw new ApiFault("SETUP_LOCKED", "Join is locked after the effect demo starts", 409);
@@ -995,7 +1034,12 @@ export class RoomDurableObject {
         await this.settleExpiredEffect(state, now, txn);
       }
 
-      if (command.kind === "OPEN_REACTION_DEMO" || isSetupCommand(command) || isEffectCommand(command)) {
+      if (
+        roomMode(state) === "base" ||
+        command.kind === "OPEN_REACTION_DEMO" ||
+        isSetupCommand(command) ||
+        isEffectCommand(command)
+      ) {
         const receiptKey = `${player.playerId}\u0000${command.commandId}`;
         const fingerprint = commandFingerprint(command);
         const receipt = state.openReceipts[receiptKey];
@@ -1015,7 +1059,9 @@ export class RoomDurableObject {
           return { state, player, outcome: { ...receipt.outcome, replayed: true } };
         }
         let outcome: CommandOutcome;
-        if (command.kind === "OPEN_REACTION_DEMO") {
+        if (roomMode(state) === "base") {
+          outcome = this.applyBaseGameCommand(state, player, command);
+        } else if (command.kind === "OPEN_REACTION_DEMO") {
           outcome =
             roomMode(state) === "reaction_demo"
               ? await this.openReactionDemo(
@@ -1084,154 +1130,47 @@ export class RoomDurableObject {
     if (command.expectedRevision !== state.revision) {
       return this.commandOutcome(state, command.commandId, "STALE_REVISION");
     }
-
-    if (command.kind === "BEGIN_LEADER_SELECTION") {
-      if (player.playerId !== state.hostPlayerId) {
-        return this.commandOutcome(state, command.commandId, "FORBIDDEN");
-      }
-      if (setup.phase !== "lobby") {
-        return this.commandOutcome(state, command.commandId, "INVALID_PHASE");
-      }
-      if (state.players.length < 2 || state.players.length > MAX_PLAYERS) {
-        return this.commandOutcome(state, command.commandId, "NOT_ENOUGH_PLAYERS");
-      }
-      setup.phase = "leader_selection";
-      setup.selectionOrder = state.players.map((candidate) => candidate.playerId);
-      setup.selectionIndex = 0;
-      for (const candidate of state.players) candidate.leaderId = null;
-      state.revision += 1;
-      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
-    }
-
-    if (command.kind === "SELECT_PARTY_LEADER") {
-      if (setup.phase !== "leader_selection") {
-        return this.commandOutcome(state, command.commandId, "INVALID_PHASE");
-      }
-      if (setup.selectionOrder[setup.selectionIndex] !== player.playerId) {
-        return this.commandOutcome(state, command.commandId, "NOT_ACTIVE_SELECTOR");
-      }
-      if (!setup.leaderPool.includes(command.payload.leaderId)) {
-        return this.commandOutcome(state, command.commandId, "LEADER_NOT_AVAILABLE");
-      }
-      if (state.players.some((candidate) => candidate.leaderId === command.payload.leaderId)) {
-        return this.commandOutcome(state, command.commandId, "LEADER_TAKEN");
-      }
-      player.leaderId = command.payload.leaderId;
-      setup.selectionIndex += 1;
-      state.revision += 1;
-      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
-    }
-
-    if (command.kind === "START_GAME") {
-      if (player.playerId !== state.hostPlayerId) {
-        return this.commandOutcome(state, command.commandId, "FORBIDDEN");
-      }
-      if (setup.phase !== "leader_selection") {
-        return this.commandOutcome(state, command.commandId, "INVALID_PHASE");
-      }
-      if (
-        setup.selectionIndex !== state.players.length ||
-        state.players.some((candidate) => !candidate.leaderId)
-      ) {
-        return this.commandOutcome(state, command.commandId, "SELECTION_INCOMPLETE");
-      }
-
-      const shuffledMain = this.shuffle(fixtureMainDeck().map((card) => card.cardId)).map(
-        (cardId) => ({ cardId, kind: "other" as const }),
-      );
-      const shuffledMonsters = this.shuffle(fixtureMonsterDeck());
-      if (shuffledMain.length < state.players.length * 5 || shuffledMonsters.length < 3) {
-        return this.commandOutcome(state, command.commandId, "INSUFFICIENT_CARDS");
-      }
-      for (const candidate of state.players) {
-        candidate.hand = shuffledMain.splice(0, 5);
-      }
-      setup.mainDeck = shuffledMain;
-      setup.faceUpMonsters = shuffledMonsters.splice(0, 3);
-      setup.monsterDeck = shuffledMonsters;
-      state.discard = [];
-      const firstPlayerId = setup.selectionOrder[setup.selectionOrder.length - 1];
-      const joinOrder = state.players.map((candidate) => candidate.playerId);
-      const startIndex = joinOrder.indexOf(firstPlayerId);
-      setup.turnOrder = [...joinOrder.slice(startIndex), ...joinOrder.slice(0, startIndex)];
-      setup.currentPlayerIndex = 0;
-      setup.turnNumber = 1;
-      setup.turnId = this.randomUUID();
-      setup.actionPoints = 3;
-      setup.paidHeroEffectAttempts = { [setup.turnId]: [] };
-      setup.phase = "turn_active";
-      state.revision += 1;
-      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
-    }
-
-    if (setup.phase !== "turn_active") {
-      return this.commandOutcome(state, command.commandId, "INVALID_PHASE");
-    }
-    if (setup.turnOrder[setup.currentPlayerIndex] !== player.playerId) {
-      return this.commandOutcome(state, command.commandId, "NOT_YOUR_TURN");
-    }
-
-    if (command.kind === "DRAW_CARD") {
-      if ((setup.actionPoints ?? 0) < 1) {
-        return this.commandOutcome(state, command.commandId, "INSUFFICIENT_AP");
-      }
-      player.hand.push(...this.drawSetupCards(state, setup, 1));
-      setup.actionPoints = (setup.actionPoints ?? 0) - 1;
-      if (setup.actionPoints === 0) this.advanceSetupTurn(setup);
-      state.revision += 1;
-      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
-    }
-
-    if (command.kind === "REDRAW_HAND") {
-      if ((setup.actionPoints ?? 0) < 3) {
-        return this.commandOutcome(state, command.commandId, "INSUFFICIENT_AP");
-      }
-      state.discard.push(...player.hand);
-      player.hand = [];
-      player.hand.push(...this.drawSetupCards(state, setup, 5));
-      setup.actionPoints = (setup.actionPoints ?? 0) - 3;
-      this.advanceSetupTurn(setup);
-      state.revision += 1;
-      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
-    }
-
-    if (command.kind === "END_TURN") {
-      this.advanceSetupTurn(setup);
-      state.revision += 1;
-      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
-    }
-
-    throw new ApiFault("INVALID_COMMAND", "Unsupported setup command", 400);
+    const code = applySharedSetupCommand(
+      {
+        table: setup,
+        seats: state.players,
+        pile: state,
+        actor: player,
+        isHost: player.playerId === state.hostPlayerId,
+        newTurnId: this.randomUUID,
+        shuffle: this.shuffle,
+        decks: () => ({ main: fixtureMainDeck(), monsters: fixtureMonsterDeck() }),
+        onTurnStart: (turnId) => {
+          setup.paidHeroEffectAttempts[turnId] = [];
+        },
+      },
+      command,
+    );
+    if (code !== "ACCEPTED") return this.commandOutcome(state, command.commandId, code);
+    state.revision += 1;
+    return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
   }
 
-  drawSetupCards(
+  /** Mode "base": DO keeps revision/idempotency; game rules live in ./game/base-game.ts. */
+  applyBaseGameCommand(
     state: PersistedRoomState,
-    setup: PersistedSetupState,
-    count: number,
-  ): FixtureCard[] {
-    const drawn: FixtureCard[] = [];
-    while (drawn.length < count) {
-      if (setup.mainDeck.length === 0) {
-        if (state.discard.length === 0) break;
-        const discardById = new Map(state.discard.map((card) => [card.cardId, card]));
-        setup.mainDeck = this.shuffle([...discardById.keys()]).map(
-          (cardId) => discardById.get(cardId)!,
-        );
-        state.discard = [];
-      }
-      const card = setup.mainDeck.shift();
-      if (!card) break;
-      drawn.push(card);
+    player: PersistedPlayer,
+    command: RoomSliceCommand,
+  ): CommandOutcome {
+    const game = (state.game ??= initialBaseGameState());
+    if (!isBaseGameCommand(command)) {
+      return this.commandOutcome(state, command.commandId, "MODE_MISMATCH");
     }
-    return drawn;
-  }
-
-  advanceSetupTurn(setup: PersistedSetupState): void {
-    setup.currentPlayerIndex = (setup.currentPlayerIndex + 1) % setup.turnOrder.length;
-    setup.turnNumber += 1;
-    setup.turnId = this.randomUUID();
-    setup.actionPoints = 3;
-    setup.paidHeroEffectAttempts[setup.turnId] = [];
+    if (command.expectedRevision !== state.revision) {
+      return this.commandOutcome(state, command.commandId, "STALE_REVISION");
+    }
+    const code = applyBaseCommand(game, baseRoster(state), player.playerId, command, {
+      newId: this.randomUUID,
+      shuffle: this.shuffle,
+    });
+    if (code !== "ACCEPTED") return this.commandOutcome(state, command.commandId, code);
+    state.revision += 1;
+    return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
   }
 
   effectOutcome(state: PersistedRoomState, commandId: string, code: string, accepted = false) {

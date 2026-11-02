@@ -534,7 +534,7 @@ test("depletion draws sequentially across reshuffle and empty sources resolve wi
   assert.deepEqual(stateDigest(emptyDrawConflict.json.snapshot), stateDigest(emptyDraw.json.snapshot));
 });
 
-test("setup and reaction demos remain isolated and unsupported modes/config never create a room", async () => {
+test("setup and reaction demos remain isolated and unsupported config never creates a room", async () => {
   const runtime = localRuntime();
   const reaction = await createRoom(runtime, "ReactionHost", "reaction_demo");
   const setupInReaction = await command(runtime, reaction.roomCode, reaction.sessionToken, {
@@ -564,8 +564,11 @@ test("setup and reaction demos remain isolated and unsupported modes/config neve
     method: "POST",
     body: { nickname: "BaseHost", mode: "base" },
   });
-  assert.notEqual(base.response.status, 201);
-  assert.equal("sessionToken" in base.json, false);
+  // GAME-001: the real base game is approved; it is a separate, non-demo mode.
+  assert.equal(base.response.status, 201);
+  assert.equal(base.json.snapshot.mode, "base");
+  assert.equal("demo" in base.json.snapshot, false);
+  assert.equal("setup" in base.json.snapshot, false);
   const expansion = await runtime.request("/api/rooms", {
     method: "POST",
     body: { nickname: "ExpansionHost", mode: "setup_demo", enabledSetIds: ["fixture.expansion"] },
