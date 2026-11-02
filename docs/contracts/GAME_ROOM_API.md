@@ -125,7 +125,7 @@ Effects run as data steps keyed by card `effectId` (GAME-004). Implemented: see 
     winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;
   };
 }
-BaseCardView = { cardId /* "<definitionId>#NN" instance */, definitionId, kind, name }
+BaseCardView = { cardId /* "<definitionId>#NN" instance */, definitionId, kind, name, modifierOptions? /* Modifier only */ }
 ```
 
 Privacy: only the requester's hand is serialized; other seats expose `handCount` only; deck order, monster deck order and token hashes are never sent. `chain.options` (choice candidates) is sent only to the chooser. Pulled cards are logged without identity. No `demo`/`demoLabel` field. `party` excludes the Leader (see `leaderId`). Passive bonuses appear in `roll.passives` separately from `roll.modifiers` (Q-11, labelled "passive của Leader: …").

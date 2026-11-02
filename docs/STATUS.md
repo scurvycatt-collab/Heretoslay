@@ -8,7 +8,7 @@
 | EF-BROWSER-001 | lead | done | 2-client browser review PASS |
 | EF-UI-CLEANUP-001 | ui | done | One renderer; webtypecheck/build PASS |
 | GAME-001 | arch | done | Base room thật (merged trước session cloud) |
-| UI-001 | ui | todo | Lobby UI (deps: GAME-001) |
+| UI-001 | ui | done | apps/web/src/BaseRoom.tsx: tạo/vào phòng mode base, chọn Leader, bàn chơi, hand, PLAY/ROLL/ATTACK/DRAW/REDRAW/END, window Challenge/Modifier/choice, log, winner. Chưa style (Codex). typecheck+build PASS; chưa chạy thử trên trình duyệt |
 | GAME-002 | arch-heavy | done | Turn loop base: PLAY/Challenge/Modifier window, hero roll, ATTACK, choice, deadline qua DO alarm; review 0 critical, MAJOR đã sửa; worker 46 / integ 25 |
 | GAME-003 | arch | done | Win 3 slay (ngay, Q-03) / 6 class cuối lượt mình (Leader tính, Mask Q-04), tie → active (Q-02), GAME_OVER khoá room; review 0 finding chính |
 | MOD-005 | arch | done | REACT_MODIFIER theo cardId + option, side cho Challenge, Protecting Horn ±1; passive Leader hiển thị riêng, Q-11 switch (default không chiếm suất); CONFIGURE_GAME host trước ván |

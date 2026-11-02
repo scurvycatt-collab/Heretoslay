@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { clearSession, command, createRoom, joinRoom, loadSession, saveSession, snapshot, type Session } from "./api";
 import type { EffectDemoSnapshot, SetupDemoSnapshot } from "@here-to-slay/protocol";
+import { BaseRoom } from "./BaseRoom";
 
 type Scene = "table" | "modifier" | "challenge" | "versus";
 type View = "lobby" | "preview";
@@ -228,7 +229,7 @@ export function App() {
   const [mode, setMode] = useState<"lobby" | "room" | "preview">(() => loadSession() ? "room" : "lobby");
   const [nickname, setNickname] = useState("");
 const [roomCode, setRoomCode] = useState("");
-  const [createMode, setCreateMode] = useState<"reaction_demo" | "setup_demo" | "effect_demo">("reaction_demo");
+  const [createMode, setCreateMode] = useState<"base" | "reaction_demo" | "setup_demo" | "effect_demo">("base");
   const [session, setSession] = useState<Session | null>(() => loadSession());
   const [notice, setNotice] = useState(() => session ? "" : "Choose a nickname to create or join a room.");
 const [pending, setPending] = useState(false);
@@ -242,6 +243,7 @@ const tick = window.setInterval(() => setLocalNow(Date.now()), 250); return () =
   if (mode === "preview") return <PreviewApp />;
   if (mode === "room" && session) { const state = session.snapshot;
 const send = async (kind: string, payload: object) => { setPending(true); try { const result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), state.revision, kind, payload); accept({ ...session, snapshot: result.snapshot, receivedAt: Date.now() }, result.outcome.accepted); if (!result.outcome.accepted) setNotice(`Command rejected: ${result.outcome.code}. Refreshed from the server.`); } catch (error) { setNotice(error instanceof Error ? error.message : "Command failed."); } finally { setPending(false); } };
+if (state.mode === "base") return <BaseRoom state={state} send={send} pending={pending} serverNow={state.serverNow + (localNow - session.receivedAt)} notice={notice} onLobby={() => setMode("lobby")} />;
 if (state.mode === "setup_demo") return <main className="app-shell"><header className="review-bar"><div><b>HERE TO SLAY</b><span>SETUP DEMO · SERVER SNAPSHOT</span></div><button onClick={() => setMode("lobby")}>LOBBY</button></header><SetupRoom state={state} pending={pending} send={send}/><p className="sr-note" role="status">{notice || "Personalized synthetic setup state from server."}</p></main>;
 if (state.mode === "effect_demo") return <><EffectRoom state={state} pending={pending} send={send} serverNow={state.serverNow + (localNow - session.receivedAt)} />{notice && <p className="sr-note" role="status">{notice}</p>}</>;
 const reaction = state.reaction;
@@ -301,7 +303,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 </main>; }
   return <main className="lobby-shell">
 <section className="lobby-panel">
-<span className="lobby-kicker">REACTION DEMO</span>
+<span className="lobby-kicker">BASE GAME</span>
 <h1>HERE TO SLAY</h1>
 <p>Nickname and room code only. No account. Base rooms support 2–6 players.</p>
 <div className="lobby-grid">
@@ -309,7 +311,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <h2>CREATE ROOM</h2>
 <label>Nickname<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
 </label>
-<label>Mode<select value={createMode} onChange={(event) => setCreateMode(event.target.value as "reaction_demo" | "setup_demo" | "effect_demo")}><option value="reaction_demo">Reaction demo</option><option value="setup_demo">Setup demo · synthetic</option><option value="effect_demo">Effect demo · synthetic two cards</option></select></label>
+<label>Mode<select value={createMode} onChange={(event) => setCreateMode(event.target.value as "base" | "reaction_demo" | "setup_demo" | "effect_demo")}><option value="base">Base game (2–6 players)</option><option value="reaction_demo">Reaction demo</option><option value="setup_demo">Setup demo · synthetic</option><option value="effect_demo">Effect demo · synthetic two cards</option></select></label>
 <button disabled={pending || !nickname.trim()}>CREATE ROOM</button>
 </form>
 <form className="lobby-card" onSubmit={(event) => { event.preventDefault(); void connect("join"); }}>

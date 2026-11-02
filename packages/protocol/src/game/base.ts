@@ -26,6 +26,8 @@ export interface BaseCardView {
   kind: BaseCardKind;
   /** Display name from card data (GAME-004). */
   name: string;
+  /** Modifier cards only: the values REACT_MODIFIER accepts. */
+  modifierOptions?: number[];
 }
 
 export type BaseGamePhase = "lobby" | "leader_selection" | "turn_active" | "game_over";
