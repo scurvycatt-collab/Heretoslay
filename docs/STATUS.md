@@ -13,7 +13,7 @@
 | GAME-003 | arch | done | Win 3 slay (ngay, Q-03) / 6 class cuối lượt mình (Leader tính, Mask Q-04), tie → active (Q-02), GAME_OVER khoá room; review 0 finding chính |
 | MOD-005 | arch | done | REACT_MODIFIER theo cardId + option, side cho Challenge, Protecting Horn ±1; passive Leader hiển thị riêng, Q-11 switch (default không chiếm suất); CONFIGURE_GAME host trước ván |
 | GAME-004 | arch-heavy | done | Card schema + data 95 def/136 copy có provenance, validator, CARD_TEMPLATE_SPEC.json; review sửa xong; verify worker 34 / protocol 11 / integ 22+1skip |
-| QA-001 | qa | todo | Game loop integration tests (deps: GAME-002+003) |
+| QA-001 | qa | done | tests/base-e2e.integration.test.ts: 2 người thắng 6 class, 3 người thắng 3 slay qua HTTP; nit GAME-001 (END_TURN sai người, STALE replay, stale/replay BEGIN/SELECT/START, reshuffle, privacy reconnect, DRAW rỗng) |
 | DEPL-001 | arch | todo | Cloudflare deploy — blocked on owner account |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md

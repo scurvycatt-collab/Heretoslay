@@ -61,7 +61,7 @@ Chưa setup. Cần: wrangler secret, domain, Cloudflare account của owner.
 ---
 
 ## Trạng thái
-**2026-11-02 (cloud)** — GAME-004 DONE: `packages/protocol/src/cards.ts` + `apps/worker/src/content/base-cards.{json,ts}` + `docs/contracts/CARD_TEMPLATE_SPEC.json`; nguồn/sai lệch ở `docs/content/BASE_CARD_DATA.md`. GAME-002 DONE: engine `apps/worker/src/game/base-engine.ts` (+ base-rules.ts), contract GAME_ROOM_API.md. GAME-003 DONE (win + GAME_OVER). MOD-005 DONE (Modifier picker + Q-11 switch + CONFIGURE_GAME). Đang QA-001.
+**2026-11-02 (cloud)** — GAME-004 DONE: `packages/protocol/src/cards.ts` + `apps/worker/src/content/base-cards.{json,ts}` + `docs/contracts/CARD_TEMPLATE_SPEC.json`; nguồn/sai lệch ở `docs/content/BASE_CARD_DATA.md`. GAME-002 DONE: engine `apps/worker/src/game/base-engine.ts` (+ base-rules.ts), contract GAME_ROOM_API.md. GAME-003 DONE (win + GAME_OVER). MOD-005 DONE (Modifier picker + Q-11 switch + CONFIGURE_GAME). QA-001 DONE (e2e 2–3 người). Đang UI-001.
 
 **2026-11-02 12:50** — main đã push GitHub. Merged: T00, RULES-001, GAME-001 (base room thật, logic ở apps/worker/src/game/).
 Owner đã chốt Q-01..Q-12 (docs/decisions/product-decisions.md, mục cuối). Q-11: đã làm switch `leaderPassiveUsesModifierSlot` (default false) — owner xác nhận thì xong.
