@@ -26,6 +26,8 @@ import {
 import {
   activePlayerId,
   advance,
+  afterDraw,
+  playTargetError,
   challenge,
   eligibleChoiceCards,
   findHero,
@@ -137,6 +139,7 @@ export function initialBaseGameState(): BaseGameState {
     log: [],
     logSeq: 0,
     names: {},
+    collected: [],
   };
 }
 
@@ -147,7 +150,10 @@ function newSeat(playerId: string): BaseSeat {
 /** Upgrades a persisted GAME-001 (schema 1) state in place. */
 export function normalizeBaseGame(raw: unknown): BaseGameState {
   const game = raw as BaseGameState & { schema: number };
-  if (game.schema === 2) return game;
+  if (game.schema === 2) {
+    game.collected ??= [];
+    return game;
+  }
   const defaults = initialBaseGameState();
   for (const [key, value] of Object.entries(defaults)) {
     if (!(key in game)) (game as unknown as Record<string, unknown>)[key] = value;
@@ -316,6 +322,7 @@ const drawHandler: Handler = (game, seat, _command, _roster, deps) => {
   const drawn = drawCards(game, game, 1, deps.shuffle);
   seat.hand.push(...drawn);
   spendAp(game, DRAW_COST);
+  afterDraw(game, seat, drawn);
   log(game, `${game.names[seat.playerId] ?? seat.playerId} DRAW ${drawn.length} lá`);
   advance(game, deps, HOOKS);
   return "ACCEPTED";
@@ -328,6 +335,7 @@ const redrawHandler: Handler = (game, seat, _command, _roster, deps) => {
   game.discard.push(...seat.hand);
   seat.hand = drawCards(game, game, STARTING_HAND_SIZE, deps.shuffle);
   spendAp(game, REDRAW_COST);
+  afterDraw(game, seat, seat.hand);
   log(game, `${game.names[seat.playerId] ?? seat.playerId} bỏ cả tay, rút ${seat.hand.length} lá`);
   advance(game, deps, HOOKS);
   return "ACCEPTED";
@@ -340,14 +348,6 @@ const endTurnHandler: Handler = (game, seat, _command, _roster, deps) => {
   return "ACCEPTED";
 };
 
-function itemTargetError(game: BaseGameState, seat: BaseSeat, card: BaseCard, targets: BaseTargets): BaseCommandCode | null {
-  const targetId = targets.heroInstanceIds?.[0];
-  const found = targetId ? findHero(game, targetId) : null;
-  if (!found || found.hero.item) return "INVALID_TARGET"; // RULE-08: one Item per Hero; Leader is not a Hero
-  if (card.kind === "item" && found.seat !== seat) return "INVALID_TARGET"; // Q-06
-  return null;
-}
-
 const playHandCardHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.kind !== "PLAY_HAND_CARD") return "MODE_MISMATCH";
   const blocked = turnGuard(game, seat);
@@ -357,16 +357,9 @@ const playHandCardHandler: Handler = (game, seat, command, _roster, deps) => {
   if (index < 0) return "CARD_NOT_IN_HAND";
   const card = seat.hand[index];
   const targets = command.payload.targets ?? {};
-  if (card.kind === "item" || card.kind === "cursed_item") {
-    const error = itemTargetError(game, seat, card, targets);
-    if (error) return error;
-  } else if (card.kind === "magic") {
-    const data = cardDataOfKind(card.definitionId, "magic");
-    const error = validateTargets(game, seat.playerId, data?.target ?? "none", targets);
-    if (error) return error;
-  } else if (card.kind !== "hero") {
-    return "CARD_NOT_PLAYABLE"; // Modifier/Challenge are reactions only (EC-27)
-  }
+  // Modifier/Challenge are reactions only (EC-27); Item/Cursed/Magic targets per Q-06/Q-08.
+  const error = playTargetError(game, seat, card, targets);
+  if (error) return error;
   seat.hand.splice(index, 1);
   spendAp(game, PLAY_COST);
   log(game, `${game.names[seat.playerId] ?? seat.playerId} chơi ${cardDataOfKind(card.definitionId, card.kind as "hero")?.name ?? card.definitionId}`);
@@ -457,7 +450,7 @@ const resolveChoiceHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.kind !== "RESOLVE_CHOICE") return "MODE_MISMATCH";
   const guard = reactGuard(game);
   if (guard) return guard;
-  return resolveChoice(game, seat.playerId, command.payload.choiceId, command.payload.cardInstanceIds, deps, HOOKS, command.payload.accept);
+  return resolveChoice(game, seat.playerId, command.payload.choiceId, command.payload.cardInstanceIds, deps, HOOKS, command.payload.accept, command.payload.targets);
 };
 
 /** The Shadow Claw: "Once per turn on your turn, you may spend an action point to pull a card from another player's hand." */

@@ -271,18 +271,13 @@ test("Shadow Claw: banned in 2-player games; 1 AP once per turn pull in 3-player
   assert.equal(t.game.actionPoints, 2);
 });
 
-test("Magic: Enchanted Spell +2 to the actor's rolls this turn; unknown effects are a logged no-op", () => {
+test("Magic: Enchanted Spell +2 to the actor's rolls this turn", () => {
   const t = table();
   const me = active(t);
   const spell = give(t, me, "hts.base.v1.magic.enchanted-spell");
   t.run(me, "PLAY_HAND_CARD", { cardInstanceId: spell.cardId });
   passAll(t);
   assert.equal(t.game.turnRollBonus, 2);
-  const fuzzy = placeHero(t, me, "fuzzy-cheeks");
-  t.dice.push([6, 6]);
-  t.run(me, "USE_HERO_EFFECT", { heroInstanceId: fuzzy.cardId });
-  passAll(t);
-  assert.ok(t.game.log.some((entry) => /chưa được hỗ trợ/.test(entry.text)));
 });
 
 test("privacy: choice options only for the chooser; other hands never serialized", () => {

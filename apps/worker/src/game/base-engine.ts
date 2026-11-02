@@ -79,9 +79,44 @@ export type RollState =
     };
 
 /** "confirm": a yes/no for a "may" clause (owner 2026-11-02: ask the player). */
-export type ChoiceKind = "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set" | "confirm";
+export type ChoiceKind =
+  | "discard"
+  | "sacrifice_hero"
+  | "give_card"
+  | "take_from_discard"
+  | "discard_from_set"
+  | "confirm"
+  /** Play a card from hand for free ("play it immediately"); RESOLVE_CHOICE.targets apply. */
+  | "play_card"
+  /** Pick a Hero in another Party to DESTROY. */
+  | "destroy_hero"
+  /** Bullseye: pick 1 of the top 3 deck cards (private to the chooser). */
+  | "take_from_top"
+  /** Sharp Fox: look at another player's hand (private); resolve with []. */
+  | "view_hand"
+  /** Silent Shadow: take 1 card from another player's hand (seen). */
+  | "take_from_hand";
 
-export interface PendingChoice {
+/** Extra fields shared by a choice step and the pending choice it opens. */
+export interface ChoiceExtras {
+  filterKinds?: BaseCardKind[];
+  fromCardIds?: string[];
+  recipientId?: string;
+  /** view_hand / take_from_hand: whose hand. */
+  targetPlayerId?: string;
+  /** confirm: run if accepted. */
+  then?: Step[];
+  /** confirm: run if declined (or timed out). */
+  otherwise?: Step[];
+  /** play_card: run after a card was picked and played. */
+  thenIfPicked?: Step[];
+  /** discard: run these steps once per discarded card (Qi Bear). */
+  perCardThen?: Step[];
+  /** discard: remember discarded ids in game.collected (Beary Wise). */
+  collect?: boolean;
+}
+
+export interface PendingChoice extends ChoiceExtras {
   choiceId: string;
   playerId: string;
   kind: ChoiceKind;
@@ -89,14 +124,6 @@ export interface PendingChoice {
   max: number;
   prompt: string;
   deadlineAt: number;
-  /** take_from_discard: allowed kinds. */
-  filterKinds?: BaseCardKind[];
-  /** discard_from_set: allowed hand card ids. */
-  fromCardIds?: string[];
-  /** give_card: who receives. */
-  recipientId?: string;
-  /** confirm: steps run only if the player accepts. */
-  then?: Step[];
 }
 
 export type Chain =
@@ -119,33 +146,44 @@ export type Chain =
 
 /** Serializable effect steps, run in order; a `choice` step suspends the queue. */
 export type Step =
-  | { op: "draw"; playerId: string; n: number }
-  | { op: "draw_to"; playerId: string; n: number }
   | {
+      op: "draw";
+      playerId: string;
+      n: number;
+      /** "If that card is a <kind>, you may play it immediately." */
+      offerPlayIfKind?: BaseCardKind[];
+      /** Steps after the offered card was played (Snowball: DRAW a second card). */
+      offerThen?: Step[];
+      /** "If at least one of those cards is a <kind> …" (Pan Chucks). */
+      ifAnyKindThen?: { kinds: BaseCardKind[]; steps: Step[] };
+      /** Internal: skip slain-Monster draw triggers (none currently). */
+      quiet?: boolean;
+    }
+  | { op: "offer_immediate_roll"; playerId: string; heroCardId: string }
+  | { op: "draw_to"; playerId: string; n: number }
+  | ({
       op: "choice";
       playerId: string;
       kind: ChoiceKind;
       count: number;
       upTo?: boolean;
       prompt: string;
-      filterKinds?: BaseCardKind[];
-      fromCardIds?: string[];
-      recipientId?: string;
-      then?: Step[];
-    }
-  | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string }
+      /** take_from_discard limited to game.collected (Beary Wise). */
+      fromCollected?: boolean;
+    } & ChoiceExtras)
+  | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string; noStealInstead?: boolean }
   | { op: "steal"; heroCardId: string; toPlayerId: string }
   | { op: "move_hero"; heroCardId: string; toPlayerId: string; onlyIfOwns?: { heroCardId: string; playerId: string } }
   | { op: "discard_card"; card: BaseCard }
   | { op: "trade_hands"; a: string; b: string }
-  | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean }
+  | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean; offerPlayIfKind?: BaseCardKind[] }
   | { op: "roll_bonus"; n: number }
   | { op: "protect"; playerId: string; kind: "noDestroy" | "noSteal" }
   | { op: "no_challenge" }
   | { op: "return_item"; heroCardId: string; onlyCursed?: boolean; toPlayerId?: string }
   | { op: "return_all_items" }
   | { op: "pull_from_class"; toPlayerId: string; heroClass: "thief" }
-  | { op: "each_other_choice"; actorId: string; kind: "discard" | "sacrifice_hero" | "give_card"; count: number; requireClass?: "fighter" }
+  | { op: "each_other_choice"; actorId: string; kind: "discard" | "sacrifice_hero" | "give_card"; count: number; requireClass?: "fighter"; collect?: boolean }
   | { op: "log"; text: string };
 
 export interface EngineState extends SetupTable<BaseCard> {
@@ -164,6 +202,8 @@ export interface EngineState extends SetupTable<BaseCard> {
   logSeq: number;
   /** playerId → nickname, mirrored from the roster for log lines. */
   names: Record<string, string>;
+  /** Card ids collected by `collect` discards for a follow-up step (Beary Wise). */
+  collected: string[];
 }
 
 export interface EngineDeps {
@@ -252,6 +292,39 @@ function decoyDollSaves(game: EngineState, hero: PartyHero): boolean {
 /** A "may" clause: the player is asked (owner 2026-11-02); timeout = decline. */
 export function may(playerId: string, prompt: string, then: Step[]): Step {
   return { op: "choice", playerId, kind: "confirm", count: 1, prompt, then };
+}
+
+/** Offer to play one of `cards` for free (a "may"), then `thenIfPicked`. */
+function offerPlay(playerId: string, cards: BaseCard[], prompt: string, thenIfPicked?: Step[]): Step {
+  return {
+    op: "choice",
+    playerId,
+    kind: "play_card",
+    count: 1,
+    upTo: true,
+    prompt,
+    fromCardIds: cards.map((card) => card.cardId),
+    ...(thenIfPicked ? { thenIfPicked } : {}),
+  };
+}
+
+/**
+ * Slain-Monster DRAW triggers. Malamammoth: "Each time you DRAW an Item card, you may play it
+ * immediately." Orthus: same for Magic. Rex Major: "Each time you DRAW a Modifier card, you may
+ * reveal it and DRAW a second card."
+ */
+export function afterDraw(game: EngineState, seat: BaseSeat, drawn: BaseCard[]): void {
+  for (const card of drawn) {
+    if ((card.kind === "item" || card.kind === "cursed_item") && slainHas(seat, "malamammoth")) {
+      game.queue.push(offerPlay(seat.playerId, [card], `Malamammoth: chơi ngay ${cardName(card.definitionId)}?`));
+    }
+    if (card.kind === "magic" && slainHas(seat, "orthus")) {
+      game.queue.push(offerPlay(seat.playerId, [card], `Orthus: chơi ngay ${cardName(card.definitionId)}?`));
+    }
+    if (card.kind === "modifier" && slainHas(seat, "rex-major")) {
+      game.queue.push(may(seat.playerId, `Rex Major: lộ ${cardName(card.definitionId)} để DRAW thêm 1 lá?`, [{ op: "draw", playerId: seat.playerId, n: 1 }]));
+    }
+  }
 }
 
 /** Dracos slain skill: "Each time a Hero card in your Party is destroyed, you may DRAW a card." */
@@ -385,11 +458,70 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       // "then DISCARD one of those cards": the choice is restricted to the pulled cards.
       return [{ op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 2, thenDiscardOne: true }];
     case "hero.lucky-bucky":
+      return [{ op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 1, offerPlayIfKind: ["hero"] }];
     case "hero.sly-pickings":
+      return [{ op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 1, offerPlayIfKind: ["item", "cursed_item"] }];
     case "hero.buttons":
+      return [{ op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 1, offerPlayIfKind: ["magic"] }];
+    case "hero.mellow-dee":
+      return [{ op: "draw", playerId: actorId, n: 1, offerPlayIfKind: ["hero"] }];
+    case "hero.snowball":
+      return [{ op: "draw", playerId: actorId, n: 1, offerPlayIfKind: ["magic"], offerThen: [{ op: "draw", playerId: actorId, n: 1 }] }];
+    case "hero.quick-draw":
+      return [{ op: "draw", playerId: actorId, n: 2, offerPlayIfKind: ["item", "cursed_item"] }];
+    case "hero.fuzzy-cheeks":
       return [
-        { op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 1 },
-        { op: "log", text: `${cardName(effectId.replace("hero.", "hts.base.v1.hero."))}: phần "play it immediately" chưa hỗ trợ` },
+        { op: "draw", playerId: actorId, n: 1 },
+        { op: "choice", playerId: actorId, kind: "play_card", count: 1, filterKinds: ["hero"], prompt: "Chơi ngay 1 Hero từ tay (Fuzzy Cheeks)" },
+      ];
+    case "hero.hook":
+      return [
+        { op: "choice", playerId: actorId, kind: "play_card", count: 1, filterKinds: ["item", "cursed_item"], prompt: "Chơi ngay 1 Item từ tay (Hook)" },
+        { op: "draw", playerId: actorId, n: 1 },
+      ];
+    case "hero.pan-chucks":
+      return [
+        {
+          op: "draw",
+          playerId: actorId,
+          n: 2,
+          ifAnyKindThen: {
+            kinds: ["challenge"],
+            steps: [
+              may(actorId, "Pan Chucks: lộ Challenge vừa rút để DESTROY 1 Hero?", [
+                { op: "choice", playerId: actorId, kind: "destroy_hero", count: 1, prompt: "Chọn Hero để DESTROY (Pan Chucks)" },
+              ]),
+            ],
+          },
+        },
+      ];
+    case "hero.qi-bear":
+      return [
+        {
+          op: "choice",
+          playerId: actorId,
+          kind: "discard",
+          count: 3,
+          upTo: true,
+          prompt: "DISCARD tối đa 3 lá; mỗi lá = DESTROY 1 Hero (Qi Bear)",
+          perCardThen: [{ op: "choice", playerId: actorId, kind: "destroy_hero", count: 1, prompt: "Chọn Hero để DESTROY (Qi Bear)" }],
+        },
+      ];
+    case "hero.beary-wise":
+      return [
+        { op: "each_other_choice", actorId, kind: "discard", count: 1, collect: true },
+        { op: "choice", playerId: actorId, kind: "take_from_discard", count: 1, fromCollected: true, prompt: "Chọn 1 lá vừa bị discard để lấy về tay (Beary Wise)" },
+      ];
+    case "hero.bullseye":
+      return [{ op: "choice", playerId: actorId, kind: "take_from_top", count: 1, prompt: "Chọn 1 trong 3 lá trên cùng của deck (Bullseye)" }];
+    case "hero.sharp-fox":
+      return [{ op: "choice", playerId: actorId, kind: "view_hand", count: 0, upTo: true, targetPlayerId: p, prompt: "Xem tay bài (Sharp Fox) — bấm xác nhận để đóng" }];
+    case "hero.silent-shadow":
+      return [{ op: "choice", playerId: actorId, kind: "take_from_hand", count: 1, targetPlayerId: p, prompt: "Chọn 1 lá trong tay đối thủ (Silent Shadow)" }];
+    case "hero.wiggles":
+      return [
+        { op: "steal", heroCardId: h[0], toPlayerId: actorId },
+        { op: "offer_immediate_roll", playerId: actorId, heroCardId: h[0] },
       ];
     case "hero.guiding-light":
     case "magic.call-to-the-fallen":
@@ -449,19 +581,22 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
 function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, deps: EngineDeps): boolean {
   const seat = seatOf(game, step.playerId);
   if (!seat) return false;
-  const available =
-    step.kind === "confirm"
-      ? 1
-      : step.kind === "sacrifice_hero"
-      ? seat.party.length
-      : step.kind === "take_from_discard"
-        ? game.discard.filter((card) => !step.filterKinds || step.filterKinds.includes(card.kind)).length
-        : step.kind === "discard_from_set"
-          ? seat.hand.filter((card) => step.fromCardIds?.includes(card.cardId)).length
-          : seat.hand.length;
-  const max = Math.min(step.count, available);
+  if (step.fromCollected) {
+    step = { ...step, fromCardIds: game.collected.filter((id) => game.discard.some((card) => card.cardId === id)) };
+    game.collected = [];
+  }
+  const probe: PendingChoice = { choiceId: "", playerId: step.playerId, kind: step.kind, min: 0, max: 0, prompt: "", deadlineAt: 0, ...extrasOf(step) };
+  const available = step.kind === "confirm" || step.kind === "view_hand" ? 1 : eligibleChoiceCards(game, probe).length;
+  const max = step.kind === "view_hand" ? 0 : Math.min(step.count, available);
+  if (step.kind === "view_hand") {
+    const target = seatOf(game, step.targetPlayerId ?? "");
+    if (!target || target.hand.length === 0) {
+      log(game, `${whoName(game, step.playerId)}: tay bài trống — bỏ qua`);
+      return false;
+    }
+  }
   // Q-05 / RULE-20: do as much as possible; nothing available → no effect.
-  if (max === 0) {
+  if (max === 0 && step.kind !== "view_hand") {
     log(game, `${whoName(game, step.playerId)}: không có gì để chọn (${step.prompt}) — bỏ qua`);
     return false;
   }
@@ -471,17 +606,22 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
       choiceId: deps.newId(),
       playerId: step.playerId,
       kind: step.kind,
-      min: step.upTo || step.kind === "confirm" ? 0 : max,
+      min: step.upTo || step.kind === "confirm" || step.kind === "view_hand" ? 0 : max,
       max,
       prompt: step.prompt,
       deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
-      ...(step.filterKinds ? { filterKinds: step.filterKinds } : {}),
-      ...(step.fromCardIds ? { fromCardIds: step.fromCardIds } : {}),
-      ...(step.recipientId ? { recipientId: step.recipientId } : {}),
-      ...(step.then ? { then: step.then } : {}),
+      ...extrasOf(step),
     },
   };
   return true;
+}
+
+function extrasOf(step: ChoiceExtras): ChoiceExtras {
+  const out: ChoiceExtras = {};
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "perCardThen", "collect"] as const) {
+    if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
+  }
+  return out;
 }
 
 /** Runs one step. Returns true if it opened a choice (queue suspends). */
@@ -496,7 +636,26 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       const drawn = drawCards(game, game, step.n, deps.shuffle);
       seat.hand.push(...drawn);
       log(game, `${whoName(game, step.playerId)} rút ${drawn.length} lá`);
+      const follow: Step[] = [];
+      if (step.offerPlayIfKind) {
+        const playable = drawn.filter((card) => step.offerPlayIfKind!.includes(card.kind));
+        if (playable.length > 0) follow.push(offerPlay(step.playerId, playable, "Chơi ngay lá vừa rút?", step.offerThen));
+      }
+      if (step.ifAnyKindThen && drawn.some((card) => step.ifAnyKindThen!.kinds.includes(card.kind))) follow.push(...step.ifAnyKindThen.steps);
+      game.queue.unshift(...follow);
+      afterDraw(game, seat, drawn);
       return false;
+    }
+    case "offer_immediate_roll": {
+      const found = findHero(game, step.heroCardId);
+      if (!found || found.seat.playerId !== step.playerId) return false;
+      game.chain = {
+        step: "immediate_roll_choice",
+        deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
+        actorId: step.playerId,
+        heroCardId: step.heroCardId,
+      };
+      return true;
     }
     case "draw_to": {
       const seat = seatOf(game, step.playerId);
@@ -505,6 +664,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       const drawn = drawCards(game, game, need, deps.shuffle);
       seat.hand.push(...drawn);
       log(game, `${whoName(game, step.playerId)} rút ${drawn.length} lá (tới ${step.n})`);
+      afterDraw(game, seat, drawn);
       return false;
     }
     case "choice":
@@ -517,6 +677,20 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       }
       if (heroCannotBeDestroyed(found.seat)) {
         log(game, `DESTROY: Hero của ${whoName(game, found.seat.playerId)} không thể bị destroy — bỏ qua`);
+        return false;
+      }
+      const destroyer = seatOf(game, step.byPlayerId);
+      // Corrupted Sabretooth: "Each time you would DESTROY a Hero card, you may STEAL that Hero card instead."
+      if (destroyer && !step.noStealInstead && slainHas(destroyer, "corrupted-sabretooth")) {
+        game.queue.unshift({
+          op: "choice",
+          playerId: step.byPlayerId,
+          kind: "confirm",
+          count: 1,
+          prompt: `Corrupted Sabretooth: STEAL ${cardName(found.hero.card.definitionId)} thay vì DESTROY?`,
+          then: [{ op: "steal", heroCardId: step.heroCardId, toPlayerId: step.byPlayerId }],
+          otherwise: [{ ...step, noStealInstead: true }],
+        });
         return false;
       }
       if (decoyDollSaves(game, found.hero)) return false;
@@ -581,6 +755,10 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       };
       for (let i = 0; i < step.n; i += 1) pullOne();
       if (step.extraIfKind && pulled[0]?.kind === step.extraIfKind) pullOne();
+      if (step.offerPlayIfKind) {
+        const playable = pulled.filter((card) => step.offerPlayIfKind!.includes(card.kind));
+        if (playable.length > 0) game.queue.unshift(offerPlay(step.toPlayerId, playable, "Chơi ngay lá vừa rút?"));
+      }
       log(game, `${whoName(game, step.toPlayerId)} rút ${pulled.length} lá từ tay ${whoName(game, step.fromPlayerId)}`);
       if (step.thenDiscardOne && pulled.length > 0) {
         return openChoice(
@@ -658,6 +836,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
           count: step.count,
           prompt,
           ...(step.kind === "give_card" ? { recipientId: step.actorId } : {}),
+          ...(step.collect ? { collect: true } : {}),
         });
       }
       game.queue.unshift(...steps);
@@ -686,7 +865,16 @@ export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks)
 
 // ---------------------------------------------------------------- choices
 
-export function resolveChoice(game: EngineState, playerId: string, choiceId: string, cardIds: string[], deps: EngineDeps, hooks: EngineHooks, accept?: boolean): string {
+export function resolveChoice(
+  game: EngineState,
+  playerId: string,
+  choiceId: string,
+  cardIds: string[],
+  deps: EngineDeps,
+  hooks: EngineHooks,
+  accept?: boolean,
+  targets?: BaseTargets,
+): string {
   const chain = game.chain;
   if (!chain || chain.step !== "choice") return "NO_PENDING_CHOICE";
   const choice = chain.choice;
@@ -697,6 +885,7 @@ export function resolveChoice(game: EngineState, playerId: string, choiceId: str
     game.chain = null;
     log(game, `${whoName(game, playerId)} ${accept ? "đồng ý" : "từ chối"}: ${choice.prompt}`);
     if (accept && choice.then) game.queue.unshift(...choice.then);
+    if (!accept && choice.otherwise) game.queue.unshift(...choice.otherwise);
     advance(game, deps, hooks);
     return "ACCEPTED";
   }
@@ -706,6 +895,19 @@ export function resolveChoice(game: EngineState, playerId: string, choiceId: str
   const seat = seatOf(game, playerId)!;
   const eligible = eligibleChoiceCards(game, choice).map((card) => card.cardId);
   if (!cardIds.every((id) => eligible.includes(id))) return "INVALID_CHOICE";
+  if (choice.kind === "play_card" && cardIds.length === 1) {
+    const card = seat.hand.find((candidate) => candidate.cardId === cardIds[0])!;
+    const error = playTargetError(game, seat, card, targets ?? {});
+    if (error) return error;
+    seat.hand.splice(seat.hand.indexOf(card), 1);
+    game.chain = null;
+    if (choice.thenIfPicked) game.queue.unshift(...choice.thenIfPicked);
+    log(game, `${whoName(game, playerId)} chơi ngay ${cardName(card.definitionId)} (không tốn AP)`);
+    openChallengeWindow(game, { actorId: playerId, card, targets: targets ?? {} }, deps, hooks);
+    advance(game, deps, hooks);
+    return "ACCEPTED";
+  }
+  if (targets !== undefined) return "INVALID_CHOICE";
   applyChoice(game, choice, seat, cardIds, deps);
   game.chain = null;
   advance(game, deps, hooks);
@@ -719,11 +921,28 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
     case "sacrifice_hero":
       return seat.party.map((hero) => hero.card);
     case "take_from_discard":
-      return game.discard.filter((card) => !choice.filterKinds || choice.filterKinds.includes(card.kind));
+      return game.discard.filter(
+        (card) =>
+          (!choice.filterKinds || choice.filterKinds.includes(card.kind)) &&
+          (!choice.fromCardIds || choice.fromCardIds.includes(card.cardId)),
+      );
     case "discard_from_set":
       return seat.hand.filter((card) => choice.fromCardIds?.includes(card.cardId));
     case "confirm":
-      return [];
+    case "view_hand":
+      return choice.kind === "view_hand" ? [...(seatOf(game, choice.targetPlayerId ?? "")?.hand ?? [])] : [];
+    case "play_card":
+      return seat.hand.filter(
+        (card) =>
+          (!choice.fromCardIds || choice.fromCardIds.includes(card.cardId)) &&
+          (!choice.filterKinds || choice.filterKinds.includes(card.kind)),
+      );
+    case "destroy_hero":
+      return game.seats.filter((other) => other !== seat).flatMap((other) => other.party.map((hero) => hero.card));
+    case "take_from_top":
+      return game.mainDeck.slice(0, 3);
+    case "take_from_hand":
+      return [...(seatOf(game, choice.targetPlayerId ?? "")?.hand ?? [])];
     default:
       return [...seat.hand];
   }
@@ -739,9 +958,41 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
     case "discard_from_set":
       for (const id of cardIds) {
         const card = takeFromHand(id);
-        if (card) game.discard.push(card);
+        if (card) {
+          game.discard.push(card);
+          if (choice.collect) game.collected.push(card.cardId);
+        }
       }
       log(game, `${whoName(game, seat.playerId)} DISCARD ${cardIds.length} lá`);
+      if (choice.perCardThen) {
+        const steps: Step[] = [];
+        for (let i = 0; i < cardIds.length; i += 1) steps.push(...choice.perCardThen);
+        game.queue.unshift(...steps);
+      }
+      return;
+    case "destroy_hero":
+      if (cardIds[0]) game.queue.unshift({ op: "destroy", heroCardId: cardIds[0], byPlayerId: seat.playerId });
+      return;
+    case "take_from_top":
+      for (const id of cardIds) {
+        const index = game.mainDeck.findIndex((card) => card.cardId === id);
+        if (index >= 0) seat.hand.push(game.mainDeck.splice(index, 1)[0]);
+      }
+      log(game, `${whoName(game, seat.playerId)} lấy 1 lá từ 3 lá trên cùng; 2 lá còn lại trả lại đỉnh deck`);
+      return;
+    case "view_hand":
+      log(game, `${whoName(game, seat.playerId)} đã xem tay bài của ${whoName(game, choice.targetPlayerId ?? "")}`);
+      return;
+    case "take_from_hand": {
+      const target = seatOf(game, choice.targetPlayerId ?? "");
+      for (const id of cardIds) {
+        const index = target ? target.hand.findIndex((card) => card.cardId === id) : -1;
+        if (target && index >= 0) seat.hand.push(target.hand.splice(index, 1)[0]);
+      }
+      log(game, `${whoName(game, seat.playerId)} lấy 1 lá từ tay ${whoName(game, choice.targetPlayerId ?? "")}`);
+      return;
+    }
+    case "play_card":
       return;
     case "give_card": {
       const recipient = choice.recipientId ? seatOf(game, choice.recipientId) : undefined;
@@ -957,6 +1208,22 @@ function closeModifierWindow(game: EngineState, deps: EngineDeps, hooks: EngineH
   advance(game, deps, hooks);
 }
 
+/** Validation shared by PLAY_HAND_CARD and free plays (RULE-08, Q-06, Q-08). */
+export function playTargetError(game: EngineState, seat: BaseSeat, card: BaseCard, targets: BaseTargets): string | null {
+  if (card.kind === "item" || card.kind === "cursed_item") {
+    const targetId = targets.heroInstanceIds?.[0];
+    const found = targetId ? findHero(game, targetId) : null;
+    if (!found || found.hero.item) return "INVALID_TARGET";
+    if (card.kind === "item" && found.seat !== seat) return "INVALID_TARGET";
+    return null;
+  }
+  if (card.kind === "magic") {
+    const data = cardDataOfKind(card.definitionId, "magic");
+    return validateTargets(game, seat.playerId, data?.target ?? "none", targets);
+  }
+  return card.kind === "hero" ? null : "CARD_NOT_PLAYABLE";
+}
+
 // ---------------------------------------------------------------- resolution
 
 /** Pending card was not challenged (or the challenge failed): put it into play. */
@@ -1100,12 +1367,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
 }
 
 /** Slain-Monster skills not modelled yet (logged no-op on slay). */
-const UNMODELLED_SLAIN = new Set([
-  "hts.base.v1.monster.corrupted-sabretooth",
-  "hts.base.v1.monster.malamammoth",
-  "hts.base.v1.monster.orthus",
-  "hts.base.v1.monster.rex-major",
-]);
+const UNMODELLED_SLAIN = new Set<string>([]);
 
 // ---------------------------------------------------------------- deadlines
 
@@ -1143,6 +1405,7 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
       // Owner 2026-11-02: timeout = skip (nothing chosen, nothing happens; "may" declined).
       log(game, `Hết giờ chọn — ${whoName(game, chain.choice.playerId)} bỏ qua (${chain.choice.prompt})`);
       game.chain = null;
+      if (chain.choice.kind === "confirm" && chain.choice.otherwise) game.queue.unshift(...chain.choice.otherwise);
     }
     advance(game, deps, hooks);
   }

@@ -105,7 +105,8 @@ export interface ReactPassCommand extends BaseCommandBase {
 export interface ResolveChoiceCommand extends BaseCommandBase {
   kind: "RESOLVE_CHOICE";
   /** `accept` answers a "confirm" choice (a "may" clause); omit it for card choices. */
-  payload: { choiceId: string; cardInstanceIds: string[]; accept?: boolean };
+  /** `targets`: only for a `play_card` choice (targets of the card being played). */
+  payload: { choiceId: string; cardInstanceIds: string[]; accept?: boolean; targets?: BaseTargets };
 }
 
 /** Leader skill that costs AP (base: The Shadow Claw, 1 AP, once per turn). */
@@ -254,10 +255,22 @@ export type BaseChainView =
       choiceId: string;
       deadlineAt: number;
       playerId: string;
-      kind: "discard" | "sacrifice_hero" | "give_card" | "take_from_discard" | "discard_from_set" | "confirm";
+      kind:
+        | "discard"
+        | "sacrifice_hero"
+        | "give_card"
+        | "take_from_discard"
+        | "discard_from_set"
+        | "confirm"
+        | "play_card"
+        | "destroy_hero"
+        | "take_from_top"
+        | "view_hand"
+        | "take_from_hand";
       min: number;
       max: number;
       prompt: string;
-      /** Only for the chooser (and only public/own cards): what may be picked. */
+      /** Only for the chooser: what may be picked (own hand, public zones, or the
+       *  hand/deck cards that the effect lets the chooser see — Sharp Fox, Silent Shadow, Bullseye). */
       options?: BaseCardView[];
     };

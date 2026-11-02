@@ -454,6 +454,7 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
         issues.push("payload.cardInstanceIds must be an array of strings");
       }
       if (payload.accept !== undefined && typeof payload.accept !== "boolean") issues.push("payload.accept must be boolean");
+      validateBaseTargets(payload.targets, issues);
       break;
     case "LEADER_ACTION":
       need("targetPlayerId");
