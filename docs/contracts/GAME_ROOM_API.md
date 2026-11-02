@@ -1,6 +1,6 @@
 # GAME_ROOM_API — real base game room (mode `base`)
 
-Task: GAME-001 + GAME-002 (2026-11-02). Owner: Architecture. Status: IMPLEMENTED — setup, DRAW/REDRAW/END_TURN, full turn loop (play/challenge/modifier/hero roll/attack/choices). Win = GAME-003.
+Task: GAME-001 + GAME-002 (2026-11-02). Owner: Architecture. Status: IMPLEMENTED — setup, DRAW/REDRAW/END_TURN, full turn loop (play/challenge/modifier/hero roll/attack/choices). Win (GAME-003): see “Win / GAME_OVER”.
 
 Types: `packages/protocol/src/game/base.ts` (`BaseGameSnapshot`, `BaseGameCommand`, `BaseCardView`), re-exported from `@here-to-slay/protocol`. `RoomSnapshot = RoomSliceSnapshot | BaseGameSnapshot`.
 Rules: `docs/rules/BASE_SPEC.md` RULE-01..05, `docs/rules/SETUP_VERIFIED.md`. Cards: CAT-001 reference catalog (`apps/worker/src/content/`), IDs/kinds only, rights UNVERIFIED, no artwork.
@@ -47,6 +47,11 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 | `LEADER_ACTION` | `{ targetPlayerId }` | The Shadow Claw holder, 1 AP, once per turn | pull 1 random card from target's hand |
 
 While `game.chain` is non-null or effect steps are queued, turn commands return `CHAIN_PENDING` (G-02). AP may reach 0 during a chain; the turn ends automatically once it closes (G-03). Empty main deck on draw: discard is reshuffled in (RG-DEPL); deck+discard empty → draw 0, AP still spent.
+
+### Win / GAME_OVER (GAME-003)
+- **3 Monsters slain** → `game_over` in the same transition (after all Modifiers resolved, Q-03); no refill, open chain and queued effects dropped. `winReason: "slay_3"`.
+- **6 distinct classes** (Leader class + Hero classes, Mask per `settings.maskMode`) when the active player's turn ends (`END_TURN` or auto-end at 0 AP after the chain closes). Only the active player is checked. `winReason: "six_classes"`.
+- Simultaneous (Q-02): the active player wins. After `game_over` every command returns `GAME_OVER`; `currentPlayerId` is null; deadlines stop.
 
 ### Deadlines (DO alarm)
 Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settings.choiceSeconds` (30 s); the timer never resets. On expiry (alarm, or before the next command): Challenge window → no challenge; Modifier window → closes; immediate roll → skip; choice → **server picks the first `min` eligible cards** (default, owner may change). Each settle bumps `revision` once — so a command sent right after an expiry gets `STALE_REVISION` and must be resent (new `commandId`) against the fresh snapshot.

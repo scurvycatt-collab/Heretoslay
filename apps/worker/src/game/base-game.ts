@@ -201,7 +201,7 @@ function onTurnStart(game: BaseGameState): void {
   if (slainHas(active, "mega-slime")) game.actionPoints = TURN_ACTION_POINTS + 1;
 }
 
-/** TL-END / TL-AUTO-END. GAME-003 adds the class-win check before advancing. */
+/** TL-END / TL-AUTO-END: class-win check for the actor, then advance (WIN-CLASS-T). */
 export function endTurn(game: BaseGameState, deps: BaseGameDeps): void {
   if (game.phase !== "turn_active") return;
   if (checkClassWin(game)) return;
@@ -219,14 +219,52 @@ export function endTurn(game: BaseGameState, deps: BaseGameDeps): void {
   });
 }
 
-/** WIN-CLASS hook (implemented by GAME-003). */
-export function checkClassWin(_game: BaseGameState): boolean {
-  return false;
+export const SLAY_WIN_COUNT = 3;
+export const CLASS_WIN_COUNT = 6;
+
+/**
+ * GAME_OVER (WIN-END): freezes the table. Open windows/choices are closed without
+ * resolving and queued effect steps are dropped (Q-03); every later command is
+ * rejected with GAME_OVER by applyBaseCommand.
+ */
+function declareWinner(game: BaseGameState, playerId: string, reason: "slay_3" | "six_classes"): void {
+  game.phase = "game_over";
+  game.winnerPlayerId = playerId;
+  game.winReason = reason;
+  game.chain = null;
+  game.queue = [];
+  log(
+    game,
+    `${game.names[playerId] ?? playerId} THẮNG — ${reason === "slay_3" ? "đã SLAY 3 Monster" : "Party đủ 6 class khi kết thúc lượt"}`,
+  );
 }
 
-/** WIN-SLAY-T hook (implemented by GAME-003). */
-export function checkSlayWin(_game: BaseGameState, _seat: BaseSeat): boolean {
-  return false;
+/**
+ * WIN-CLASS / WIN-CLASS-T: only the active player, at the end of their own turn
+ * (after the chain closed), with 6 distinct classes in Party — Leader included,
+ * Masks per settings.maskMode (Q-04).
+ */
+export function checkClassWin(game: BaseGameState): boolean {
+  const actor = seatOf(game, activePlayerId(game) ?? "");
+  if (!actor || partyClasses(actor, game.settings).length < CLASS_WIN_COUNT) return false;
+  declareWinner(game, actor.playerId, "six_classes");
+  return true;
+}
+
+/**
+ * WIN-SLAY-T: checked in the same transition that puts the 3rd Monster into the
+ * Party (Q-03: slay only happens after every Modifier/Challenge resolved), so the
+ * game ends at once. Q-02: in base only the roller can slay, so the active player
+ * is the only candidate in that step; if several seats ever qualified in one step
+ * the active player wins first.
+ */
+export function checkSlayWin(game: BaseGameState, seat: BaseSeat): boolean {
+  const active = activePlayerId(game);
+  const candidates = game.seats.filter((candidate) => candidate.slain.length >= SLAY_WIN_COUNT);
+  if (candidates.length === 0) return false;
+  const winner = candidates.find((candidate) => candidate.playerId === active) ?? candidates.find((candidate) => candidate === seat) ?? candidates[0];
+  declareWinner(game, winner.playerId, "slay_3");
+  return true;
 }
 
 const HOOKS: EngineHooks = {
