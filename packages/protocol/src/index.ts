@@ -791,6 +791,25 @@ export type {
   BaseGameSnapshot,
 } from "./game/base";
 import type { BaseGameSnapshot } from "./game/base";
+export type {
+  CardData,
+  CardDataFile,
+  CardSource,
+  ChallengeCardData,
+  FieldProvenance,
+  FieldStatus,
+  HeroCardData,
+  HeroClass,
+  ItemCardData,
+  LeaderCardData,
+  MagicCardData,
+  ModifierCardData,
+  MonsterCardData,
+  MonsterPenalty,
+  MonsterRequirementSlot,
+  RollCompare,
+  TargetRule,
+} from "./cards";
 
 /** Every snapshot shape a room can return: demo slices plus the real base game. */
 export type RoomSnapshot = RoomSliceSnapshot | BaseGameSnapshot;

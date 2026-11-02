@@ -1,0 +1,4785 @@
+{
+  "schema": 1,
+  "setId": "hts.base.v1",
+  "rightsStatus": "UNVERIFIED",
+  "sources": {
+    "S": {
+      "label": "ShadowzLmao2/HereToSlay-Online src/cards.py",
+      "url": "https://github.com/ShadowzLmao2/HereToSlay-Online/blob/30fa4d03938e721538769a9e296109d13fa16696/src/cards.py",
+      "revision": "30fa4d03938e721538769a9e296109d13fa16696",
+      "authority": "secondary_community"
+    },
+    "J": {
+      "label": "jingxianlau/here-to-slay-online server/src (cards.ts, functions/abilities.ts)",
+      "url": "https://github.com/jingxianlau/here-to-slay-online/tree/af8982981a0946547db2d48f39d8c4956aa810aa/server/src",
+      "revision": "af8982981a0946547db2d48f39d8c4956aa810aa",
+      "authority": "secondary_community"
+    },
+    "L": {
+      "label": "LanCorC/LiveBoard static/js/assets.js (card name + roll list)",
+      "url": "https://github.com/LanCorC/LiveBoard/blob/cb1fd577401a0520eaef3b2a2486c4b150c470e7/src/main/resources/static/js/assets.js",
+      "revision": "cb1fd577401a0520eaef3b2a2486c4b150c470e7",
+      "authority": "secondary_community"
+    },
+    "N": {
+      "label": "1nk-bl0t/HereToSlay HereToSlayMain.py (card text list)",
+      "url": "https://github.com/1nk-bl0t/HereToSlay/blob/main/HereToSlayMain.py",
+      "revision": "main@2026-11-02",
+      "authority": "secondary_community"
+    },
+    "F": {
+      "label": "here-to-slay.fandom.com card wikitext (dump in DavidManiaM/HereToSlay assets/ref/here_to_slay/text/*.md, retrieved 2026-08-23)",
+      "url": "https://github.com/DavidManiaM/HereToSlay/tree/0dad4c74d56b87024de3788a1cb3bbf76f31491e/assets/ref/here_to_slay/text",
+      "revision": "0dad4c74d56b87024de3788a1cb3bbf76f31491e",
+      "authority": "secondary_community"
+    },
+    "RB": {
+      "label": "Retail rulebook text (Wayback copy of unstablegameswiki PDF, pypdf extraction in DavidManiaM/HereToSlay assets/ref/here_to_slay/text/Here-to-Slay-Rules.txt)",
+      "url": "https://github.com/DavidManiaM/HereToSlay/blob/0dad4c74d56b87024de3788a1cb3bbf76f31491e/assets/ref/here_to_slay/text/Here-to-Slay-Rules.txt",
+      "revision": "0dad4c74d56b87024de3788a1cb3bbf76f31491e",
+      "authority": "secondary_rulebook_copy"
+    },
+    "PM": {
+      "label": "PM visual check of base Leader scans (docs/content/BASE_LEADER_ARTIFACT_CHECK.md)",
+      "url": "docs/content/BASE_LEADER_ARTIFACT_CHECK.md",
+      "revision": "2026-11-02",
+      "authority": "secondary_community"
+    }
+  },
+  "cards": [
+    {
+      "definitionId": "hts.base.v1.party-leader.the-charismatic-song",
+      "name": "The Charismatic Song",
+      "quantity": 1,
+      "kind": "party_leader",
+      "heroClass": "bard",
+      "text": "Each time you roll to use a Hero card's effect, +1 to your roll.",
+      "effectId": "leader.the-charismatic-song",
+      "bannedPlayerCounts": [],
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "PM visual summary (BASE_LEADER_ARTIFACT_CHECK.md) is consistent; it is a project check, not counted as an independent source."
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Also consistent with the PM visual check."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "bannedPlayerCounts": {
+          "status": "derived",
+          "sources": [
+            "RB"
+          ],
+          "note": "No restriction stated."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.party-leader.the-cloaked-sage",
+      "name": "The Cloaked Sage",
+      "quantity": 1,
+      "kind": "party_leader",
+      "heroClass": "wizard",
+      "text": "Each time you play a Magic card, DRAW a card.",
+      "effectId": "leader.the-cloaked-sage",
+      "bannedPlayerCounts": [],
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "PM visual summary (BASE_LEADER_ARTIFACT_CHECK.md) is consistent; it is a project check, not counted as an independent source."
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Also consistent with the PM visual check."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "bannedPlayerCounts": {
+          "status": "derived",
+          "sources": [
+            "RB"
+          ],
+          "note": "No restriction stated."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.party-leader.the-divine-arrow",
+      "name": "The Divine Arrow",
+      "quantity": 1,
+      "kind": "party_leader",
+      "heroClass": "ranger",
+      "text": "Each time you roll to ATTACK a Monster card, +1 to your roll.",
+      "effectId": "leader.the-divine-arrow",
+      "bannedPlayerCounts": [],
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "PM visual summary (BASE_LEADER_ARTIFACT_CHECK.md) is consistent; it is a project check, not counted as an independent source."
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Also consistent with the PM visual check."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "bannedPlayerCounts": {
+          "status": "derived",
+          "sources": [
+            "RB"
+          ],
+          "note": "No restriction stated."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.party-leader.the-fist-of-reason",
+      "name": "The Fist of Reason",
+      "quantity": 1,
+      "kind": "party_leader",
+      "heroClass": "fighter",
+      "text": "Each time you roll to CHALLENGE, +2 to your roll.",
+      "effectId": "leader.the-fist-of-reason",
+      "bannedPlayerCounts": [],
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ],
+          "note": "PM visual summary (BASE_LEADER_ARTIFACT_CHECK.md) is consistent; it is a project check, not counted as an independent source."
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Also consistent with the PM visual check."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "bannedPlayerCounts": {
+          "status": "derived",
+          "sources": [
+            "RB"
+          ],
+          "note": "No restriction stated."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.party-leader.the-protecting-horn",
+      "name": "The Protecting Horn",
+      "quantity": 1,
+      "kind": "party_leader",
+      "heroClass": "guardian",
+      "text": "Each time you play a Modifier card on a roll, +1 or -1 to that roll.",
+      "effectId": "leader.the-protecting-horn",
+      "bannedPlayerCounts": [],
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "PM visual summary (BASE_LEADER_ARTIFACT_CHECK.md) is consistent; it is a project check, not counted as an independent source."
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Also consistent with the PM visual check."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "bannedPlayerCounts": {
+          "status": "derived",
+          "sources": [
+            "RB"
+          ],
+          "note": "No restriction stated."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.party-leader.the-shadow-claw",
+      "name": "The Shadow Claw",
+      "quantity": 1,
+      "kind": "party_leader",
+      "heroClass": "thief",
+      "text": "Once per turn on your turn, you may spend an action point to pull a card from another player's hand.",
+      "effectId": "leader.the-shadow-claw",
+      "bannedPlayerCounts": [
+        2
+      ],
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "PM visual summary (BASE_LEADER_ARTIFACT_CHECK.md) is consistent; it is a project check, not counted as an independent source."
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Also consistent with the PM visual check."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "bannedPlayerCounts": {
+          "status": "single_source",
+          "sources": [
+            "RB"
+          ],
+          "note": "'You may not use The Shadow Claw as your Party Leader card in 2-player games.'"
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.anuran-cauldron",
+      "name": "Anuran Cauldron",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 7
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 6
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time you roll, +1 to your roll.",
+      "slainEffectId": "monster.anuran-cauldron",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.artic-aries",
+      "name": "Artic Aries",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 10
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 6
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time you successfully roll to use a Hero card's effect, you may DRAW a card.",
+      "slainEffectId": "monster.artic-aries",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.bloodwing",
+      "name": "Bloodwing",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 9
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 6
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time another player CHALLENGES you, that player must DISCARD a card.",
+      "slainEffectId": "monster.bloodwing",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.orthus",
+      "name": "Orthus",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "class",
+          "heroClass": "wizard"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 4
+      },
+      "penalty": {
+        "effectId": "penalty.discard",
+        "count": 2
+      },
+      "penaltyText": "DISCARD 2 cards.",
+      "text": "Each time you DRAW a Magic card, you may play it immediately.",
+      "slainEffectId": "monster.orthus",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "single_source",
+          "sources": [
+            "J"
+          ],
+          "note": "J says DISCARD 2; S implements DISCARD 1; F says 'DISCARD 2 cards' for the other discard-penalty Monsters (Dark Dragon King, Rex Major, Warworn Owlbear)."
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.corrupted-sabretooth",
+      "name": "Corrupted Sabretooth",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 9
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 6
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time you would DESTROY a Hero card, you may STEAL that Hero card instead.",
+      "slainEffectId": "monster.corrupted-sabretooth",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.crowned-serpent",
+      "name": "Crowned Serpent",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 10
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 7
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time any player (including you) plays a Modifier card, you may DRAW a card.",
+      "slainEffectId": "monster.crowned-serpent",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.abyss-queen",
+      "name": "Abyss Queen",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 5
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time another player plays a Modifier card on one of your rolls, +1 to your roll.",
+      "slainEffectId": "monster.abyss-queen",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L",
+            "F"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.dracos",
+      "name": "Dracos",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "lte",
+        "value": 5
+      },
+      "penaltyRange": {
+        "op": "gte",
+        "value": 8
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Each time a Hero card in your Party is destroyed, you may DRAW a card.",
+      "slainEffectId": "monster.dracos",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      },
+      "notes": [
+        "Inverted ranges (slay on low roll, penalty on high roll) — S, J and L agree."
+      ]
+    },
+    {
+      "definitionId": "hts.base.v1.monster.dark-dragon-king",
+      "name": "Dark Dragon King",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "class",
+          "heroClass": "bard"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 4
+      },
+      "penalty": {
+        "effectId": "penalty.discard",
+        "count": 2
+      },
+      "penaltyText": "DISCARD 2 cards.",
+      "text": "Each time you roll for a Hero card's effect, +1 to your roll.",
+      "slainEffectId": "monster.dark-dragon-king",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L",
+            "F"
+          ]
+        },
+        "penaltyRange": {
+          "status": "majority",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "J has 7-; S and F have 4-."
+        },
+        "penalty": {
+          "status": "majority",
+          "sources": [
+            "J",
+            "F"
+          ],
+          "note": "J and F ('DISCARD 2 cards') say 2; S implements DISCARD 1."
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "J",
+            "F"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.malamammoth",
+      "name": "Malamammoth",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "class",
+          "heroClass": "ranger"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 4
+      },
+      "penalty": {
+        "effectId": "penalty.discard",
+        "count": 2
+      },
+      "penaltyText": "DISCARD 2 cards.",
+      "text": "Each time you DRAW an Item card, you may play it immediately.",
+      "slainEffectId": "monster.malamammoth",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "single_source",
+          "sources": [
+            "J"
+          ],
+          "note": "J says DISCARD 2; S implements DISCARD 1; F says 'DISCARD 2 cards' for the other discard-penalty Monsters (Dark Dragon King, Rex Major, Warworn Owlbear)."
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.rex-major",
+      "name": "Rex Major",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "class",
+          "heroClass": "guardian"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 4
+      },
+      "penalty": {
+        "effectId": "penalty.discard",
+        "count": 2
+      },
+      "penaltyText": "DISCARD 2 cards.",
+      "text": "Each time you DRAW a Modifier card, you may reveal it and DRAW a second card.",
+      "slainEffectId": "monster.rex-major",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L",
+            "F"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "penalty": {
+          "status": "majority",
+          "sources": [
+            "J",
+            "F"
+          ],
+          "note": "J and F ('DISCARD 2 cards') say 2; S implements DISCARD 1."
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "J",
+            "F"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.terratuga",
+      "name": "Terratuga",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 11
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 7
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "Your Hero cards cannot be destroyed.",
+      "slainEffectId": "monster.terratuga",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.mega-slime",
+      "name": "Mega Slime",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 7
+      },
+      "penalty": {
+        "effectId": "penalty.sacrifice_hero",
+        "count": 1
+      },
+      "penaltyText": "SACRIFICE a Hero card.",
+      "text": "You may spend an extra action point on each of your turns.",
+      "slainEffectId": "monster.mega-slime",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L",
+            "F"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "penalty": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      },
+      "notes": [
+        "F lists an extra slay benefit \"Draw 2 cards\"; no other source has it — not modelled (UNVERIFIED)."
+      ]
+    },
+    {
+      "definitionId": "hts.base.v1.monster.titan-wyvern",
+      "name": "Titan Wyvern",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "class",
+          "heroClass": "fighter"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 4
+      },
+      "penalty": {
+        "effectId": "penalty.discard",
+        "count": 2
+      },
+      "penaltyText": "DISCARD 2 cards.",
+      "text": "Each time you roll for a Challenge card, +1 to your roll.",
+      "slainEffectId": "monster.titan-wyvern",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "penalty": {
+          "status": "single_source",
+          "sources": [
+            "J"
+          ],
+          "note": "J says DISCARD 2; S implements DISCARD 1; F says 'DISCARD 2 cards' for the other discard-penalty Monsters (Dark Dragon King, Rex Major, Warworn Owlbear)."
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "J"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.monster.warworn-owlbear",
+      "name": "Warworn Owlbear",
+      "quantity": 1,
+      "kind": "monster",
+      "requirement": [
+        {
+          "kind": "class",
+          "heroClass": "thief"
+        },
+        {
+          "kind": "any"
+        }
+      ],
+      "slay": {
+        "op": "gte",
+        "value": 8
+      },
+      "penaltyRange": {
+        "op": "lte",
+        "value": 4
+      },
+      "penalty": {
+        "effectId": "penalty.discard",
+        "count": 2
+      },
+      "penaltyText": "DISCARD 2 cards.",
+      "text": "Item cards you play cannot be challenged.",
+      "slainEffectId": "monster.warworn-owlbear",
+      "provenance": {
+        "requirement": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ],
+          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+        },
+        "slay": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L",
+            "F"
+          ]
+        },
+        "penaltyRange": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "penalty": {
+          "status": "majority",
+          "sources": [
+            "J",
+            "F"
+          ],
+          "note": "J and F ('DISCARD 2 cards') say 2; S implements DISCARD 1."
+        },
+        "penaltyText": {
+          "status": "derived",
+          "sources": [
+            "J",
+            "F"
+          ],
+          "note": "Normalised from the penalty kind; F wording where available."
+        },
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "slainEffectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.dodgy-dealer",
+      "name": "Dodgy Dealer",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 9,
+      "text": "Trade hands with another player.",
+      "effectId": "hero.dodgy-dealer",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.fuzzy-cheeks",
+      "name": "Fuzzy Cheeks",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 8,
+      "text": "DRAW a card and play a Hero card from your hand immediately.",
+      "effectId": "hero.fuzzy-cheeks",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.greedy-cheeks",
+      "name": "Greedy Cheeks",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 8,
+      "text": "Each other player must give you a card from their hand.",
+      "effectId": "hero.greedy-cheeks",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.lucky-bucky",
+      "name": "Lucky Bucky",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 7,
+      "text": "Pull a card from another player's hand. If that card is a Hero card, you may play it immediately.",
+      "effectId": "hero.lucky-bucky",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.mellow-dee",
+      "name": "Mellow Dee",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 7,
+      "text": "DRAW a card. If that card is a Hero card, you may play it immediately.",
+      "effectId": "hero.mellow-dee",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.napping-nibbles",
+      "name": "Napping Nibbles",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 2,
+      "text": "Do nothing.",
+      "effectId": "hero.napping-nibbles",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.peanut",
+      "name": "Peanut",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 7,
+      "text": "DRAW 2 cards.",
+      "effectId": "hero.peanut",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.tipsy-tootie",
+      "name": "Tipsy Tootie",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "bard",
+      "rollThreshold": 6,
+      "text": "Choose a player. STEAL a Hero card from that player's Party and move this card to that player's Party.",
+      "effectId": "hero.tipsy-tootie",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.bad-axe",
+      "name": "Bad Axe",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 8,
+      "text": "DESTROY a Hero card.",
+      "effectId": "hero.bad-axe",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.bear-claw",
+      "name": "Bear Claw",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 7,
+      "text": "Pull a card from another player's hand. If it is a Hero card, pull a second card from that player's hand.",
+      "effectId": "hero.bear-claw",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.beary-wise",
+      "name": "Beary Wise",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 7,
+      "text": "Each other player must DISCARD a card. Choose one of the discarded cards and add it to your hand.",
+      "effectId": "hero.beary-wise",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.fury-knuckle",
+      "name": "Fury Knuckle",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 5,
+      "text": "Pull a card from another player's hand. If it is a Challenge card, pull a second card from that player's hand.",
+      "effectId": "hero.fury-knuckle",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.heavy-bear",
+      "name": "Heavy Bear",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 5,
+      "text": "Choose a player. That player must DISCARD 2 cards.",
+      "effectId": "hero.heavy-bear",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.pan-chucks",
+      "name": "Pan Chucks",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 8,
+      "text": "DRAW 2 cards. If at least one of those cards is a Challenge card, you may reveal it, then DESTROY a Hero card.",
+      "effectId": "hero.pan-chucks",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.qi-bear",
+      "name": "Qi Bear",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 10,
+      "text": "DISCARD up to 3 cards. For each card discarded, DESTROY a Hero card.",
+      "effectId": "hero.qi-bear",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.tough-teddy",
+      "name": "Tough Teddy",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "fighter",
+      "rollThreshold": 4,
+      "text": "Each other player with a Fighter in their Party must DISCARD a card.",
+      "effectId": "hero.tough-teddy",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.calming-voice",
+      "name": "Calming Voice",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 9,
+      "text": "Hero cards in your Party cannot be stolen until your next turn.",
+      "effectId": "hero.calming-voice",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.guiding-light",
+      "name": "Guiding Light",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 7,
+      "text": "Search the discard pile for a Hero card and add it to your hand.",
+      "effectId": "hero.guiding-light",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.holy-curselifter",
+      "name": "Holy Curselifter",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 5,
+      "text": "Return a Cursed Item card equipped to a Hero card in your Party to your hand.",
+      "effectId": "hero.holy-curselifter",
+      "target": "own_hero_with_cursed_item",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.iron-resolve",
+      "name": "Iron Resolve",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 8,
+      "text": "Cards you play cannot be challenged for the rest of your turn.",
+      "effectId": "hero.iron-resolve",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.mighty-blade",
+      "name": "Mighty Blade",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 8,
+      "text": "Hero cards in your Party cannot be destroyed until your next turn.",
+      "effectId": "hero.mighty-blade",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.radiant-horn",
+      "name": "Radiant Horn",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 6,
+      "text": "Search the discard pile for a Modifier card and add it to your hand",
+      "effectId": "hero.radiant-horn",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.vibrant-glow",
+      "name": "Vibrant Glow",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 9,
+      "text": "+5 to all of your rolls until the end of your turn.",
+      "effectId": "hero.vibrant-glow",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.wise-shield",
+      "name": "Wise Shield",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "guardian",
+      "rollThreshold": 6,
+      "text": "+3 to all of your rolls until the end of your turn.",
+      "effectId": "hero.wise-shield",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.bullseye",
+      "name": "Bullseye",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 7,
+      "text": "Look at the top 3 cards of the deck. Add one to your hand, then return the other two to the top of the deck in any order.",
+      "effectId": "hero.bullseye",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.hook",
+      "name": "Hook",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 6,
+      "text": "Play an Item card from your hand immediately and DRAW a card.",
+      "effectId": "hero.hook",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.lookie-rookie",
+      "name": "Lookie Rookie",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 5,
+      "text": "Search the discard pile for an Item card and add it to your hand.",
+      "effectId": "hero.lookie-rookie",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.quick-draw",
+      "name": "Quick Draw",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 8,
+      "text": "Draw 2 cards. If at least one of those cards is an Item card, you may play one of them immediately.",
+      "effectId": "hero.quick-draw",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.serious-grey",
+      "name": "Serious Grey",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 9,
+      "text": "DESTROY a Hero card and DRAW a card.",
+      "effectId": "hero.serious-grey",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.sharp-fox",
+      "name": "Sharp Fox",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 5,
+      "text": "Look at another player's hand.",
+      "effectId": "hero.sharp-fox",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.wildshot",
+      "name": "Wildshot",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 8,
+      "text": "DRAW 3 cards and DISCARD a card.",
+      "effectId": "hero.wildshot",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.wily-red",
+      "name": "Wily Red",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "ranger",
+      "rollThreshold": 10,
+      "text": "DRAW cards until you have 7 cards in your hand.",
+      "effectId": "hero.wily-red",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.kit-napper",
+      "name": "Kit Napper",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 9,
+      "text": "STEAL a Hero card.",
+      "effectId": "hero.kit-napper",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.meowzio",
+      "name": "Meowzio",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 10,
+      "text": "Choose a player. STEAL a Hero card from that player's Party and pull a card from that player's hand.",
+      "effectId": "hero.meowzio",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.plundering-puma",
+      "name": "Plundering Puma",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 6,
+      "text": "Pull 2 cards from another player's hand. That player may DRAW a card.",
+      "effectId": "hero.plundering-puma",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.shurikitty",
+      "name": "Shurikitty",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 9,
+      "text": "DESTROY a Hero card. If that Hero card had an item card equipped to it, add that item card to your hand instead of moving it to the discard pile.",
+      "effectId": "hero.shurikitty",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.silent-shadow",
+      "name": "Silent Shadow",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 8,
+      "text": "Look at another player's hand. Choose a card and add it to your hand.",
+      "effectId": "hero.silent-shadow",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.slippery-paws",
+      "name": "Slippery Paws",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 6,
+      "text": "Pull 2 cards from another player's hand, then DISCARD one of those cards.",
+      "effectId": "hero.slippery-paws",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.sly-pickings",
+      "name": "Sly Pickings",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 6,
+      "text": "Pull a card from another player's hand. If that card is an item card, you may play it immediately.",
+      "effectId": "hero.sly-pickings",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.smooth-mimimeow",
+      "name": "Smooth Mimimeow",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "thief",
+      "rollThreshold": 7,
+      "text": "Pull a card from the hand of each other player with a Thief in their Party.",
+      "effectId": "hero.smooth-mimimeow",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.bun-bun",
+      "name": "Bun Bun",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 5,
+      "text": "Search the discard pile for a Magic card and add it to your hand.",
+      "effectId": "hero.bun-bun",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.buttons",
+      "name": "Buttons",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 6,
+      "text": "Pull a card from another player's hand. If it is a Magic card, you may play it immediately.",
+      "effectId": "hero.buttons",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.fluffy",
+      "name": "Fluffy",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 10,
+      "text": "DESTROY 2 Hero cards.",
+      "effectId": "hero.fluffy",
+      "target": "two_heroes_other_party",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.hopper",
+      "name": "Hopper",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 7,
+      "text": "Choose a player. That player must SACRIFICE a Hero card.",
+      "effectId": "hero.hopper",
+      "target": "other_player",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.snowball",
+      "name": "Snowball",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 6,
+      "text": "DRAW a card. If it is a Magic card, you may play it immediately and DRAW a second card.",
+      "effectId": "hero.snowball",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.spooky",
+      "name": "Spooky",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 10,
+      "text": "Each other player must SACRIFICE a Hero card.",
+      "effectId": "hero.spooky",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.whiskers",
+      "name": "Whiskers",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 11,
+      "text": "STEAL a Hero card and DESTROY a Hero card.",
+      "effectId": "hero.whiskers",
+      "target": "two_heroes_other_party",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.hero.wiggles",
+      "name": "Wiggles",
+      "quantity": 1,
+      "kind": "hero",
+      "heroClass": "wizard",
+      "rollThreshold": 10,
+      "text": "STEAL a Hero and roll to use its effect immediately",
+      "effectId": "hero.wiggles",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "heroClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "F"
+          ]
+        },
+        "rollThreshold": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "J",
+            "L"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.bard-mask",
+      "name": "Bard Mask",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": "bard",
+      "text": "The equipped Hero card is considered a Bard instead of its original class.",
+      "effectId": "item.bard-mask",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "From the card text ('considered a <class> instead of its original class'). Engine follows owner decision Q-04 (adds class) — conflict flagged in LEAD."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.decoy-doll",
+      "name": "Decoy Doll",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": null,
+      "text": "If the equipped Hero card would be sacrificed or destroyed, move this card to the discard pile instead.",
+      "effectId": "item.decoy-doll",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ],
+          "note": "Not a Mask."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.fighter-mask",
+      "name": "Fighter Mask",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": "fighter",
+      "text": "The equipped Hero card is considered a Fighter instead of its original class.",
+      "effectId": "item.fighter-mask",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ],
+          "note": "From the card text ('considered a <class> instead of its original class'). Engine follows owner decision Q-04 (adds class) — conflict flagged in LEAD."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.guardian-mask",
+      "name": "Guardian Mask",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": "guardian",
+      "text": "The equipped Hero card is considered a Guardian instead of its original class.",
+      "effectId": "item.guardian-mask",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "From the card text ('considered a <class> instead of its original class'). Engine follows owner decision Q-04 (adds class) — conflict flagged in LEAD."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.particularly-rusty-coin",
+      "name": "Particularly Rusty Coin",
+      "quantity": 2,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": null,
+      "text": "If you unsuccessfully roll to use the equipped Hero card's effect, DRAW a card.",
+      "effectId": "item.particularly-rusty-coin",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ],
+          "note": "Not a Mask."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.ranger-mask",
+      "name": "Ranger Mask",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": "ranger",
+      "text": "The equipped Hero card is considered a Ranger instead of its original class.",
+      "effectId": "item.ranger-mask",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ],
+          "note": "From the card text ('considered a <class> instead of its original class'). Engine follows owner decision Q-04 (adds class) — conflict flagged in LEAD."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.really-big-ring",
+      "name": "Really Big Ring",
+      "quantity": 2,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": null,
+      "text": "Each time you roll to use the equipped Hero card's effect, +2 to your roll.",
+      "effectId": "item.really-big-ring",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ],
+          "note": "Not a Mask."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.thief-mask",
+      "name": "Thief Mask",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": "thief",
+      "text": "The equipped Hero card is considered a Thief instead of its original class.",
+      "effectId": "item.thief-mask",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ],
+          "note": "From the card text ('considered a <class> instead of its original class'). Engine follows owner decision Q-04 (adds class) — conflict flagged in LEAD."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.item.wizard-mask",
+      "name": "Wizard Mask",
+      "quantity": 1,
+      "kind": "item",
+      "equip": "own_hero",
+      "maskClass": "wizard",
+      "text": "The equipped Hero card is considered a Wizard instead of its original class.",
+      "effectId": "item.wizard-mask",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ],
+          "note": "From the card text ('considered a <class> instead of its original class'). Engine follows owner decision Q-04 (adds class) — conflict flagged in LEAD. S's 'Mask Type' field says Sorcerer (data bug); its text says Wizard."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.cursed-item.curse-of-the-snakes-eyes",
+      "name": "Curse of the Snake's Eyes",
+      "quantity": 2,
+      "kind": "cursed_item",
+      "equip": "any_hero",
+      "maskClass": null,
+      "text": "Each time you roll to use the equipped Hero card's effect, -2 to your roll.",
+      "effectId": "item.curse-of-the-snakes-eyes",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ],
+          "note": "Not a Mask."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.cursed-item.sealing-key",
+      "name": "Sealing Key",
+      "quantity": 1,
+      "kind": "cursed_item",
+      "equip": "any_hero",
+      "maskClass": null,
+      "text": "You cannot use the equipped Hero card's effect.",
+      "effectId": "item.sealing-key",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "F"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ],
+          "note": "Not a Mask."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.cursed-item.suspiciously-shiny-coin",
+      "name": "Suspiciously Shiny Coin",
+      "quantity": 1,
+      "kind": "cursed_item",
+      "equip": "any_hero",
+      "maskClass": null,
+      "text": "If you successfully roll to use the equipped Hero Card's effect, DISCARD a card.",
+      "effectId": "item.suspiciously-shiny-coin",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "equip": {
+          "status": "derived",
+          "sources": [],
+          "note": "Owner decision Q-06 (Item → own Hero; Cursed Item → any Hero)."
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ]
+        },
+        "maskClass": {
+          "status": "derived",
+          "sources": [
+            "S"
+          ],
+          "note": "Not a Mask."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.modifier.modifier-plus-1-minus-3",
+      "name": "Modifier +1/-3",
+      "quantity": 4,
+      "kind": "modifier",
+      "options": [
+        1,
+        -3
+      ],
+      "text": "Play this card after any player (including you) rolls the dice. +1 or -3 to that roll.",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "options": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "L"
+          ],
+          "note": "Values from S fields and the card name in the reference catalog/L."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.modifier.modifier-plus-2-minus-2",
+      "name": "Modifier +2/-2",
+      "quantity": 9,
+      "kind": "modifier",
+      "options": [
+        2,
+        -2
+      ],
+      "text": "Play this card after any player (including you) rolls the dice. +2 or -2 to that roll.",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "options": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "L"
+          ],
+          "note": "Values from S fields and the card name in the reference catalog/L."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.modifier.modifier-plus-3-minus-1",
+      "name": "Modifier +3/-1",
+      "quantity": 4,
+      "kind": "modifier",
+      "options": [
+        3,
+        -1
+      ],
+      "text": "Play this card after any player (including you) rolls the dice. +3 or -1 to that roll.",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "options": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "L"
+          ],
+          "note": "Values from S fields and the card name in the reference catalog/L."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.modifier.modifier-plus-4",
+      "name": "Modifier +4",
+      "quantity": 4,
+      "kind": "modifier",
+      "options": [
+        4
+      ],
+      "text": "Play this card after any player (including you) rolls the dice. +4 to that roll.",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "options": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "L"
+          ],
+          "note": "Values from S fields and the card name in the reference catalog/L."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.modifier.modifier-minus-4",
+      "name": "Modifier -4",
+      "quantity": 4,
+      "kind": "modifier",
+      "options": [
+        -4
+      ],
+      "text": "Play this card after any player (including you) rolls the dice. -4 to that roll.",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        },
+        "options": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "L"
+          ],
+          "note": "Values from S fields and the card name in the reference catalog/L."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.call-to-the-fallen",
+      "name": "Call to the Fallen",
+      "quantity": 1,
+      "kind": "magic",
+      "text": "Search the discard pile for a Hero card and add it to your hand.",
+      "effectId": "magic.call-to-the-fallen",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.critical-boost",
+      "name": "Critical Boost",
+      "quantity": 2,
+      "kind": "magic",
+      "text": "DRAW 3 cards and DISCARD a card.",
+      "effectId": "magic.critical-boost",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.destructive-spell",
+      "name": "Destructive Spell",
+      "quantity": 2,
+      "kind": "magic",
+      "text": "DISCARD a card, then DESTROY a Hero card.",
+      "effectId": "magic.destructive-spell",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "F"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "F",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.enchanted-spell",
+      "name": "Enchanted Spell",
+      "quantity": 2,
+      "kind": "magic",
+      "text": "+2 to all of your rolls until the end of your turn.",
+      "effectId": "magic.enchanted-spell",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.entangling-trap",
+      "name": "Entangling Trap",
+      "quantity": 2,
+      "kind": "magic",
+      "text": "DISCARD 2 cards, then STEAL a Hero card.",
+      "effectId": "magic.entangling-trap",
+      "target": "hero_other_party",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.forced-exchange",
+      "name": "Forced Exchange",
+      "quantity": 1,
+      "kind": "magic",
+      "text": "Choose a player. STEAL a Hero card from that player's Party, then move a Hero card from your Party to that player's Party.",
+      "effectId": "magic.forced-exchange",
+      "target": "hero_other_party_and_own_hero",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.forceful-winds",
+      "name": "Forceful Winds",
+      "quantity": 1,
+      "kind": "magic",
+      "text": "Return every equipped item card to its respective player's hand.",
+      "effectId": "magic.forceful-winds",
+      "target": "none",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.magic.winds-of-change",
+      "name": "Winds of Change",
+      "quantity": 2,
+      "kind": "magic",
+      "text": "Return an Item card equipped to any player's Hero card to that player's hand, then DRAW a card.",
+      "effectId": "magic.winds-of-change",
+      "target": "any_hero_with_item",
+      "provenance": {
+        "text": {
+          "status": "corroborated",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "effectId": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N"
+          ]
+        },
+        "target": {
+          "status": "derived",
+          "sources": [
+            "S",
+            "N",
+            "RB"
+          ],
+          "note": "Picked up front (Q-08). Derived from the card text + RB glossary: 'DESTROY: Move a card from another player's Party to the discard pile', 'STEAL: Move a card from another player's Party to your own Party'."
+        }
+      }
+    },
+    {
+      "definitionId": "hts.base.v1.challenge.challenge",
+      "name": "Challenge",
+      "quantity": 14,
+      "kind": "challenge",
+      "text": "You may play this card when another player attempts to play a Hero, Item, or Magic card. CHALLENGE that card.",
+      "provenance": {
+        "text": {
+          "status": "single_source",
+          "sources": [
+            "S"
+          ]
+        }
+      }
+    }
+  ]
+}
