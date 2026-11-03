@@ -6,7 +6,8 @@ type ErrorBody = { ok: false; error: { code: string; message: string } };
 export type CommandOutcome = { accepted: boolean; code: string; replayed: boolean };
 type CommandResponse = { outcome: CommandOutcome; snapshot: Snapshot };
 const key = "hts.reaction.session";
-async function request<T extends object>(path: string, init: RequestInit = {}): Promise<T> { const response = await fetch(path, init); const body = await response.json() as T | ErrorBody; if (!response.ok) throw new Error("error" in body ? `${body.error.code}: ${body.error.message}` : "Connection failed."); return body as T; }
+const publicBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+async function request<T extends object>(path: string, init: RequestInit = {}): Promise<T> { const response = await fetch(`${publicBase}${path}`, init); const body = await response.json() as T | ErrorBody; if (!response.ok) throw new Error("error" in body ? `${body.error.code}: ${body.error.message}` : "Connection failed."); return body as T; }
 type SessionResponse = Omit<Session, "receivedAt">;
 export const createRoom = async (nickname: string, mode: RoomCreateMode = "base") => ({ ...(await request<SessionResponse>("/api/rooms", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nickname, mode }) })), receivedAt: Date.now() });
 export const joinRoom = async (roomCode: string, nickname: string) => ({ ...(await request<SessionResponse>(`/api/rooms/${encodeURIComponent(roomCode)}/join`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nickname }) })), receivedAt: Date.now() });

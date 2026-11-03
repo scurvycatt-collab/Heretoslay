@@ -6,6 +6,7 @@ export default defineConfig(({ mode }) => {
   const workerProxyTarget = env.WORKER_PROXY_TARGET || "http://127.0.0.1:8787";
 
   return {
+    base: "/herotoslay/",
     plugins: [react()],
     server: { proxy: { "/api": workerProxyTarget } },
   };
