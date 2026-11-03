@@ -19,5 +19,6 @@ dist/
 .sync/
 *.zip
 # Card art imported by tools/import-card-art.ts — rights UNVERIFIED (ADR-003)
+assets/imports/
 apps/web/public/assets/cards/*
 !apps/web/public/assets/cards/.gitkeep
