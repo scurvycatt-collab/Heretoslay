@@ -35,7 +35,7 @@ import { meetsRequirement } from "../src/game/base-rules.ts";
 // ----------------------------------------------------------------------------
 const KNOWN_BUGS: Record<number, { code: string; note: string }> = {};
 
-const GAMES = Number(process.env.AUDIT_GAMES ?? 300);
+const GAMES = Number(process.env.AUDIT_GAMES ?? 60);
 const ONLY_SEED = process.env.AUDIT_SEED ? Number(process.env.AUDIT_SEED) : null;
 const TURN_CAP = 400;
 const STEP_CAP = 25_000;

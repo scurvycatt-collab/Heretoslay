@@ -1414,7 +1414,7 @@ export function nextDeadline(game: EngineState): number | null {
 /**
  * Applies every expired deadline (timer not reset; disconnect waits for deadline).
  * Defaults: challenge/modifier window → close as Skip; immediate roll → Skip;
- * choice → first `min` eligible cards. Returns true if state changed.
+ * choice → skip, no effect (owner decision lần 2). Returns true if state changed.
  */
 export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: EngineHooks): boolean {
   let changed = false;

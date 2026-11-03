@@ -205,6 +205,8 @@ Class có do Item (vd. `Bard Mask`) tính không? Xem `DATA-H05`/`Q-04` — card
 
 ## 7. UNVERIFIED / owner questions
 
+> **Đã chốt:** xem docs/decisions/product-decisions.md — các mục "Owner chốt" (RULES-001, lần 2, lần 3). Q-01 và Q-04 đã ĐỔI ở lần 2 (Leader thỏa slot class; Mask thay class). Bảng dưới là câu hỏi gốc, không còn là luật hiện hành.
+
 Mọi mục dưới đây không có trong nguồn đã cite. Proposed default dùng được cho skeleton/synthetic fixture, **không** enable base mode cho tới khi PM/owner chốt.
 
 | Q | Câu hỏi | Proposed default | Ảnh hưởng |
