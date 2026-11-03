@@ -1,10 +1,10 @@
 HERE TO SLAY WEB — BÁO CÁO CLOUD SESSION 2026-11-02 → 2026-11-03
 =================================================================
 Repo: https://github.com/scurvycatt-collab/heretoslay  (nhánh main)
-Commit cuối: 35585a3  (nhánh claude/inspiring-brown-rq45oa = cùng commit)
+Commit cuối: xem `git log -1 origin/main` (merge "owner decisions 3"; nhánh claude/inspiring-brown-rq45oa = cùng commit)
 Cập nhật máy local: tải lại repo từ GitHub (main) — máy E:\Code\here-to-slay-web chưa có git.
 
-KIỂM TRA (npm run verify trên main 35585a3)
+KIỂM TRA (npm run verify trên main sau quyết định lần 3)
 -------------------------------------------
 - worker: 70 pass / 0 fail
 - protocol: 11 pass / 0 fail
@@ -37,6 +37,9 @@ TASK ĐÃ XONG (theo thứ tự merge vào main)
    đơn giản; phần làm đẹp để Codex.
 7. Quyết định owner lần 2 (cebe3f9)  — xem mục dưới. Kèm fix: kỹ năng Arctic Aries trước đó không
    bao giờ kích hoạt (id catalog là "artic-aries").
+9. Quyết định owner lần 3 (2026-11-03): Bullseye cho người chơi tự xếp thứ tự 2 lá trả lại
+   đỉnh deck (choice "order_top"); Cursed Item tính là "Item card"; DESTROY chỉ chọn Hero
+   của người khác — giữ nguyên.
 8. GAME-005  (0bf26a7)  Mọi hiệu ứng Hero/Magic + kỹ năng Monster đã slay đều có xử lý
    (không còn no-op): "chơi ngay", Pan Chucks, Qi Bear, Beary Wise, Bullseye, Sharp Fox,
    Silent Shadow, Wiggles, Corrupted Sabretooth, Malamammoth, Orthus, Rex Major.
@@ -54,14 +57,16 @@ QUYẾT ĐỊNH OWNER ĐÃ ÁP DỤNG (2026-11-02, lần 2)
 Ghi tại docs/decisions/product-decisions.md (cuối file). Hai switch đầu vẫn đổi được bằng
 CONFIGURE_GAME trước ván.
 
-CẦN OWNER XÁC NHẬN
-------------------
-1. Bullseye: "return the other two to the top in any order" — hiện giữ nguyên thứ tự 2 lá còn lại.
-   Có cần cho người chơi tự xếp thứ tự?
-2. Cursed Item có tính là "Item card" cho Malamammoth, Quick Draw, Sly Pickings? Hiện: có.
-3. DESTROY của Pan Chucks / Qi Bear chỉ chọn Hero của người khác (theo định nghĩa DESTROY trong
-   rulebook: "from another player's Party"). Giữ như vậy?
-4. Deploy Cloudflare (DEPL-001): cần tài khoản/account_id + domain của owner.
+QUYẾT ĐỊNH OWNER LẦN 3 (2026-11-03) — ĐÃ ÁP DỤNG
+----------------------------------------------
+1. Bullseye: người chơi tự xếp thứ tự 2 lá trả lại đỉnh deck (lá chọn trước = trên cùng;
+   hết giờ = giữ nguyên thứ tự).
+2. Cursed Item tính là "Item card" (Malamammoth, Quick Draw, Sly Pickings, Hook).
+3. DESTROY chỉ chọn Hero trong Party người khác (Pan Chucks, Qi Bear) — giữ nguyên.
+
+CÒN CHỜ OWNER
+-------------
+- Deploy Cloudflare (DEPL-001): cần tài khoản/account_id + domain của owner.
 
 VIỆC TIẾP THEO
 --------------
@@ -77,3 +82,10 @@ FILE CHÍNH CẦN ĐỌC
 - docs/content/BASE_CARD_DATA.md (nguồn data thẻ + sai lệch)
 - docs/decisions/product-decisions.md (quyết định owner)
 - Board: https://claude.ai/artifact/1efXb5aNZ26Y6GwgsGjQyh (đã cập nhật GAME-002..005, MOD-005, QA-001, UI-001)
+
+CÁCH LẤY FILE NÀY VỀ MÁY (E:\Code\here-to-slay-web)
+---------------------------------------------------
+Session cloud không ghi được trực tiếp vào ổ E: (chưa nối Remote Control). Trên máy owner:
+  git clone https://github.com/scurvycatt-collab/heretoslay E:\Code\here-to-slay-web
+  (hoặc nếu đã clone: cd E:\Code\here-to-slay-web && git pull origin main)
+File: docs\handoff\CLOUD_SESSION_2026-11-02_REPORT.txt

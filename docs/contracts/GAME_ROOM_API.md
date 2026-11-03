@@ -75,9 +75,11 @@ Effects run as data steps keyed by card `effectId` (GAME-004); every base Hero/M
 | `confirm` | every "may" (Arctic Aries, Crowned Serpent, Dracos, Plundering Puma, Rex Major, Pan Chucks reveal, Corrupted Sabretooth steal-instead) | `cardInstanceIds: []`, `accept` |
 | `play_card` | "play it immediately": Fuzzy Cheeks, Hook (mandatory), Mellow Dee, Lucky Bucky, Sly Pickings, Buttons, Snowball, Quick Draw, Malamammoth, Orthus (optional, `[]` = skip) | 1 card id + its `targets`; played free (no AP), can still be Challenged |
 | `destroy_hero` | Pan Chucks, Qi Bear (one per discarded card) | 1 Hero id in another Party |
-| `take_from_top` | Bullseye (top 3, private) | 1 id; the other 2 stay on top in the same order (order choice not offered) |
+| `take_from_top` → `order_top` | Bullseye (top 3, private) | 1 id; then all remaining ids in the order to put back (first = top). Timeout on `order_top` = keep order |
 | `view_hand` | Sharp Fox (private) | `[]` to close |
 | `take_from_hand` | Silent Shadow (private) | 1 id |
+
+"Item card" includes Cursed Items (Malamammoth, Quick Draw, Sly Pickings, Hook) and DESTROY targets only Heroes in other Parties (Pan Chucks, Qi Bear) — owner confirmed 2026-11-03.
 
 Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
 

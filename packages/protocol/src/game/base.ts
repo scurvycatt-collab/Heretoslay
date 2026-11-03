@@ -265,6 +265,7 @@ export type BaseChainView =
         | "play_card"
         | "destroy_hero"
         | "take_from_top"
+        | "order_top"
         | "view_hand"
         | "take_from_hand";
       min: number;

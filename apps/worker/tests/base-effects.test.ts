@@ -134,7 +134,11 @@ test("Bullseye / Sharp Fox / Silent Shadow: private views go only to the chooser
   assert.equal(JSON.stringify(theirs).includes(top3[0]), false);
   t.run(t.me, "RESOLVE_CHOICE", { choiceId: t.choice().choiceId, cardInstanceIds: [top3[1]] });
   assert.ok(t.seat(t.me).hand.some((card) => card.cardId === top3[1]));
-  assert.deepEqual(t.game.mainDeck.slice(0, 2).map((card) => card.cardId), [top3[0], top3[2]]);
+  const order = t.choice() as { choiceId: string; kind: string; min: number };
+  assert.deepEqual([order.kind, order.min], ["order_top", 2]);
+  assert.equal(t.run(t.me, "RESOLVE_CHOICE", { choiceId: order.choiceId, cardInstanceIds: [top3[0]] }), "INVALID_CHOICE");
+  assert.equal(t.run(t.me, "RESOLVE_CHOICE", { choiceId: order.choiceId, cardInstanceIds: [top3[2], top3[0]] }), "ACCEPTED");
+  assert.deepEqual(t.game.mainDeck.slice(0, 2).map((card) => card.cardId), [top3[2], top3[0]]);
 
   const t2 = table();
   const shadow = t2.toParty(t2.me, "silent-shadow");
