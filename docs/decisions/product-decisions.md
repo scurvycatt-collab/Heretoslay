@@ -10,6 +10,7 @@ Các ID bên dưới có bằng chứng trong chat. Không suy diễn D-03–05 
 | D-07 | Modifier/Challenge auto-pass mặc định 20 giây, chỉnh trước ván; Skip, đóng sớm khi mọi người đủ điều kiện Skip; không reset timer | User cập nhật 2026-10-28 trong chat Rules, thay mức 30 giây cũ |
 | D-11 | Owner chấp nhận rủi ro IP cho nhóm riêng, sẵn sàng gỡ khi yêu cầu | Assistant ghi nhận từ chỉ đạo user; không phải giấy phép |
 | D-12 | Cho bắt đầu thu thập kỹ thuật artwork công khai, không chờ xác minh giấy phép | Assistant ghi nhận từ chỉ đạo user; rights UNVERIFIED |
+| D-13 | Artwork rights → `FAN_MADE_NON_COMMERCIAL`: fan-made, phi thương mại, nội bộ gia đình, có thẻ fan custom; giữ watermark Unstable Games; DMCA/gỡ xử lý ngay qua scurvycatt@gmail.com; giữ ảnh Kickstarter trong git | Owner xác nhận 2026-11-03; ADR-004. Không phải giấy phép; supersede rights UNVERIFIED của D-12 cho ảnh |
 
 D-12 điều chỉnh thứ tự thực hiện acquisition, không xác nhận quyền tái phân phối. Các quyết định còn thiếu cần nhập decision register gốc thay vì đặt lại ID.
 

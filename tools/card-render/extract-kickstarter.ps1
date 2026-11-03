@@ -5,6 +5,10 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $Output = [IO.Path]::GetFullPath($Output)
+$Source = [IO.Path]::GetFullPath($Source).TrimEnd('\','/')
+$rights = 'FAN_MADE_NON_COMMERCIAL'; $takedown = 'scurvycatt@gmail.com'  # ADR-004
+# Manifests must never record a machine path: sheets[].path is POSIX, relative to -Source.
+function RelPath([string]$full) { $full.Substring($Source.Length).TrimStart('\','/').Replace('\','/') }
 New-Item -ItemType Directory -Force -Path "$Output\fronts" | Out-Null
 $cards = @()
 $sheets = @()
@@ -15,9 +19,9 @@ $encoder.Param[0] = [System.Drawing.Imaging.EncoderParameter]::new([System.Drawi
 foreach ($file in $fronts) {
   $sheet = $file.Directory.Name.Substring(6,2)
   $image = [System.Drawing.Bitmap]::new($file.FullName)
-  if ($image.Width -ne 3600 -or $image.Height -ne 5400) { throw "Unexpected source dimensions: $($file.FullName)" }
+  if ($image.Width -ne 3600 -or $image.Height -ne 5400) { throw "Unexpected source dimensions: $(RelPath $file.FullName)" }
   $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-  $sheets += @{ id=$sheet; path=$file.FullName; sha256=$hash; width=$image.Width; height=$image.Height }
+  $sheets += @{ id=$sheet; path=(RelPath $file.FullName); sha256=$hash; width=$image.Width; height=$image.Height }
   $tarot = [int]$sheet -ge 4
   for ($column=0; $column -lt $(if($tarot){2}else{3}); $column++) {
     for ($row=0; $row -lt 6; $row++) {
@@ -39,13 +43,13 @@ foreach ($file in $fronts) {
       $id = "ks-preview-$sheet-r$($row+1)-c$($column+1)"
       $crop.Save("$Output\fronts\$id.jpg",$jpeg,$encoder)
       $group = switch($sheet){'01'{'Heroes'} '02'{'Heroes · alternate'} '03'{'Challenges / Modifiers / Items'} '04'{'Monsters'} '05'{'Leaders / Monsters'}}
-      $cards += @{ previewId=$id; definitionId=$null; group=$group; sheet=$sheet; row=$row+1; column=$column+1; src="fronts/$id.jpg"; width=$crop.Width; height=$crop.Height; sourceSha256=$hash; crop=@{ x=$rect.X;y=$rect.Y;width=$rect.Width;height=$rect.Height }; rotationDegrees=270; rightsStatus='UNVERIFIED' }
+      $cards += @{ previewId=$id; definitionId=$null; group=$group; sheet=$sheet; row=$row+1; column=$column+1; src="fronts/$id.jpg"; width=$crop.Width; height=$crop.Height; sourceSha256=$hash; crop=@{ x=$rect.X;y=$rect.Y;width=$rect.Width;height=$rect.Height }; rotationDegrees=270; rightsStatus=$rights }
       $crop.Dispose()
     }
   }
   $image.Dispose()
 }
-$manifest = @{ schema=1; collection='Kickstarter Exclusive Pack — local visual test'; gameplaySupported=$false; rightsStatus='UNVERIFIED'; method='Deterministic source-front crop, counterclockwise rotation; no generated art/text. Native aspect retained.'; sheets=$sheets; cards=$cards }
+$manifest = @{ schema=1; collection='Kickstarter Exclusive Pack — local visual test'; gameplaySupported=$false; rightsStatus=$rights; takedownContact=$takedown; sheetPathBase='relative to the owner-local Kickstarter source folder (-Source); sheets are not committed'; method='Deterministic source-front crop, counterclockwise rotation; no generated art/text. Native aspect retained.'; sheets=$sheets; cards=$cards }
 $manifest | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath "$Output\manifest.json" -Encoding utf8
 # Embed data so the gallery also works when index.html is opened directly from disk.
 $template = Get-Content -LiteralPath "$PSScriptRoot\kickstarter-preview.html" -Raw

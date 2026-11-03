@@ -1,0 +1,2097 @@
+{
+  "schema": 1,
+  "collection": "Base",
+  "mode": "mapped",
+  "gameplaySupported": false,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "sources": [
+    {
+      "sourceId": "src-a9a25c44cc95",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+      "sha256": "a9a25c44cc95b878d0cbfacd0884bba8c850f196fa1d3e956244b003e43158cf",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-6ca1b30d5e34",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+      "sha256": "6ca1b30d5e346f4f902391a840a7d29d40003860b1d4b41c25b442d1b23a6977",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-f0c4cb3091ad",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+      "sha256": "f0c4cb3091ad50a3526486ec4a51d0cbe78a380dd8f8f5c73310ad27bf496cc4",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-a37ae7a59d4e",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+      "sha256": "a37ae7a59d4eb716000398b9b1708dde24098f9d77f6842a36c0666a41b2a83c",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-c1387b178a0e",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+      "sha256": "c1387b178a0e8073de08e81aff755c9d664a7eff5df60f9daacb4ddabd4557d3",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-29071e310030",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_18 PM-7.png",
+      "sha256": "29071e310030bcb1aa9da547fa0f0953e88d9be7b73a64b8560c081e7724344a",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-1ac8c9fd0d26",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_22 PM-8.png",
+      "sha256": "1ac8c9fd0d266cddb72ee0403c5671d28d8b6d289744990e4d9ebb69b69afe03",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-b3120370cc64",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+      "sha256": "b3120370cc64d5ce6edef57a719665fd093bad3859e759e145e44d1934ed1883",
+      "width": 1427,
+      "height": 1102
+    },
+    {
+      "sourceId": "src-4389bc54c8ca",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+      "sha256": "4389bc54c8ca5fdd17aefb3d015dcc7e6f87e71252df97f9a41b8c8e5aced7cb",
+      "width": 1102,
+      "height": 1427
+    },
+    {
+      "sourceId": "src-4bdc3e696894",
+      "relativePath": "Base/Hero Fighter Card Sheet.png",
+      "sha256": "4bdc3e69689413c737c929e31b93e65b018541b234ce203339149a1c4fc6e146",
+      "width": 1426,
+      "height": 1103
+    }
+  ],
+  "assets": [
+    {
+      "candidateId": "a9a25c44cc95-x1",
+      "definitionId": "hts.base.v1.hero.serious-grey",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.serious-grey--art.png",
+      "sha256": "61f77b9b21c9688553426cad03b8ef8cb35089aad804b20de1934b595ec650bf",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 110,
+        "y": 165,
+        "width": 235,
+        "height": 235
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x2",
+      "definitionId": "hts.base.v1.hero.quick-draw",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.quick-draw--art.png",
+      "sha256": "ee0f554d2479300ed55602a999ff4712ba18e3ab884cfb07be33cb5a114759a1",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 434,
+        "y": 168,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x3",
+      "definitionId": "hts.base.v1.hero.lookie-rookie",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.lookie-rookie--art.png",
+      "sha256": "601fc2cc47049d01a24024779083209eedb34962d9d2b21ee131007083a24471",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 753,
+        "y": 165,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x4",
+      "definitionId": "hts.base.v1.hero.wildshot",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.wildshot--art.png",
+      "sha256": "c09a2f5f5d2cf7cc1e3271d379f73b227fea10403da4e7a37ecca52c9949e59a",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 1076,
+        "y": 165,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x5",
+      "definitionId": "hts.base.v1.hero.hook",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.hook--art.png",
+      "sha256": "fb8f78eb0818ae1b61ece2f22522d957b34a859d1c7ed33272ef6adfd1616a2a",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 109,
+        "y": 687,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x6",
+      "definitionId": "hts.base.v1.hero.bullseye",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.bullseye--art.png",
+      "sha256": "4d9dcab5482077691addbbe27b7b8dfaf9c3afdf0baaadd4f5f33eed3316aed5",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 431,
+        "y": 686,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x7",
+      "definitionId": "hts.base.v1.hero.wily-red",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.wily-red--art.png",
+      "sha256": "531f85fe2b35a62361d3e03b97e87f133f5be33656b5d8fcdf81658f6fc46d97",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 755,
+        "y": 686,
+        "width": 235,
+        "height": 235
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a9a25c44cc95-x8",
+      "definitionId": "hts.base.v1.hero.sharp-fox",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.sharp-fox--art.png",
+      "sha256": "5b487538bf30da65c929d793135b4454aefbc10173ef58c55fedce161ac0bf8d",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a9a25c44cc95",
+      "crop": {
+        "x": 1076,
+        "y": 686,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_03 PM-1.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x1",
+      "definitionId": "hts.base.v1.hero.hopper",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.hopper--art.png",
+      "sha256": "c90ec223e8ba8a721004cf1b081ffcb197a61aef6f033cb8ed210952ec91f5b5",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 111,
+        "y": 170,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x2",
+      "definitionId": "hts.base.v1.hero.buttons",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.buttons--art.png",
+      "sha256": "1f25a39e5af183a6d21a7c28cb2b176f45fd9bcec55b25c38063f48d51348b04",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 434,
+        "y": 166,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x3",
+      "definitionId": "hts.base.v1.hero.spooky",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.spooky--art.png",
+      "sha256": "d2df97b4d7c65f9782b048368d01383e8bcfda6a4f9489f49a4562cf54386908",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 755,
+        "y": 164,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x4",
+      "definitionId": "hts.base.v1.hero.wiggles",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.wiggles--art.png",
+      "sha256": "b9fc11292486d7c72d01d9e964748dd0469a7ef4ef9c9462abc02f633df2996f",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 1077,
+        "y": 164,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x6",
+      "definitionId": "hts.base.v1.hero.fluffy",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.fluffy--art.png",
+      "sha256": "9191a2621bf7cfc8dfa5a0b561051b8ad4e0c3c1ebc2ef261e1436548a070639",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 433,
+        "y": 686,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x7",
+      "definitionId": "hts.base.v1.hero.bun-bun",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.bun-bun--art.png",
+      "sha256": "4e1cfbca6dcd5e8e3909a2542f796d08e808f157610c409e4c8433b746e0cdb8",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 753,
+        "y": 687,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x8",
+      "definitionId": "hts.base.v1.hero.snowball",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.snowball--art.png",
+      "sha256": "731f5df0f6d306bac20b891fc50fda777a1d8ef6bbcb7f102fd8a6398d7ae12a",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 1078,
+        "y": 688,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "6ca1b30d5e34-x5",
+      "definitionId": "hts.base.v1.hero.whiskers",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.whiskers--art.png",
+      "sha256": "a29c6f72d9f269151153aa3ab2f306f6cf1b6708dae695c9e10cadfb6eb7fbc9",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-6ca1b30d5e34",
+      "crop": {
+        "x": 109,
+        "y": 687,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_07 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "f0c4cb3091ad-x1",
+      "definitionId": "hts.base.v1.magic.forced-exchange",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.forced-exchange--art.png",
+      "sha256": "b4fb970e3b4e6cc86ae51676a7c771bb6752cf2cb0c40b598862dd8eaf515ff3",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-f0c4cb3091ad",
+      "crop": {
+        "x": 109,
+        "y": 166,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "f0c4cb3091ad-x2",
+      "definitionId": "hts.base.v1.magic.winds-of-change",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.winds-of-change--art.png",
+      "sha256": "0424b910e4efb17ec327b36a1d86db6c2920db82714d81a1348a39fd67521fb3",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-f0c4cb3091ad",
+      "crop": {
+        "x": 435,
+        "y": 167,
+        "width": 231,
+        "height": 231
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "f0c4cb3091ad-x3",
+      "definitionId": "hts.base.v1.magic.forceful-winds",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.forceful-winds--art.png",
+      "sha256": "17d5720aab2b12ccf3121b5634d8d63741c491b79f93f14df3fbd7314127e0fa",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-f0c4cb3091ad",
+      "crop": {
+        "x": 1078,
+        "y": 168,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "f0c4cb3091ad-x4",
+      "definitionId": "hts.base.v1.magic.call-to-the-fallen",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.call-to-the-fallen--art.png",
+      "sha256": "1cdd7034c230c0771f606e8d5cfea2228952f65287f4a0f7cfb08fa8f3b9011d",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-f0c4cb3091ad",
+      "crop": {
+        "x": 111,
+        "y": 685,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "f0c4cb3091ad-x5",
+      "definitionId": "hts.base.v1.item.particularly-rusty-coin",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.particularly-rusty-coin--art.png",
+      "sha256": "a94cbdd867fade76fae822b56c3d2894d35b553b62dbb0a6e48a6bfec46c6ba3",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-f0c4cb3091ad",
+      "crop": {
+        "x": 430,
+        "y": 687,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "f0c4cb3091ad-x6",
+      "definitionId": "hts.base.v1.item.really-big-ring",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.really-big-ring--art.png",
+      "sha256": "e0168a72a4da179528c6c25e373af33a4c2bc7e76835c1a4abec3b33994ba85c",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-f0c4cb3091ad",
+      "crop": {
+        "x": 1081,
+        "y": 689,
+        "width": 227,
+        "height": 227
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_09 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x1",
+      "definitionId": "hts.base.v1.hero.mellow-dee",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.mellow-dee--art.png",
+      "sha256": "a7bbb627ceb7417c1829ced8a7661f9094fc0c47c13a839583e34f3c185f760e",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 109,
+        "y": 165,
+        "width": 239,
+        "height": 239
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x2",
+      "definitionId": "hts.base.v1.hero.lucky-bucky",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.lucky-bucky--art.png",
+      "sha256": "4f0400b67f5423675d39c66380012980b123200e40a3c66916e1eeb5fdfce8e7",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 430,
+        "y": 164,
+        "width": 241,
+        "height": 241
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x3",
+      "definitionId": "hts.base.v1.hero.fuzzy-cheeks",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.fuzzy-cheeks--art.png",
+      "sha256": "d518c0e0b33abb03ffebb7febe4cb13ab97a27074dba1930aa71aa065be41dd3",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 756,
+        "y": 163,
+        "width": 235,
+        "height": 235
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x4",
+      "definitionId": "hts.base.v1.hero.napping-nibbles",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.napping-nibbles--art.png",
+      "sha256": "43bb0f7c42f8378e055f786d598b372fcfb1015c9f62755f851e5f337d1414a2",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 1078,
+        "y": 162,
+        "width": 235,
+        "height": 235
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x5",
+      "definitionId": "hts.base.v1.hero.tipsy-tootie",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.tipsy-tootie--art.png",
+      "sha256": "43de417880a09e6d5f080835c48b225d2a0d6b03b792c9b4f62863bdd9a6b376",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 112,
+        "y": 685,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x6",
+      "definitionId": "hts.base.v1.hero.dodgy-dealer",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.dodgy-dealer--art.png",
+      "sha256": "d0c5b98d672eb89ff9561372d9b3c7fc55babdae162d15a451498d6c9e10aa70",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 435,
+        "y": 685,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x7",
+      "definitionId": "hts.base.v1.hero.greedy-cheeks",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.greedy-cheeks--art.png",
+      "sha256": "9f71815c7ab11636691ea23407a761b923b9a0e88c0e3d916ec273b1f1b73f5f",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 754,
+        "y": 685,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "a37ae7a59d4e-x8",
+      "definitionId": "hts.base.v1.hero.peanut",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.peanut--art.png",
+      "sha256": "4d636e57515a4dfa0c7f235f62fe9e277ca372a515be12452fb7575390430e79",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-a37ae7a59d4e",
+      "crop": {
+        "x": 1079,
+        "y": 689,
+        "width": 232,
+        "height": 232
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_14 PM-5.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x1",
+      "definitionId": "hts.base.v1.hero.guiding-light",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.guiding-light--art.png",
+      "sha256": "5fbb9454f1b2bbc4e13489aae680f7c84163a96f4c95ddee30e26716c2ca60dc",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 111,
+        "y": 164,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x2",
+      "definitionId": "hts.base.v1.hero.holy-curselifter",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.holy-curselifter--art.png",
+      "sha256": "b8e5ec79dcd4177d408ba81a29d7e23c68c105855e0871863569d37bfcecd74c",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 434,
+        "y": 167,
+        "width": 232,
+        "height": 232
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x3",
+      "definitionId": "hts.base.v1.hero.radiant-horn",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.radiant-horn--art.png",
+      "sha256": "7c47f793ed1f6d4873e7e219f378151ffb4e022ab8275acd143e8a5e9168ea4c",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 757,
+        "y": 169,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x4",
+      "definitionId": "hts.base.v1.hero.wise-shield",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.wise-shield--art.png",
+      "sha256": "c8b1660fac67e96a5e96831b7ac6e0b41afb6e88099118b72f40792e588f5216",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 1073,
+        "y": 164,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x5",
+      "definitionId": "hts.base.v1.hero.vibrant-glow",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.vibrant-glow--art.png",
+      "sha256": "d26c90000f3d7352c834a2d8967322781c977884c7c24170f3de5b447bafe624",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 113,
+        "y": 689,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x6",
+      "definitionId": "hts.base.v1.hero.iron-resolve",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.iron-resolve--art.png",
+      "sha256": "3e87191773a09e4f8e326f0cd4891f8afec778ac7f8c8e498769ddeca87e497e",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 433,
+        "y": 687,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "c1387b178a0e-x8",
+      "definitionId": "hts.base.v1.hero.calming-voice",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.calming-voice--art.png",
+      "sha256": "9e9fde348a2970a3bc79e9470c2c84c9b03a393631bebfecc328bd0c63b68089",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-c1387b178a0e",
+      "crop": {
+        "x": 1081,
+        "y": 689,
+        "width": 228,
+        "height": 228
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_16 PM-6.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "29071e310030-x1",
+      "definitionId": "hts.base.v1.cursed-item.suspiciously-shiny-coin",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.cursed-item.suspiciously-shiny-coin--art.png",
+      "sha256": "af680615003e9f6b111599210a5d2e0a8732f7af495642a1b497cff7a1b3cacf",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-29071e310030",
+      "crop": {
+        "x": 114,
+        "y": 167,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_18 PM-7.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "29071e310030-x2",
+      "definitionId": "hts.base.v1.cursed-item.curse-of-the-snakes-eyes",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.cursed-item.curse-of-the-snakes-eyes--art.png",
+      "sha256": "3b35d30255a430427cbd942c725a483e7316f4ae192f59de347d32d359276370",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-29071e310030",
+      "crop": {
+        "x": 432,
+        "y": 166,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_18 PM-7.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "1ac8c9fd0d26-x1",
+      "definitionId": "hts.base.v1.magic.destructive-spell",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.destructive-spell--art.png",
+      "sha256": "5ecde9aaacd75312d334862ec3817224dd7d062884e65f109ab84c119e096f43",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-1ac8c9fd0d26",
+      "crop": {
+        "x": 114,
+        "y": 168,
+        "width": 230,
+        "height": 230
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_22 PM-8.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "1ac8c9fd0d26-x2",
+      "definitionId": "hts.base.v1.magic.entangling-trap",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.entangling-trap--art.png",
+      "sha256": "f3ecb0dddf680855c6f1944dd633a6aea699dd99842a181f017001fec5cdc175",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-1ac8c9fd0d26",
+      "crop": {
+        "x": 755,
+        "y": 164,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_22 PM-8.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "1ac8c9fd0d26-x3",
+      "definitionId": "hts.base.v1.magic.critical-boost",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.critical-boost--art.png",
+      "sha256": "09f2611ae11fdd205a308528858ddfe8082520e12ea864769a4ca6c6f922d2f9",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-1ac8c9fd0d26",
+      "crop": {
+        "x": 435,
+        "y": 689,
+        "width": 230,
+        "height": 230
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_22 PM-8.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "1ac8c9fd0d26-x4",
+      "definitionId": "hts.base.v1.magic.enchanted-spell",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.magic.enchanted-spell--art.png",
+      "sha256": "18f54e3e6867bca3fe1a5325aeb207dac8ab0d6bbeb8ac7b62886eb2ebd90653",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-1ac8c9fd0d26",
+      "crop": {
+        "x": 757,
+        "y": 689,
+        "width": 232,
+        "height": 232
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_22 PM-8.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x1",
+      "definitionId": "hts.base.v1.hero.kit-napper",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.kit-napper--art.png",
+      "sha256": "4751cee6d70124c08378e82b8bee699e6adfd28324dec834e2866d3320c015a4",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 109,
+        "y": 168,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x2",
+      "definitionId": "hts.base.v1.hero.sly-pickings",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.sly-pickings--art.png",
+      "sha256": "89106a47d9a54d1391cbb35d2a681b418c8ccd71ca1e1a5f49deefc976342763",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 435,
+        "y": 168,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x3",
+      "definitionId": "hts.base.v1.hero.meowzio",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.meowzio--art.png",
+      "sha256": "c96a205065256dfc336e9b3f0ec9e6eb801c41627d0c131abcea18d655bae3e9",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 753,
+        "y": 167,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x4",
+      "definitionId": "hts.base.v1.hero.plundering-puma",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.plundering-puma--art.png",
+      "sha256": "53b37f7dab48f23ad0f23cb78e51c2f3844c6dc2744aa0f2268a959b3cd40499",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 1073,
+        "y": 165,
+        "width": 236,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x5",
+      "definitionId": "hts.base.v1.hero.silent-shadow",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.silent-shadow--art.png",
+      "sha256": "1eee0e1382fe6f07b70f2faa561ef6a4e5da2949abaff088532c5b1578741b68",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 112,
+        "y": 687,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x6",
+      "definitionId": "hts.base.v1.hero.slippery-paws",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.slippery-paws--art.png",
+      "sha256": "8d8f9e20bd82637111cb4784374e98389f0e23962c7a0c1fe94b018234c65c6a",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 434,
+        "y": 689,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x7",
+      "definitionId": "hts.base.v1.hero.shurikitty",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.shurikitty--art.png",
+      "sha256": "d98e67f4d938227bb21c2dc2c74a70b439b4a208e633e4c41a2306dde2bae0ab",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 755,
+        "y": 689,
+        "width": 236,
+        "height": 236
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "b3120370cc64-x8",
+      "definitionId": "hts.base.v1.hero.smooth-mimimeow",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.smooth-mimimeow--art.png",
+      "sha256": "01c4ee151a288b4a5c68c369c5c4be2cc519b9c07177103f36b91ea875f69211",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-b3120370cc64",
+      "crop": {
+        "x": 1075,
+        "y": 689,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_24 PM-9.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4389bc54c8ca-x1",
+      "definitionId": "hts.base.v1.party-leader.the-divine-arrow",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.party-leader.the-divine-arrow--art.png",
+      "sha256": "8ff18e01e3eb9308c50732cece635038bdd4374f1b2bd97226beb514568620a6",
+      "width": 745,
+      "height": 1176,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1176
+      },
+      "sourceId": "src-4389bc54c8ca",
+      "crop": {
+        "x": 28,
+        "y": 138,
+        "width": 317,
+        "height": 405
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4389bc54c8ca-x2",
+      "definitionId": "hts.base.v1.party-leader.the-shadow-claw",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.party-leader.the-shadow-claw--art.png",
+      "sha256": "3313b033f25c506a7c3722ace92ee7061ad7cd59d175c78beaff3d667a38bf08",
+      "width": 745,
+      "height": 1176,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1176
+      },
+      "sourceId": "src-4389bc54c8ca",
+      "crop": {
+        "x": 409,
+        "y": 139,
+        "width": 290,
+        "height": 411
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4389bc54c8ca-x3",
+      "definitionId": "hts.base.v1.party-leader.the-fist-of-reason",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.party-leader.the-fist-of-reason--art.png",
+      "sha256": "861feed361eee2b5c2a6650ea8337903fe6b39f5a67e4e614ab44dc934f92a36",
+      "width": 745,
+      "height": 1176,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1176
+      },
+      "sourceId": "src-4389bc54c8ca",
+      "crop": {
+        "x": 768,
+        "y": 135,
+        "width": 282,
+        "height": 417
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4389bc54c8ca-x4",
+      "definitionId": "hts.base.v1.party-leader.the-charismatic-song",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.party-leader.the-charismatic-song--art.png",
+      "sha256": "ee1d018e1984c4a6aa9b3d2fa6bc7adc905585a629356fd8497a1c059829cc91",
+      "width": 745,
+      "height": 1176,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1176
+      },
+      "sourceId": "src-4389bc54c8ca",
+      "crop": {
+        "x": 45,
+        "y": 814,
+        "width": 298,
+        "height": 416
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4389bc54c8ca-x5",
+      "definitionId": "hts.base.v1.party-leader.the-cloaked-sage",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.party-leader.the-cloaked-sage--art.png",
+      "sha256": "036a0ee764a49305e2990ca0f63498d291d533b021c8052a3561c20d29adca71",
+      "width": 745,
+      "height": 1176,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1176
+      },
+      "sourceId": "src-4389bc54c8ca",
+      "crop": {
+        "x": 407,
+        "y": 814,
+        "width": 300,
+        "height": 413
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4389bc54c8ca-x6",
+      "definitionId": "hts.base.v1.party-leader.the-protecting-horn",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.party-leader.the-protecting-horn--art.png",
+      "sha256": "7ef490f9954f97407a5d0ebbe7d41f9843713b9915c154019666eae9d98b91e4",
+      "width": 745,
+      "height": 1176,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1176
+      },
+      "sourceId": "src-4389bc54c8ca",
+      "crop": {
+        "x": 762,
+        "y": 818,
+        "width": 308,
+        "height": 421
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_42_04 PM.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x1",
+      "definitionId": "hts.base.v1.hero.bad-axe",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.bad-axe--art.png",
+      "sha256": "16003d004fda47013f5a1227469eebc96206f0d246f67b3b229db3a86f44546d",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 112,
+        "y": 166,
+        "width": 235,
+        "height": 235
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x2",
+      "definitionId": "hts.base.v1.hero.fury-knuckle",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.fury-knuckle--art.png",
+      "sha256": "03d24f1443ff664345b8ac317bbfe6dc69c1ac516c7077e74af7b9896feff194",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 433,
+        "y": 166,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x3",
+      "definitionId": "hts.base.v1.hero.beary-wise",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.beary-wise--art.png",
+      "sha256": "ac1b855f03745c3ae2100deb2c4a0b94ed1d8821df655c3163ac74a230f668ba",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 753,
+        "y": 166,
+        "width": 238,
+        "height": 238
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x4",
+      "definitionId": "hts.base.v1.hero.heavy-bear",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.heavy-bear--art.png",
+      "sha256": "e9bdf0c1d2d86decfcb0e0139c47b7ca46ba8026f1cbbd31199b49f2f82a9a36",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 1077,
+        "y": 167,
+        "width": 231,
+        "height": 231
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x5",
+      "definitionId": "hts.base.v1.hero.bear-claw",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.bear-claw--art.png",
+      "sha256": "672bb1acdd1fb5d92b585aab81f69d4bed2e719a57f3b0d0e626a83f603af7d5",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 107,
+        "y": 688,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x6",
+      "definitionId": "hts.base.v1.hero.tough-teddy",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.tough-teddy--art.png",
+      "sha256": "d87eff3d6a7530a4d4f399daf95ac45036b48372522039b81a307015c9f1a54f",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 432,
+        "y": 688,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x7",
+      "definitionId": "hts.base.v1.hero.qi-bear",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.qi-bear--art.png",
+      "sha256": "ea8b312789da38d576cef9a1e884a1172adc80205d159372035e571eb27df53b",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 754,
+        "y": 688,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    },
+    {
+      "candidateId": "4bdc3e696894-x8",
+      "definitionId": "hts.base.v1.hero.pan-chucks",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.pan-chucks--art.png",
+      "sha256": "7f90a6757096ce59e6cb0eba5c1ec6c1a775b05985de204d218b97ff8279c127",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-4bdc3e696894",
+      "crop": {
+        "x": 1072,
+        "y": 684,
+        "width": 242,
+        "height": 242
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/Hero Fighter Card Sheet.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    }
+  ]
+}

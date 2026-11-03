@@ -5,7 +5,7 @@ import type { ImportDraft } from "../../apps/web/src/asset-import/contract.ts";
 
 const definitions = new Map([["hero-1", { kind: "hero" }], ["monster-1", { kind: "monster" }]]);
 function draft(): ImportDraft {
-  return { schema: 1, collection: "test", sources: [{ sourceId: "s1", relativePath: "front.jpg", sha256: "a".repeat(64), width: 3600, height: 5400 }], candidates: [{ candidateId: "c1", sourceId: "s1", label: "Front", previewUrl: null, assetType: "complete_card_front", side: "front", template: "poker", crop: { x: 1320, y: 304, width: 960, height: 664 }, rotation: 270, definitionId: null, variant: "default", reviewed: true, excluded: false, provenance: { origin: "owner folder", rightsStatus: "UNVERIFIED" } }] };
+  return { schema: 1, collection: "test", sources: [{ sourceId: "s1", relativePath: "front.jpg", sha256: "a".repeat(64), width: 3600, height: 5400 }], candidates: [{ candidateId: "c1", sourceId: "s1", label: "Front", previewUrl: null, assetType: "complete_card_front", side: "front", template: "poker", crop: { x: 1320, y: 304, width: 960, height: 664 }, rotation: 270, definitionId: null, variant: "default", reviewed: true, excluded: false, provenance: { origin: "owner folder", rightsStatus: "FAN_MADE_NON_COMMERCIAL" } }] };
 }
 const codes = (input: ImportDraft, mode: "preview" | "mapped" = "preview") => validateDraft(input, mode, definitions).map((issue) => issue.code);
 test("preview permits unmapped expansion; mapped export requires known ID", () => {

@@ -1,7 +1,14 @@
 /** UI/importer boundary only. Card mechanics and protocol data remain read-only. */
+/** Artwork rights policy (ADR-004, owner 2026-11-03): fan-made, non-commercial, watermarks kept. Not a licence. */
+export const ARTWORK_RIGHTS_STATUS = "FAN_MADE_NON_COMMERCIAL" as const;
+export type ArtworkRightsStatus = typeof ARTWORK_RIGHTS_STATUS;
+/** DMCA / takedown requests are handled immediately via this address (ADR-004). */
+export const TAKEDOWN_CONTACT = "scurvycatt@gmail.com";
 export type AssetType = "complete_card_front" | "artwork";
 export type Template = "poker" | "tarot";
 export type QuarterTurn = 0 | 90 | 180 | 270;
+/** Art box layouts of CARD_TEMPLATE_SPEC (see cropGeometry.ART_LAYOUTS). */
+export type ArtLayout = "hero" | "modifier" | "challenge" | "monster" | "party_leader";
 export interface AssetSource {
   sourceId: string;
   relativePath: string;
@@ -23,15 +30,19 @@ export interface ImportCandidate {
   variant: string;
   reviewed: boolean;
   excluded: boolean;
-  provenance: { origin: string; rightsStatus: "UNVERIFIED" };
+  provenance: { origin: string; rightsStatus: ArtworkRightsStatus };
+  /** Delta 2026-11-03 (Claude): art box used to frame an UNMAPPED artwork crop. Mapped artwork always uses its definition's layout. */
+  artLayout?: ArtLayout;
 }
+/** A file the adapter could not turn into a source; shown separately, never drops the batch. */
+export interface RejectedFile { relativePath: string; code: string; message: string }
 export interface ImportDraft {
   schema: 1;
   collection: string;
   sources: AssetSource[];
   candidates: ImportCandidate[];
-  /** Files the adapter could not use (wrong type, too large, undecodable). Reported, never fatal to the batch. */
-  rejected?: { relativePath: string; reason: string }[];
+  /** Delta 2026-11-03 (Claude): per-file inspect errors. Optional; ignored by validateDraft. */
+  rejected?: RejectedFile[];
 }
 export type ExportMode = "preview" | "mapped";
 export interface ImportIssue { candidateId: string; code: string; message: string }
@@ -40,7 +51,8 @@ export interface ExportedCardAsset {
   definitionId: string | null;
   variant: string;
   inputType: AssetType;
-  renderMode: "complete_face";
+  /** complete_face: show the PNG as the whole card. artwork: illustration only, CardRenderer draws frame + text from card data. */
+  renderMode: "complete_face" | "artwork";
   template: Template;
   relativePath: string;
   sha256: string;
@@ -51,13 +63,15 @@ export interface ExportedCardAsset {
   crop: ImportCandidate["crop"];
   rotation: QuarterTurn;
   provenance: ImportCandidate["provenance"];
-  rightsStatus: "UNVERIFIED";
+  rightsStatus: ArtworkRightsStatus;
 }
 export interface CardAssetManifest {
   schema: 1;
   collection: string;
   mode: ExportMode;
   gameplaySupported: false;
+  rightsStatus: ArtworkRightsStatus;
+  takedownContact: string;
   sources: AssetSource[];
   assets: ExportedCardAsset[];
 }
@@ -67,11 +81,18 @@ export interface ExportResult {
   archiveUrl: string;
   files: { candidateId: string; url: string; width: number; height: number; sha256: string }[];
 }
+export interface ExportProgress { done: number; total: number; label: string }
 /** Claude supplies one adapter. URLs are owned by it; dispose revokes object URLs. */
 export interface AssetImportAdapter {
   inspect(files: File[], signal: AbortSignal): Promise<ImportDraft>;
   preview(source: AssetSource, candidate: ImportCandidate, signal: AbortSignal): Promise<string>;
-  export(draft: ImportDraft, mode: ExportMode, signal: AbortSignal): Promise<ExportResult>;
+  /** Delta 2026-11-03 (Claude): optional progress callback. */
+  export(draft: ImportDraft, mode: ExportMode, signal: AbortSignal, onProgress?: (progress: ExportProgress) => void): Promise<ExportResult>;
+  /** Delta 2026-11-03 (Claude): downscaled upright view of the whole source, for the crop overlay. */
+  sourcePreview?(source: AssetSource, signal: AbortSignal): Promise<{ url: string; scale: number }>;
+  /** Delta 2026-11-03 (Claude): tight bounds of the card/content inside `region` (full-resolution pixels), or null. */
+  detectContent?(source: AssetSource, region: { x: number; y: number; width: number; height: number }, signal: AbortSignal): Promise<{ x: number; y: number; width: number; height: number } | null>;
+  /** Releases URLs/caches. The adapter stays usable afterwards (React StrictMode re-mounts). */
   dispose(): void;
 }
 
@@ -105,7 +126,7 @@ export function validateDraft(draft: ImportDraft, mode: ExportMode, definitions:
     if (card.side !== "front") add("back_excluded", "Batch hiện tại chỉ xuất front; hãy loại back khỏi batch.");
     if (!card.reviewed) add("not_reviewed", "Cần duyệt vùng cắt và chiều thẻ.");
     if (!card.provenance.origin.trim()) add("provenance", "Cần ghi nguồn/provenance.");
-    if (card.provenance.rightsStatus !== "UNVERIFIED") add("rights", "Importer không được tự nâng trạng thái quyền.");
+    if (card.provenance.rightsStatus !== ARTWORK_RIGHTS_STATUS) add("rights", `Importer không được tự đổi trạng thái quyền (phải là ${ARTWORK_RIGHTS_STATUS}).`);
     if (!card.variant.trim()) add("variant", "Variant phải có giá trị, ví dụ default hoặc alternate.");
     if (mode === "mapped" || card.assetType === "artwork") {
       const definition = card.definitionId ? definitions.get(card.definitionId) : undefined;

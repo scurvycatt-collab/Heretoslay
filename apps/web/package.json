@@ -9,6 +9,8 @@
     "build": "tsc -p tsconfig.json && vite build"
   },
   "dependencies": {
+    "@fontsource/patua-one": "^5.3.0",
+    "@fontsource/source-sans-3": "^5.3.1",
     "@here-to-slay/protocol": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

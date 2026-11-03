@@ -17,6 +17,6 @@ export function createDemoDraft(): ImportDraft {
       { candidateId: "demo-hoodwink", sourceId: "sheet-01", label: "Hoodwink", previewUrl: hero, template: "poker", crop: { x: 1320, y: 304, width: 960, height: 664 } },
       { candidateId: "demo-mask", sourceId: "sheet-03", label: "Mask of Misfortune", previewUrl: item, template: "poker", crop: { x: 196, y: 304, width: 960, height: 664 } },
       { candidateId: "demo-monster", sourceId: "sheet-04", label: "Calamity Mongrel", previewUrl: monster, template: "tarot", crop: { x: 356, y: 75, width: 1417, height: 827 } },
-    ].map((card) => ({ ...card, template: card.template as "poker" | "tarot", assetType: "complete_card_front", side: "front", rotation: 270, definitionId: null, variant: "default", reviewed: false, excluded: false, provenance: { origin: "Owner-provided Kickstarter sheet · local visual fixture", rightsStatus: "UNVERIFIED" } })),
+    ].map((card) => ({ ...card, template: card.template as "poker" | "tarot", assetType: "complete_card_front", side: "front", rotation: 270, definitionId: null, variant: "default", reviewed: false, excluded: false, provenance: { origin: "Owner-provided Kickstarter sheet · local visual fixture", rightsStatus: "FAN_MADE_NON_COMMERCIAL" as const } })),
   };
 }
