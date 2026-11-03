@@ -6,18 +6,21 @@ Ngày 2026-11-03. Owner yêu cầu Codex dựng UI/contract để Claude triển
 
 ## 0. Điều chỉnh khi merge (Claude)
 
-### 0.1 Trạng thái thật trong repo (2026-11-03)
+### 0.1 Trạng thái thật trong repo (sau khi merge `codex/card-render-import-workbench`, 2026-11-03)
 
-| Doc gốc nhắc tới | Có trên remote? |
+| Thành phần | Trạng thái |
 |---|---|
-| `apps/web/src/asset-import/{AssetImportWorkbench.tsx,contract.ts,fixtures.ts,workbench.css}` | **Không** — chỉ ở checkout local của owner/Codex |
-| Route `/?asset-import` trong `apps/web/src/main.tsx` | **Không** |
-| `tools/card-render/asset-import-contract.test.ts` | **Không** |
-| `apps/web/src/cards/catalog.ts` (resolver `artUrl`) | **Không** (nhánh `claude/lucid-hypatia-hir4vm` có `CardRenderer.tsx` + `cardCatalog`, chưa merge `main`) |
-| `assets/cards/kickstarter-preview/manifest.json`, `png-webgame/manifest.json`, 5 sheet Kickstarter | **Không** |
-| Importer "đang làm" | **Có**: `tools/import-card-art.ts` (CLI Node + sharp), contract pack `docs/contracts/CARD_ART_MANIFEST.md` |
+| `apps/web/src/asset-import/{AssetImportWorkbench.tsx,contract.ts,fixtures.ts,workbench.css}`, route `/?asset-import` | Có (Codex, `668a506`). Adapter **chưa nối**. |
+| `apps/web/src/cards/{CardRenderer,CardGallery,CardPreview}.tsx`, `catalog.ts` (`cardAssets` rỗng, chỉ `artUrl`), route `/?cards` | Có. Resolver chưa phân biệt `artwork`/`complete_face`. |
+| `tools/card-render/asset-import-contract.test.ts` | Có. Đã thêm vào `npm run test:integration` (§0.2-J). |
+| `assets/cards/kickstarter-preview/` (crop nguồn + `png-webgame/` 69 PNG + 2 manifest) | Có trong git. Đây là output tham chiếu của script PowerShell, **không** phải output của adapter. |
+| 5 sheet JPG Kickstarter gốc | **Không** có trong repo (chỉ ở máy owner, `E:\…`) → nghiệm thu §7 cần owner chọn folder đó trên máy thật. |
+| Importer CLI | `tools/import-card-art.ts` (Node + sharp, artwork pack, `CARD_ART_MANIFEST.md`). |
 
-⇒ **Blocker cho phần adapter/UI:** `contract.ts` là nguồn chuẩn của kiểu dữ liệu (§4) nhưng chưa có trên remote. Claude **không** tự viết lại các kiểu đó (sẽ lệch bản của Codex). Cần push WIP Codex (hoặc gửi `contract.ts`) rồi mới nối adapter. Fixture Kickstarter cũng cần có mới nghiệm thu được §7.
+Vấn đề phát hiện khi merge (chưa sửa, cần Codex/owner quyết):
+- `assets/cards/kickstarter-preview/manifest.json` và `png-webgame/manifest.json` chứa **đường dẫn tuyệt đối Windows** của máy owner (`sheets[].path`), trái với §4/§6 "không đưa absolute path vào gói chia sẻ". Nên đổi sang `relativePath` theo `AssetSource`.
+- Ảnh Kickstarter (rights UNVERIFIED, nội dung expansion) đã nằm trong lịch sử git của nhánh. Không nằm dưới `apps/web/public/` nên không bị deploy theo bản build, nhưng repo/remote đã chứa chúng. Owner xác nhận chấp nhận, hoặc chuyển sang ignore + giữ ngoài repo.
+- Hai schema manifest song song: `CardAssetManifest` (contract.ts, complete_face) và artwork pack schema 2 của CLI. Đã phân biệt bằng `packType`/`renderMode` (§0.2-C); resolver cần đọc cả hai có chủ đích.
 
 ### 0.2 Mâu thuẫn đã giải quyết
 
@@ -35,7 +38,7 @@ Ngày 2026-11-03. Owner yêu cầu Codex dựng UI/contract để Claude triển
 | J | §1 test ở `tools/card-render/*.test.ts` | `npm run test:integration` chỉ chạy `tests/*.test.ts`. Khi Codex push test contract, hoặc đặt trong `tests/`, hoặc mở rộng glob — nếu không thì `verify` sẽ không chạy nó. |
 | K | §2 "Không tự commit/push/deploy" | Session cloud có hook bắt commit + push lên **nhánh feature** của session; đó không phải merge `main` hay deploy. Vẫn không merge/deploy khi chưa được yêu cầu. |
 
-### 0.3 Kế hoạch nối adapter (khi `contract.ts` có trên remote)
+### 0.3 Kế hoạch nối adapter (contract.ts đã có — việc tiếp theo)
 
 1. Tách lõi thuần của `tools/import-card-art.ts` (ghép ID, crop math, limits, validator) ra module không phụ thuộc Node/sharp, import được cả từ CLI và web.
 2. `apps/web/src/asset-import/adapters/browser.ts`: `inspect` (decode thật + hash + phân loại sheet/riêng lẻ, front/back theo duyệt của người dùng, không OCR), `preview` (render đúng canvas output; revoke URL cũ), `export` (PNG + manifest + ZIP; kiểm lại từng PNG; tôn trọng `AbortSignal`, không báo success sau abort), `dispose`.

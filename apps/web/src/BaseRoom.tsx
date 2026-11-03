@@ -4,6 +4,7 @@
 import { useState } from "react";
 import type { BaseCardView, BaseGameSnapshot, BaseTargets } from "@here-to-slay/protocol";
 import "./base-room.css";
+import { CardPreview } from "./cards/CardPreview";
 
 type Send = (kind: string, payload: object) => void;
 
@@ -173,7 +174,7 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
 }
 
 function CardLine({ card }: { card: BaseCardView }) {
-  return <span>{card.name} <small>({card.kind.replace("_", " ")})</small></span>;
+  return <CardPreview definitionId={card.definitionId} name={card.name} />;
 }
 
 export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; notice: string; onLobby: () => void }) {
@@ -189,6 +190,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
     <main className="app-shell">
       <header className="review-bar">
         <div><b>HERE TO SLAY</b><span>BASE GAME · ROOM {state.roomCode}</span></div>
+        <a className="base-collection-link" href="/?cards" target="_blank" rel="noreferrer">CARD COLLECTION ↗</a>
         <button onClick={onLobby}>LOBBY</button>
       </header>
       <section className="base-table" aria-label="Base game table">
@@ -214,11 +216,14 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
         {game.phase === "leader_selection" && (
           <div className="base-actions">
             <p>{game.selectionPlayerId ? `Picking: ${state.players.find((p) => p.playerId === game.selectionPlayerId)?.nickname}` : "All Leaders picked."}</p>
-            {game.selectionPlayerId === me && game.leaderPool.map((id) => (
+            <div className="base-card-row">{game.selectionPlayerId === me && game.leaderPool.map((id) => (
+              <article className="base-card-tile" key={id}>
+              <CardPreview definitionId={id} name={leaderName(id)} />
               <button key={id} disabled={pending || game.selectedLeaderIds.includes(id)} onClick={() => send("SELECT_PARTY_LEADER", { leaderId: id })}>
                 {leaderName(id)}{game.selectedLeaderIds.includes(id) ? " (taken)" : ""}
               </button>
-            ))}
+              </article>
+            ))}</div>
             {state.you.isHost && allSelected && <button disabled={pending} onClick={() => send("START_GAME", {})}>START GAME</button>}
           </div>
         )}
@@ -227,25 +232,28 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
           <>
             <section className="base-block">
               <h2>MONSTERS</h2>
-              {game.faceUpMonsters.map((monster) => (
-                <div key={monster.cardId}>
-                  {monster.name}{" "}
+              <div className="base-card-row">{game.faceUpMonsters.map((monster) => (
+                <div className="base-card-tile" key={monster.cardId}>
+                  <CardLine card={monster} />
                   <button disabled={pending || !free || ap < 2} onClick={() => send("ATTACK_MONSTER", { monsterInstanceId: monster.cardId })}>ATTACK · 2 AP</button>
                 </div>
-              ))}
+              ))}</div>
             </section>
 
             <section className="base-block">
               <h2>PLAYERS</h2>
               {state.players.map((player) => (
-                <div key={player.playerId}>
+                <div className={`base-player ${player.playerId === game.currentPlayerId ? "is-active" : ""}`} key={player.playerId}>
                   <b>{player.nickname}{player.playerId === game.currentPlayerId ? " · ACTIVE" : ""}{player.playerId === me ? " (you)" : ""}</b>{" "}
                   Leader: {player.leaderId ? leaderName(player.leaderId) : "—"} · hand {player.handCount} · classes {player.partyClasses.length}/6 ({player.partyClasses.join(", ")})
                   {player.protections.length > 0 && ` · ${player.protections.join(", ")}`}
-                  <ul>
+                  <ul className="base-card-row">
+                    {player.leaderId && <li className="base-card-tile"><CardPreview definitionId={player.leaderId} name={leaderName(player.leaderId)} /></li>}
                     {player.party.map((entry) => (
-                      <li key={entry.hero.cardId}>
-                        {entry.hero.name} [{entry.classes.join("/")}]{entry.item ? ` + ${entry.item.name}` : ""}
+                      <li className="base-card-tile" key={entry.hero.cardId}>
+                        <CardLine card={entry.hero} />
+                        <small>Classes: {entry.classes.join(" / ")}</small>
+                        {entry.item && <details><summary>Item: {entry.item.name}</summary><CardLine card={entry.item} /></details>}
                         {player.playerId === me && (
                           <button
                             disabled={pending || !free || ap < 1 || game.heroRollsUsed.includes(entry.hero.cardId)}
@@ -256,7 +264,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                         )}
                       </li>
                     ))}
-                    {player.slainMonsters.map((monster) => <li key={monster.cardId}>Slain: {monster.name}</li>)}
+                    {player.slainMonsters.map((monster) => <li className="base-card-tile" key={monster.cardId}><small>Slain</small><CardLine card={monster} /></li>)}
                   </ul>
                 </div>
               ))}
@@ -266,14 +274,14 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
 
             <section className="base-block" aria-label="Your hand">
               <h2>YOUR HAND</h2>
-              {state.yourHand.map((card) => (
-                <div key={card.cardId}>
+              <div className="base-card-row">{state.yourHand.map((card) => (
+                <div className="base-card-tile" key={card.cardId}>
                   <CardLine card={card} />{" "}
                   {(card.kind === "hero" || card.kind === "item" || card.kind === "cursed_item" || card.kind === "magic") && (
                     <button disabled={pending || !free || ap < 1} onClick={() => send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets })}>PLAY · 1 AP</button>
                   )}
                 </div>
-              ))}
+              ))}</div>
             </section>
 
             {active && game.phase === "turn_active" && (

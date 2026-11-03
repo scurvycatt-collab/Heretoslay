@@ -326,6 +326,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <button className="expansion" disabled>+ Expansion → max 8 (not supported)</button>
 <p className="lobby-notice" role="status">{notice}</p>
 <button className="lobby-preview" onClick={() => setMode("preview")}>OPEN APPROVED DESIGN PREVIEW (LOCAL MOCK)</button>
+<a className="base-collection-link" href="/?cards">BROWSE BASE CARD COLLECTION →</a>
 </section>
 </main>;
 }

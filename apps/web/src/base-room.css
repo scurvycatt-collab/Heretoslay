@@ -1,10 +1,20 @@
-/* UI-001: functional flow layout only (no visual design — Codex owns styling). */
-.base-table { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
-.base-status { display: flex; flex-wrap: wrap; gap: 16px; font-weight: 600; }
-.base-block { position: static; border: 1px solid currentColor; padding: 8px 12px; }
-.base-block h2 { margin: 0 0 6px; font-size: 1rem; }
-.base-block > div, .base-block li { margin: 4px 0; }
-.base-chain { border-width: 2px; }
-.base-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.base-targets { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
-.base-table button { margin: 2px 4px; }
+.base-table{display:flex;flex-direction:column;gap:18px;padding:22px 0;color:#ececdd;font:400 14px/1.55 Arial,sans-serif}
+.base-status{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:16px 20px;background:#1c332a;border:1px solid #526247;border-radius:10px;color:#e7c483;font-size:12px;letter-spacing:.6px}
+.base-block{position:static;border:1px solid #3a5046;border-radius:12px;padding:20px;background:#152a23}
+.base-block h2{margin:0 0 18px;font-size:12px;letter-spacing:2.5px;color:#d9c493}
+.base-chain{border:2px solid #d9b56e;background:#28362b;box-shadow:0 0 30px #d9b56e15}
+.base-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:#172e25;border:1px solid #3a5046;border-radius:12px;padding:18px}
+.base-actions>p{width:100%;margin:0}
+.base-targets{display:flex;flex-wrap:wrap;gap:12px;width:100%}
+.base-targets label{display:flex;align-items:center;gap:8px}
+.base-table select{max-width:100%;background:#263e32;color:#eee;border:1px solid #687b66;border-radius:5px;font:400 13px Arial,sans-serif}
+.base-table button:not(.card-preview-button):not(.card-dialog button){margin:4px 4px 4px 0;border:1px solid #b59b69;border-radius:6px;background:#e5c78b;color:#18271f;font:700 11px/1.4 Arial,sans-serif;padding:10px 12px;min-height:38px}
+.base-table button:disabled{opacity:.45;cursor:not-allowed}
+.base-table button:focus-visible,.base-table select:focus-visible,.base-table summary:focus-visible{outline:3px solid #f5d38b;outline-offset:3px}
+.base-card-row{display:flex;flex-wrap:wrap;align-items:start;gap:18px;list-style:none;padding:0;margin:14px 0 0;width:100%}
+.base-card-tile{width:174px;flex:0 0 174px;min-width:0;display:flex;flex-direction:column;gap:7px}
+.base-card-tile>small{font-size:11px;color:#c4d2c6}
+.base-card-tile details{font-size:12px;color:#e3c88d}.base-card-tile summary{cursor:pointer;margin:4px 0}
+.base-player{padding:18px 0;border-top:1px solid #3a5046}.base-player.is-active{border-top-color:#d9b56e}.base-player>b{color:#e7c483}
+.base-collection-link{font-size:11px;color:#e5c78b;text-decoration:none;padding:8px}
+@media(max-width:650px){.base-table{padding:10px 0;font-size:13px}.base-block{padding:12px}.base-status{padding:12px}.base-card-row{gap:12px}.base-card-tile{width:calc(50% - 6px);flex-basis:calc(50% - 6px);max-width:210px}.base-targets label{flex-direction:column;align-items:start;max-width:100%}.base-actions{padding:12px}}
