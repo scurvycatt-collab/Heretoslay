@@ -27,10 +27,11 @@ Web đọc pack lúc build (`apps/web/src/cards/resolveCardFace.ts`). Thẻ có 
    - **⇲ Bắt sát mép** cho một vùng: tìm mép thẻ quanh vùng hiện tại (nền phải tương đối đồng màu).
    - Tinh chỉnh: mũi tên dời 1 px (Shift 10 px), Alt + mũi tên đổi cỡ, hoặc gõ số x/y/rộng/cao. Xoay bằng ⟲ ⟳.
    - **Kết quả xuất** ở cột phải tự cập nhật sau mỗi thay đổi (không cần bấm nút). Artwork hiện cả ảnh khung tranh lẫn thẻ đã ghép. Tick **Đã kiểm tra** hoặc bấm **Duyệt & sang vùng kế**.
-4. **Mapping**:
-   - Muốn game dùng ảnh: chọn `definitionId` (catalog hiện chỉ có **base**; thẻ expansion để trống).
-   - Chỉ để xem: để "Chưa mapping" → xuất bằng chế độ **Preview pack**.
-   - Mặt sau (back) hoặc thẻ không dùng: tick **Loại khỏi batch**.
+4. **Gán thẻ** (bước 03):
+   - **Thẻ trong game**: gõ vài chữ tên thẻ vào ô tìm (không cần dấu, vd. `dodgy`, `wizard`), lọc nhanh bằng nút loại (Hero, Item, Monster…), dùng ↑/↓ + Enter hoặc bấm để gán. Thẻ đã được vùng khác gán (cùng variant) có dấu ⚠. Thẻ expansion chưa có trong catalog: để **Chưa gán**.
+   - **Variant** = phiên bản ảnh của cùng một thẻ. Mỗi thẻ chỉ có **một** ảnh `default` — ảnh game hiển thị. Ảnh thứ hai cho cùng thẻ (vd. bản Kickstarter alternate) chọn **Bản khác** và đặt tên riêng; ảnh đó được lưu trong pack nhưng game chưa hiện.
+   - **Ghi chú nguồn ảnh**: tự điền theo tên file; sửa nếu muốn ghi rõ bộ thẻ/người vẽ. Dùng để tra và gỡ nhanh khi có yêu cầu bản quyền.
+   - Mặt sau (back) hoặc vùng không dùng: tick **Loại khỏi batch**.
 5. **Kiểm tra & xuất**: chọn chế độ (`Preview pack` cho phép ID trống; `Webgame pack` bắt buộc ID hợp lệ, đúng khổ, không trùng). Hết lỗi thì bấm **Xuất PNG + manifest + ZIP**, rồi **Tải ZIP**.
 6. **Cài vào game**: giải nén ZIP vào `assets/cards/packs/<tên-pack>/` sao cho `manifest.json` và `cards/` nằm ngay trong thư mục đó. **Khởi động lại** `npm run dev:web` (hoặc `npm run build`). Kiểm tra tại `http://localhost:5173/?cards`.
 

@@ -6,6 +6,7 @@ import { createDemoDraft } from "./fixtures";
 import { TAKEDOWN_CONTACT, validateDraft, type AssetImportAdapter, type ExportMode, type ExportProgress, type ExportResult, type ImportCandidate, type ImportDraft, type QuarterTurn } from "./contract";
 import { parseDraftJson, resumeDraft } from "./adapters/core";
 import { CropEditor, type ViewApi } from "./CropEditor";
+import { CardPicker } from "./CardPicker";
 import { ART_LAYOUTS, CARD_SIZE, artLayoutForKind, expandBox, fitAspect, sourceAspect, splitGrid, type ArtLayout, type Box } from "./cropGeometry";
 import "./workbench.css";
 
@@ -26,6 +27,8 @@ function targetOf(c: ImportCandidate) {
 function sampleCardFor(layout: ArtLayout): CardData | undefined {
   return [...cardById.values()].find((card) => artLayoutForKind(card.kind) === layout);
 }
+
+const catalogCards = [...cardById.values()];
 
 /** Asset import workbench (dev route /?asset-import). Importer I/O belongs to the adapter. */
 export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter }) {
@@ -63,6 +66,12 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
   const target = card ? targetOf(card) : null;
   const aspect = card && target && lockAspect ? sourceAspect(target, card.rotation) : undefined;
   const preview = card ? previews[card.candidateId] : undefined;
+  // Other regions already mapped to each card with the same variant + asset type (would collide in a mapped pack).
+  const usedBy = new Map<string, string[]>();
+  if (card) for (const other of draft.candidates) {
+    if (other.candidateId === card.candidateId || other.excluded || !other.definitionId || other.variant !== card.variant || other.assetType !== card.assetType) continue;
+    usedBy.set(other.definitionId, [...(usedBy.get(other.definitionId) ?? []), other.label]);
+  }
   const ratioOff = card && target ? Math.abs(card.crop.width / card.crop.height / sourceAspect(target, card.rotation) - 1) : 0;
   const ratioWarn = ratioOff > 0.03 ? ratioOff : 0;
   const previewFresh = !!card && (demo ? !!card.previewUrl : !!preview?.url && preview.key === renderKey(card) && !preview.loading);
@@ -306,7 +315,25 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
           {!demo && <button type="button" className="aw-primary-soft" disabled={!previewFresh || card.excluded} onClick={reviewAndNext}>✓ Duyệt & sang vùng kế →</button>}
         </>}
 
-        {step === 2 && <><label>Thẻ trong game (definitionId)<select value={card.definitionId ?? ""} onChange={(event) => { const definitionId = event.target.value || null; const kind = definitionId ? cardById.get(definitionId)?.kind : undefined; update({ definitionId, ...(kind ? { template: ["party_leader", "monster"].includes(kind) ? "tarot" : "poker" } : {}) }); }}><option value="">Chưa gán / chỉ preview</option>{[...cardById.values()].map((definition) => <option key={definition.definitionId} value={definition.definitionId}>{definition.name} · {definition.kind}</option>)}</select></label><p className="aw-hint">Catalog chỉ gồm base. Thẻ expansion chưa có ID: để trống, không gán nhầm vào thẻ base.{card.assetType === "artwork" && " Artwork bắt buộc gán thẻ: khung + chữ được vẽ từ dữ liệu của thẻ đó."}</p><label>Variant<input value={card.variant} onChange={(event) => update({ variant: event.target.value })} /></label><label>Nguồn / provenance<textarea rows={3} value={card.provenance.origin} onChange={(event) => update({ provenance: { ...card.provenance, origin: event.target.value } })} /></label><p>Rights: <b>{card.provenance.rightsStatus}</b> · DMCA: {TAKEDOWN_CONTACT}</p></>}
+        {step === 2 && <>
+          <div className="aw-field"><span className="aw-field-label">Thẻ trong game</span>
+            <CardPicker key={card.candidateId} cards={catalogCards} value={card.definitionId} usedBy={usedBy}
+              suggestedKind={card.assetType === "artwork" ? (layoutOf(card) === "party_leader" ? "party_leader" : layoutOf(card) === "monster" ? "monster" : layoutOf(card) === "hero" ? "all" : layoutOf(card)) : card.template === "tarot" ? "monster" : "all"}
+              onChange={(definitionId) => { const kind = definitionId ? cardById.get(definitionId)?.kind : undefined; update({ definitionId, ...(kind ? { template: ["party_leader", "monster"].includes(kind) ? "tarot" : "poker" } : {}) }); }} />
+            <p className="aw-hint">Gán vùng ảnh này cho một thẻ có trong game để game biết hiện ảnh cho thẻ nào. Catalog chỉ gồm base: thẻ expansion để “Chưa gán”, đừng gán nhầm vào thẻ base.{card.assetType === "artwork" && " Artwork bắt buộc gán thẻ: khung + chữ được vẽ từ dữ liệu của thẻ đó."}</p>
+          </div>
+          <div className="aw-field"><span className="aw-field-label">Variant — phiên bản ảnh</span>
+            <div className="aw-variant" role="radiogroup" aria-label="Variant">
+              <button type="button" role="radio" aria-checked={card.variant === "default"} onClick={() => update({ variant: "default" })}>default<small>Ảnh chính — game hiển thị</small></button>
+              <button type="button" role="radio" aria-checked={card.variant !== "default"} onClick={() => card.variant === "default" && update({ variant: "alternate" })}>Bản khác<small>Lưu kèm, chưa hiển thị</small></button>
+            </div>
+            {card.variant !== "default" && <label>Tên bản khác<input value={card.variant} onChange={(event) => update({ variant: event.target.value.replace(/[^\w.-]/g, "-") })} placeholder="vd: alternate, kickstarter, fan-art-2" /></label>}
+            <p className="aw-hint">Một thẻ có thể có nhiều ảnh (vd. bản gốc và bản Kickstarter “alternate”). Mỗi thẻ chỉ được có <b>một</b> ảnh “default” — đó là ảnh game dùng. Ảnh thứ hai cho cùng thẻ hãy đặt “Bản khác” với tên riêng; nó được lưu trong pack nhưng game chưa có chỗ chọn để hiện.</p>
+          </div>
+          <label>Ghi chú nguồn ảnh (provenance)<textarea rows={2} value={card.provenance.origin} onChange={(event) => update({ provenance: { ...card.provenance, origin: event.target.value } })} /></label>
+          <p className="aw-hint">Ghi ảnh lấy từ đâu (file, bộ thẻ, người vẽ fan-art). Được lưu vào manifest để tra và gỡ nhanh khi có yêu cầu bản quyền. Tự điền sẵn theo tên file.</p>
+          <p>Rights: <b>{card.provenance.rightsStatus}</b> · DMCA: {TAKEDOWN_CONTACT}</p>
+        </>}
 
         {step === 3 && <><label>Chế độ xuất<select value={mode} onChange={(event) => setMode(event.target.value as ExportMode)}><option value="preview">Preview pack — cho phép chưa gán thẻ</option><option value="mapped">Webgame pack — bắt buộc gán thẻ hợp lệ</option></select></label><p>{included.length} vùng · {issues.length} mục cần xử lý</p><ul className="aw-issues">{issues.map((issue, index) => <li key={`${issue.candidateId}-${index}`}><button onClick={() => setSelected(issue.candidateId)}>{issue.candidateId}</button>{issue.message}</li>)}</ul>{!issues.length && <p>Draft đã qua kiểm tra đầu vào. Adapter vẫn kiểm tra lại từng PNG và ZIP đầu ra.</p>}<p className="aw-hint">Nguyên mặt thẻ → PNG đúng khổ thẻ, game hiển thị nguyên ảnh. Artwork → PNG đúng khung tranh, game tự vẽ khung + chữ quanh nó.</p></>}
         <label className="aw-check"><input type="checkbox" checked={card.excluded} onChange={(event) => update({ excluded: event.target.checked })} />Loại vùng này khỏi batch xuất</label>
