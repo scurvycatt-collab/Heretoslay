@@ -69,12 +69,11 @@ Owner đổi: engine side nhập luôn data cơ chế/effect của thẻ; art do
 Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
 
 ## Việc tiếp theo (theo thứ tự)
-2. GAME-002 — turn loop đầy đủ theo RULES-001 spec + product decisions.
-3. GAME-003 — win condition.
-4. MOD-005 — chọn Modifier cụ thể + option giá trị.
-5. QA-001 — test end-to-end + các nit từ review GAME-001.
-6. UI-001 — wiring lobby/bàn chơi base tối thiểu (style để Codex).
-Deploy Cloudflare (DEPL-001) để SAU khi sản phẩm xong.
+1. AUDIT-001 — fuzz nhiều ván ngẫu nhiên + đối chiếu luật với quyết định owner (đang chạy, chat Lead 2026-11-03).
+2. Sửa bug do AUDIT-001 tìm ra (nếu có).
+3. Browser review 3–6 người.
+4. Codex: giao diện BaseRoom + CardRenderer theo docs/contracts/CARD_TEMPLATE_SPEC.json.
+5. DEPL-001 Cloudflare — khi sản phẩm xong và owner có account_id + domain.
 
 ## Chờ owner quyết
 - Deploy infra (Cloudflare account, domain).
