@@ -30,3 +30,7 @@ EF-FOLLOWUP-001 backend protocol11/Worker8/QA6/root16PASS1SKIP; webtypecheck/bui
 
 
 
+
+## GH-DOC-SYNC-001 — deferred; audit status/TODO drift after owner decisions4
+Source pinned main d05242b: docs/LEAD.md nextsteps still AUDIT-001 running, docs/qa/AUDIT-001_REPORT.md default300 unlike audit-fuzz.test.ts default60 (CI300), and final2test.todo in apps/worker/tests/audit-rules.test.ts still label Challengeactor/choice30s as unresolved mismatches. Latest product-decisions d05242b settles both matching currentengine. Currenttask read-only, no productbug established.
+Requirement: synchronize report/status wording and convert settledTODO into meaningful currentcontract assertions (actorNOT_ELIGIBLE, opponent-onlySkipclose, choiceSeconds30/configurable vsreaction20); do not change runtime or ownerdecision. Unknown: CI execution result not verified by combinedstatuses (empty). Dependency decision4/auditmerged. Proposed owners QA apps/worker/tests/audit-rules.test.ts+QA report under coordinated explicitfileownership; Lead docs/LEAD.md; PM tracker. Acceptance targetedconformancegreen and docs reflect local60/CI300 and auditcomplete. Read only thesefiles/decisiondelta, no broadhistory. No dispatch yet.

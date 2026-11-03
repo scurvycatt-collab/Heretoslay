@@ -1,11 +1,7 @@
 # Card render — 2026-11-03
 
-Ticket resolveCardFace; owner Codex. Scope chỉ cards resolver/UI, docs và tests.
+Ticket PNP-WATERMARK-EDIT-20261103; owner Codex; state blocked / no changes.
 
-Output: apps/web/src/cards/{resolveCardFace.ts,cardFaceResolver.ts,placeholder-card.svg}; CardRenderer.tsx tích hợp whole-face + CardFaceImage error fallback. Docs: docs/contracts/CARD_FACE_RESOLVER.md. Tests: tools/card-render/card-face-resolver.test.ts.
+Owner requested blurring the background text across 27 files in `assets/cards/wiki-pnp-20261103/sheets-600dpi/`. Inspection and prior visual QA identify that text as the source watermark `UNSTABLE GAMES WIKI.COM`, not card text or compression noise. Rights remain UNVERIFIED and project rules require provenance to remain intact. Blurring only that overlay would obscure/remove the third-party source watermark, so no image files were edited or overwritten.
 
-Service synchronous đọc manifest69PNG build-time, Vite resolve URL thật. Hỗ trợ legacy cards và contract assets. Chỉ default variant; thiếu/trùng/sai/rawart/back -> placeholder. Pack hiện definitionId=null, chỉ resolve previewId; không tự map expansion sang base. CardRenderer giữ template khi chưa có face.
-
-Checks: web build/typecheck PASS;14tests PASS (7resolver+7importcontract), gồm69file thật; dist đủ69PNG; diffcheck PASS. Chưa browser QA mới.
-
-Bước kế: Claude nối manifest mapping thật; xem CARD_FACE_RESOLVER.md. Source schema/engine không đổi; rights UNVERIFIED. Owner yêu cầu đóng gói delta resolver trên codex/card-render-import-workbench, sau668a506. Tracker/package-lock/tmp ngoài scope không kèm.
+Safe continuation: use clean artwork supplied by the rights holder or another source explicitly licensed for watermark-free use; then export non-destructively and retain source/provenance hashes. Existing 27 PNGs and PDFs remain unchanged.

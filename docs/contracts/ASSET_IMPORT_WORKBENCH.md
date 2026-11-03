@@ -93,3 +93,10 @@ Không ghi đè source; output vào batch directory mới, tên an toàn, chỉ 
 ## Prompt chuyển cho Claude
 
 > Triển khai importer đang làm theo docs/contracts/ASSET_IMPORT_WORKBENCH.md và apps/web/src/asset-import/contract.ts. Dùng lại tool hiện có qua AssetImportAdapter, nối UI /?asset-import; không tạo importer trùng. Scope: adapters/**, crop/composite/export tooling, thay đổi UI/contract cần thiết có báo delta. Không sửa engine/protocol/card data. Input sheet Kickstarter69front hoặc folder owner chọn. Output PNG chuẩn Poker/Tarot, manifest, ZIP, preview thật; complete front không overlay lại chữ/frame; artwork phải composite đúng data. Preview ID=null được phép, mapped phải kiểm ID/template/variant; giữ rights UNVERIFIED. Chạy build, contract tests, QA import/crop/cancel/export và kích thước PNG; báo handoff ngắn, file/checks/blocker. Không commit/push/deploy.
+
+## Delta — adapter đã triển khai (2026-11-03)
+
+- `apps/web/src/asset-import/adapters/{browserAdapter,imageOps,zip}.ts`: `AssetImportAdapter` chạy trong trình duyệt (File picker, canvas, SHA-256, ZIP stored + tự kiểm CRC). Nối ở `apps/web/src/main.tsx`, một instance cho cả vòng đời trang.
+- `ImportDraft.rejected?` (mới, tùy chọn): file bị bỏ qua + lý do; workbench hiển thị.
+- `resolveCardFace.ts` đọc thêm mọi pack ở `assets/cards/packs/*/` (xếp theo tên thư mục, pack đứng trước thắng), sau đó mới tới mẫu Kickstarter.
+- Chưa làm: composite `artwork`, overlay crop, nạp lại draft JSON. Hướng dẫn dùng: `docs/guides/ASSET_IMPORT_GUIDE.md`.

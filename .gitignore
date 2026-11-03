@@ -18,3 +18,5 @@ dist/
 !.env.example
 .sync/
 *.zip
+assets/cards/packs/*
+!assets/cards/packs/README.md

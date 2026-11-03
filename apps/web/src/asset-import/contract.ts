@@ -30,6 +30,8 @@ export interface ImportDraft {
   collection: string;
   sources: AssetSource[];
   candidates: ImportCandidate[];
+  /** Files the adapter could not use (wrong type, too large, undecodable). Reported, never fatal to the batch. */
+  rejected?: { relativePath: string; reason: string }[];
 }
 export type ExportMode = "preview" | "mapped";
 export interface ImportIssue { candidateId: string; code: string; message: string }
