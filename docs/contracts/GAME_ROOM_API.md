@@ -133,7 +133,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
-    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount;
+    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: { id, resolvedAt, outcome: success|fail|slay|penalty|none|challenge_succeeded|challenge_failed, roll, card } — outcome decided by the server, display only */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice
     winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;
@@ -150,3 +150,22 @@ New turn action = protocol union + `validateBaseTurnCommand` + handler in `BASE_
 
 ## Retry sau khi bị từ chối
 Receipt được lưu cho cả command bị từ chối (kể cả `STALE_REVISION`). Client phải dùng `commandId` MỚI sau khi bị từ chối; gửi lại cùng `commandId` sẽ nhận lại đúng kết quả cũ.
+
+
+Challenge rolls: `BaseRollView.attemptCard` carries the Hero/Item/Magic card being challenged (UI-003, additive).
+
+## UI-004 / owner 2026-11-03 — lobby, bots, turn timer (additive)
+
+| Command | Payload | Who / phase | Effect |
+|---|---|---|---|
+| `ADD_BOT` | `{}` | host, `lobby`, < 6 seats | Adds a server-driven seat `Bot N` (`players[].isBot = true`); it takes a random free Leader (never Shadow Claw). |
+| `REMOVE_BOT` | `{ playerId }` | host, `lobby` | Removes that bot seat. |
+| `SELECT_PARTY_LEADER` | `{ leaderId }` | any seat, `lobby` | Pick or change your Leader in the lobby (`LEADER_TAKEN` if another seat holds it). |
+| `START_GAME` | `{}` | host, `lobby` | Starts directly from the lobby when 2–6 seats all hold a Leader (`SELECTION_INCOMPLETE`, `LEADER_NOT_AVAILABLE` for Shadow Claw at 2 players). Lobby pick order = selection order, so SETUP-05 (last picker goes first) is unchanged. The old `BEGIN_LEADER_SELECTION` flow still works. |
+| `CONFIGURE_GAME` | `+ turnSeconds: 30 \| 60 \| 90` | host, before start | Turn timer (default 60). |
+
+Turn timer: `game.turnDeadlineAt` (snapshot) = end of the current turn. Restarts when AP changes (any AP spend), is
+suspended (`null`) while a chain/queue resolves and restarts when it closes; expiry with nothing pending ends the turn
+(log "Hết giờ lượt"). The Durable Object alarm includes this deadline. Bots answer windows/choices at once and take one
+turn action about every 1.4 s of server time (attack if requirement met → play Hero → equip Item → roll Hero → draw →
+end turn); they use the same handlers and validation as players.

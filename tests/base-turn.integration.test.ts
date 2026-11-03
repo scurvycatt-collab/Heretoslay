@@ -170,3 +170,34 @@ test("GAME-002 over HTTP: turn commands are rejected while a window is open; rea
   });
   assert.equal(bad.status, 400);
 });
+
+test("UI-003 contract: discardPile + lastRoll (server-decided outcome) after a Hero roll", async () => {
+  const rt = runtime();
+  const { code, a, b } = await twoPlayerGame(rt);
+  const before = await snap(rt, code, b);
+  assert.deepEqual(before.game.discardPile, []);
+  assert.equal(before.game.lastRoll, null);
+  const hero = before.yourHand.find((card: any) => card.kind === "hero");
+  const played = await send(rt, code, b, "PLAY_HAND_CARD", { cardInstanceId: hero.cardId });
+  await send(rt, code, a, "REACT_PASS", { windowId: played.snapshot.game.chain.windowId });
+  rt.dice.push([1, 1]);
+  const rolled = await send(rt, code, b, "IMMEDIATE_ROLL", { choice: "roll" });
+  assert.equal(rolled.outcome.code, "ACCEPTED");
+  const window = rolled.snapshot.game.chain;
+  assert.equal(window.step, "modifier_window");
+  for (const [playerId, state] of Object.entries(window.responders)) {
+    if (state !== "pending") continue;
+    const who = playerId === a.playerId ? a : b;
+    await send(rt, code, who, "REACT_PASS", { windowId: window.windowId });
+  }
+  const after = await snap(rt, code, a);
+  assert.equal(after.game.chain, null);
+  // Deterministic deck: Napping Nibbles (2+); 1+1 = 2 → server says success.
+  assert.equal(after.game.lastRoll.roll.threshold, 2);
+  assert.equal(after.game.lastRoll.outcome, "success");
+  assert.equal(after.game.lastRoll.card.cardId, hero.cardId);
+  assert.deepEqual(after.game.lastRoll.roll.dice, [1, 1]);
+  assert.equal(after.game.lastRoll.roll.kind, "hero_effect");
+  assert.ok(after.game.lastRoll.resolvedAt > 0);
+  assert.equal(after.game.discardPile.length, after.game.discardCount);
+});

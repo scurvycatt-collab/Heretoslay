@@ -8,6 +8,12 @@ export default defineConfig(({ mode }) => {
   return {
     base: "/herotoslay/",
     plugins: [react()],
-    server: { proxy: { "/api": workerProxyTarget } },
+    server: {
+      proxy: {
+        "/api": workerProxyTarget,
+        // Dev only: the app runs under /herotoslay/ (production gateway strips the prefix).
+        "/herotoslay/api": { target: workerProxyTarget, rewrite: (path: string) => path.replace(/^\/herotoslay/, "") },
+      },
+    },
   };
 });

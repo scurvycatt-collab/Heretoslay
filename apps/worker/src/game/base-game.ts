@@ -82,13 +82,21 @@ export const SHADOW_CLAW_COST = 1;
 
 export interface BaseGameState extends EngineState {
   schema: 2;
+  /** Turn countdown (owner 2026-11-03): resets when AP changes or a chain opens/closes. */
+  turnDeadlineAt?: number | null;
+  /** `${turnId}:${actionPoints}:${busy}` — the deadline restarts whenever it changes. */
+  turnTimerKey?: string | null;
+  /** Lobby Leader picks in order (last picker goes first, SETUP-05). */
+  leaderPickOrder?: string[];
+  /** Earliest time the active bot takes its next turn action (pacing). */
+  botNextActAt?: number | null;
 }
 
 /** Room-level facts the game needs but does not own. */
 export interface BaseRoster {
   hostPlayerId: string;
   /** Players in join order. */
-  players: ReadonlyArray<{ playerId: string; nickname: string }>;
+  players: ReadonlyArray<{ playerId: string; nickname: string; isBot?: boolean }>;
 }
 
 export type BaseGameDeps = EngineDeps;
@@ -140,6 +148,11 @@ export function initialBaseGameState(): BaseGameState {
     logSeq: 0,
     names: {},
     collected: [],
+    lastRoll: null,
+    turnDeadlineAt: null,
+    turnTimerKey: null,
+    leaderPickOrder: [],
+    botNextActAt: null,
   };
 }
 
@@ -152,6 +165,12 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
   const game = raw as BaseGameState & { schema: number };
   if (game.schema === 2) {
     game.collected ??= [];
+    game.lastRoll ??= null;
+    game.turnDeadlineAt ??= null;
+    game.turnTimerKey ??= null;
+    game.leaderPickOrder ??= [];
+    game.botNextActAt ??= null;
+    game.settings = { ...DEFAULT_SETTINGS, ...game.settings };
     return game;
   }
   const defaults = initialBaseGameState();
@@ -196,6 +215,7 @@ function setupContext(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, d
 
 /** Per-turn resets. "Until your next turn" protections end when that player's turn starts. */
 function onTurnStart(game: BaseGameState): void {
+  game.botNextActAt = null;
   game.heroRollsUsed = [];
   game.turnRollBonus = 0;
   game.noChallengeThisTurn = false;
@@ -292,7 +312,41 @@ type Handler = (
   deps: BaseGameDeps,
 ) => BaseCommandCode;
 
+/** Lobby flow (owner 2026-11-03): every seat picks its Leader in the lobby; the host starts from there. */
+function lobbySelectLeader(game: BaseGameState, seat: BaseSeat, leaderId: string): BaseCommandCode {
+  if (!game.leaderPool.includes(leaderId)) return "LEADER_NOT_AVAILABLE";
+  if (game.seats.some((other) => other !== seat && other.leaderId === leaderId)) return "LEADER_TAKEN";
+  if (seat.leaderId === leaderId) return "NO_CHANGE";
+  seat.leaderId = leaderId;
+  game.leaderPickOrder = [...(game.leaderPickOrder ?? []).filter((id) => id !== seat.playerId), seat.playerId];
+  return "ACCEPTED";
+}
+
+function lobbyStart(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, deps: BaseGameDeps): BaseCommandCode {
+  if (seat.playerId !== roster.hostPlayerId) return "FORBIDDEN";
+  if (game.seats.length < 2 || game.seats.length > 6) return "NOT_ENOUGH_PLAYERS";
+  if (game.seats.some((candidate) => !candidate.leaderId)) return "SELECTION_INCOMPLETE";
+  // Base rulebook: The Shadow Claw may not be used in 2-player games.
+  if (game.seats.some((candidate) => cardDataOfKind(candidate.leaderId!, "party_leader")?.bannedPlayerCounts.includes(game.seats.length))) {
+    return "LEADER_NOT_AVAILABLE";
+  }
+  // SETUP-05 keeps working: the selection order is the lobby pick order, so the last picker goes first.
+  const picks = (game.leaderPickOrder ?? []).filter((id) => game.seats.some((candidate) => candidate.playerId === id));
+  const order = [...game.seats.map((candidate) => candidate.playerId).filter((id) => !picks.includes(id)), ...picks];
+  game.phase = "leader_selection";
+  game.selectionOrder = order;
+  game.selectionIndex = order.length;
+  const code = applySetupCommand(setupContext(game, seat, roster, deps), { kind: "START_GAME", commandId: "lobby-start", expectedRevision: 0, payload: {} } as Parameters<typeof applySetupCommand>[1]);
+  if (code !== "ACCEPTED") {
+    game.phase = "lobby";
+    return code;
+  }
+  return "ACCEPTED";
+}
+
 const setupHandler: Handler = (game, seat, command, roster, deps) => {
+  if (game.phase === "lobby" && command.kind === "SELECT_PARTY_LEADER") return lobbySelectLeader(game, seat, command.payload.leaderId);
+  if (game.phase === "lobby" && command.kind === "START_GAME") return lobbyStart(game, seat, roster, deps);
   if (command.kind === "SELECT_PARTY_LEADER") {
     const data = cardDataOfKind(command.payload.leaderId, "party_leader");
     // Base rulebook: The Shadow Claw may not be used in 2-player games.
@@ -484,8 +538,13 @@ const configureHandler: Handler = (game, seat, command, roster) => {
   return "ACCEPTED";
 };
 
+/** ADD_BOT / REMOVE_BOT change the room roster, so the Durable Object handles them (see room.ts). */
+const rosterHandler: Handler = () => "MODE_MISMATCH";
+
 export const BASE_TURN_HANDLERS: Readonly<Record<BaseGameCommandKind, Handler>> = {
   CONFIGURE_GAME: configureHandler,
+  ADD_BOT: rosterHandler,
+  REMOVE_BOT: rosterHandler,
   BEGIN_LEADER_SELECTION: setupHandler,
   SELECT_PARTY_LEADER: setupHandler,
   START_GAME: setupHandler,
@@ -526,18 +585,201 @@ export function applyBaseCommand(
   const seat = game.seats.find((candidate) => candidate.playerId === actorPlayerId);
   if (!seat) return "FORBIDDEN";
   if (game.phase === "game_over") return "GAME_OVER"; // WIN-END
-  return BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps);
+  const code = BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps);
+  if (code === "ACCEPTED") {
+    updateTurnTimer(game, deps.now());
+    runBots(game, roster, deps);
+  }
+  return code;
 }
 
-/** Applies expired deadlines (alarm / before a command). Returns true if state changed. */
+// ------------------------------------------------------------- turn timer
+
+/**
+ * Turn countdown (owner 2026-11-03): `settings.turnSeconds` per turn; every AP
+ * spend restarts it; while a chain/queue resolves the countdown is suspended and
+ * restarts once it closes. Returns true when the stored timer changed.
+ */
+function updateTurnTimer(game: BaseGameState, now: number): boolean {
+  if (game.phase !== "turn_active") {
+    const changed = game.turnDeadlineAt != null || game.turnTimerKey != null;
+    game.turnDeadlineAt = null;
+    game.turnTimerKey = null;
+    return changed;
+  }
+  const busy = isBusy(game);
+  const key = `${game.turnId}:${game.actionPoints}:${busy ? 1 : 0}`;
+  if (key === game.turnTimerKey) return false;
+  game.turnTimerKey = key;
+  game.turnDeadlineAt = busy ? null : now + (game.settings.turnSeconds ?? DEFAULT_SETTINGS.turnSeconds) * 1000;
+  return true;
+}
+
+/** Turn expired with nothing pending: end it as if the player pressed END_TURN. */
+function settleTurnTimer(game: BaseGameState, deps: BaseGameDeps): boolean {
+  if (game.phase !== "turn_active" || isBusy(game) || game.turnDeadlineAt == null || deps.now() < game.turnDeadlineAt) return false;
+  const active = activePlayerId(game);
+  log(game, `Hết giờ lượt — ${game.names[active ?? ""] ?? active} tự động kết thúc lượt`);
+  endTurn(game, deps);
+  return true;
+}
+
+// ------------------------------------------------------------- bots
+
+const BOT_STEP_MS = 1400;
+const isBot = (roster: BaseRoster, playerId: string) => roster.players.some((player) => player.playerId === playerId && player.isBot);
+
+function botCommand(kind: BaseGameCommandKind, payload: object): BaseGameCommand {
+  return { kind, commandId: "bot", expectedRevision: 0, payload } as unknown as BaseGameCommand;
+}
+
+/** First legal targets for a target rule (bots only; humans always choose — Q-08). */
+function botTargets(game: BaseGameState, botId: string, rule: Parameters<typeof validateTargets>[2]): BaseTargets | null {
+  const others = game.seats.filter((seat) => seat.playerId !== botId);
+  const own = seatOf(game, botId);
+  const otherHeroes = others.flatMap((seat) => seat.party.map((hero) => hero.card.cardId));
+  const ownHeroes = own?.party.map((hero) => hero.card.cardId) ?? [];
+  let targets: BaseTargets | null;
+  switch (rule) {
+    case "none": targets = {}; break;
+    case "other_player": targets = others[0] ? { playerId: [...others].sort((a, b) => b.hand.length - a.hand.length)[0].playerId } : null; break;
+    case "hero_other_party": targets = otherHeroes[0] ? { heroInstanceIds: [otherHeroes[0]] } : null; break;
+    case "two_heroes_other_party": targets = otherHeroes.length >= 2 ? { heroInstanceIds: otherHeroes.slice(0, 2) } : null; break;
+    case "hero_other_party_and_own_hero": targets = otherHeroes[0] && ownHeroes[0] ? { heroInstanceIds: [otherHeroes[0], ownHeroes[0]] } : null; break;
+    case "own_hero": targets = ownHeroes[0] ? { heroInstanceIds: [ownHeroes[0]] } : null; break;
+    case "own_hero_with_cursed_item": {
+      const hero = own?.party.find((entry) => entry.item?.kind === "cursed_item");
+      targets = hero ? { heroInstanceIds: [hero.card.cardId] } : null;
+      break;
+    }
+    case "any_hero_with_item": {
+      const hero = game.seats.flatMap((seat) => seat.party).find((entry) => entry.item);
+      targets = hero ? { heroInstanceIds: [hero.card.cardId] } : null;
+      break;
+    }
+    default: targets = null;
+  }
+  return targets && validateTargets(game, botId, rule, targets) === null ? targets : null;
+}
+
+/** One reaction / choice answered by a bot, if any is waiting on one. */
+function botReact(game: BaseGameState, roster: BaseRoster, deps: BaseGameDeps): boolean {
+  const chain = game.chain;
+  if (!chain) return false;
+  const run = (playerId: string, command: BaseGameCommand) => {
+    const seat = seatOf(game, playerId);
+    return seat ? BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps) === "ACCEPTED" : false;
+  };
+  if (chain.step === "challenge_window" || chain.step === "modifier_window") {
+    const bot = Object.entries(chain.responders).find(([id, state]) => state === "pending" && isBot(roster, id));
+    return bot ? run(bot[0], botCommand("REACT_PASS", { windowId: chain.windowId })) : false;
+  }
+  if (chain.step === "immediate_roll_choice") {
+    if (!isBot(roster, chain.actorId)) return false;
+    const hero = findHero(game, chain.heroCardId);
+    const rule = hero ? cardDataOfKind(hero.hero.card.definitionId, "hero")?.target ?? "none" : "none";
+    const targets = botTargets(game, chain.actorId, rule);
+    if (targets && run(chain.actorId, botCommand("IMMEDIATE_ROLL", { choice: "roll", targets }))) return true;
+    return run(chain.actorId, botCommand("IMMEDIATE_ROLL", { choice: "skip" }));
+  }
+  const choice = chain.choice;
+  if (!isBot(roster, choice.playerId)) return false;
+  const ids = eligibleChoiceCards(game, choice).slice(0, Math.max(choice.min, choice.kind === "order_top" ? choice.max : 0)).map((card) => card.cardId);
+  if (choice.kind === "confirm") return run(choice.playerId, botCommand("RESOLVE_CHOICE", { choiceId: choice.choiceId, cardInstanceIds: [], accept: true }));
+  return run(choice.playerId, botCommand("RESOLVE_CHOICE", { choiceId: choice.choiceId, cardInstanceIds: ids }));
+}
+
+/** One turn action for the active bot (paced by BOT_STEP_MS). Simple, legal-only heuristics. */
+function botTurnAction(game: BaseGameState, roster: BaseRoster, deps: BaseGameDeps): boolean {
+  const active = activePlayerId(game);
+  if (game.phase !== "turn_active" || !active || !isBot(roster, active) || isBusy(game)) return false;
+  const now = deps.now();
+  if (game.botNextActAt == null || game.botNextActAt < 0) {
+    game.botNextActAt = now + BOT_STEP_MS;
+    return false;
+  }
+  if (now < game.botNextActAt) return false;
+  const seat = seatOf(game, active)!;
+  const ap = game.actionPoints ?? 0;
+  const tryRun = (command: BaseGameCommand) => BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps) === "ACCEPTED";
+  let acted = false;
+  if (!acted && ap >= ATTACK_COST) {
+    const monster = game.faceUpMonsters.find((id) => meetsRequirement(seat, monsterData(id), game.settings));
+    if (monster) acted = tryRun(botCommand("ATTACK_MONSTER", { monsterInstanceId: monster }));
+  }
+  if (!acted && ap >= PLAY_COST) {
+    const hero = seat.hand.find((card) => card.kind === "hero");
+    if (hero) acted = tryRun(botCommand("PLAY_HAND_CARD", { cardInstanceId: hero.cardId }));
+  }
+  if (!acted && ap >= PLAY_COST) {
+    const item = seat.hand.find((card) => card.kind === "item");
+    const bare = seat.party.find((entry) => !entry.item);
+    if (item && bare) acted = tryRun(botCommand("PLAY_HAND_CARD", { cardInstanceId: item.cardId, targets: { heroInstanceIds: [bare.card.cardId] } }));
+  }
+  if (!acted && ap >= HERO_EFFECT_COST) {
+    for (const entry of seat.party) {
+      if (game.heroRollsUsed.includes(entry.card.cardId)) continue;
+      const rule = cardDataOfKind(entry.card.definitionId, "hero")?.target ?? "none";
+      const targets = botTargets(game, active, rule);
+      if (targets && tryRun(botCommand("USE_HERO_EFFECT", { heroInstanceId: entry.card.cardId, targets }))) { acted = true; break; }
+    }
+  }
+  if (!acted && ap >= DRAW_COST) acted = tryRun(botCommand("DRAW_CARD", {}));
+  if (!acted) acted = tryRun(botCommand("END_TURN", {}));
+  game.botNextActAt = now + BOT_STEP_MS;
+  return acted;
+}
+
+/** Lets bots answer pending windows/choices and take paced turn actions. Returns true if state changed. */
+function runBots(game: BaseGameState, roster: BaseRoster, deps: BaseGameDeps): boolean {
+  if (!roster.players.some((player) => player.isBot)) return false;
+  let changed = false;
+  for (let guard = 0; guard < 30 && game.phase === "turn_active"; guard += 1) {
+    const step = botReact(game, roster, deps) || botTurnAction(game, roster, deps);
+    if (!step) break;
+    changed = true;
+    updateTurnTimer(game, deps.now());
+  }
+  return changed;
+}
+
+/** Lobby: a new bot seat takes a random free Leader (respecting player-count bans at start). */
+export function seatBot(game: BaseGameState, roster: BaseRoster, botId: string, deps: BaseGameDeps): void {
+  normalizeBaseGame(game);
+  syncLobbySeats(game, roster);
+  const seat = seatOf(game, botId);
+  if (!seat || seat.leaderId) return;
+  const taken = new Set(game.seats.map((candidate) => candidate.leaderId).filter(Boolean));
+  const free = deps.shuffle(game.leaderPool.filter((id) => !taken.has(id) && !id.endsWith("the-shadow-claw")));
+  if (free[0]) lobbySelectLeader(game, seat, free[0]);
+}
+
+/** Applies expired deadlines, the turn timer and bot moves (alarm / poll / before a command). Returns true if state changed. */
 export function settleBaseGame(game: BaseGameState, roster: BaseRoster, deps: BaseGameDeps): boolean {
   normalizeBaseGame(game);
   syncLobbySeats(game, roster);
-  return settleDeadlines(game, deps, HOOKS);
+  let changed = false;
+  for (let guard = 0; guard < 20; guard += 1) {
+    let step = settleDeadlines(game, deps, HOOKS);
+    step = settleTurnTimer(game, deps) || step;
+    step = runBots(game, roster, deps) || step;
+    step = updateTurnTimer(game, deps.now()) || step;
+    if (!step) break;
+    changed = true;
+  }
+  return changed;
 }
 
-export function baseNextDeadline(game: BaseGameState): number | null {
-  return nextDeadline(normalizeBaseGame(game));
+export function baseNextDeadline(game: BaseGameState, roster?: BaseRoster): number | null {
+  normalizeBaseGame(game);
+  const candidates = [nextDeadline(game)];
+  if (game.phase === "turn_active" && !isBusy(game)) {
+    candidates.push(game.turnDeadlineAt ?? null);
+    const active = activePlayerId(game);
+    if (roster && active && isBot(roster, active)) candidates.push(game.botNextActAt ?? null);
+  }
+  const times = candidates.filter((value): value is number => typeof value === "number");
+  return times.length ? Math.min(...times) : null;
 }
 
 // ------------------------------------------------------------- projection
@@ -557,7 +799,7 @@ function rollView(roll: RollState): BaseRollView {
     total,
   };
   if (roll.kind === "challenge") {
-    return { ...base, challengerPlayerId: roll.challengerId, challengerDice: [...roll.challengerDice] as [number, number], challengerTotal };
+    return { ...base, challengerPlayerId: roll.challengerId, challengerDice: [...roll.challengerDice] as [number, number], challengerTotal, attemptCard: anyCardView(roll.attempt.card) };
   }
   if (roll.kind === "hero_effect") return { ...base, heroInstanceId: roll.heroCardId, threshold: roll.threshold };
   return { ...base, monsterInstanceId: roll.monsterId };
@@ -634,6 +876,7 @@ export function projectBaseGame(
         nickname: player.nickname,
         joinIndex,
         isHost: player.playerId === roster.hostPlayerId,
+        isBot: Boolean(player.isBot),
         handCount: seat?.hand.length ?? 0,
         leaderId: seat?.leaderId ?? null,
         leaderClass: seat ? leaderClass(seat) : null,
@@ -662,10 +905,26 @@ export function projectBaseGame(
       turnNumber: game.turnNumber,
       turnId: game.turnId,
       actionPoints: game.actionPoints,
+      turnDeadlineAt: game.phase === "turn_active" && !isBusy(game) ? game.turnDeadlineAt ?? null : null,
       mainDeckCount: game.mainDeck.length,
       monsterDeckCount: game.monsterDeck.length,
       faceUpMonsters: game.faceUpMonsters.map(monsterView),
       discardCount: game.discard.length,
+      discardPile: game.discard.map(cardView),
+      lastRoll: game.lastRoll
+        ? {
+            id: game.lastRoll.id,
+            resolvedAt: game.lastRoll.resolvedAt,
+            outcome: game.lastRoll.outcome,
+            roll: rollView(game.lastRoll.roll),
+            card:
+              game.lastRoll.roll.kind === "attack"
+                ? monsterView(game.lastRoll.roll.monsterId)
+                : game.lastRoll.subject
+                  ? anyCardView(game.lastRoll.subject)
+                  : null,
+          }
+        : null,
       heroRollsUsed: [...game.heroRollsUsed],
       turnRollBonus: game.turnRollBonus,
       chain: chainView(game, viewerPlayerId),

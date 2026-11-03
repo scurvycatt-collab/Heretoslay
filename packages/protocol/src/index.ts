@@ -345,6 +345,8 @@ export interface RoomSliceValidationResult {
 
 const BASE_TURN_KINDS = new Set([
   "CONFIGURE_GAME",
+  "ADD_BOT",
+  "REMOVE_BOT",
   "PLAY_HAND_CARD",
   "USE_HERO_EFFECT",
   "ATTACK_MONSTER",
@@ -395,7 +397,10 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
   };
   switch (value.kind) {
     case "CONFIGURE_GAME": {
-      const allowed = ["reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode", "leaderPassiveUsesModifierSlot"];
+      const allowed = ["turnSeconds", "reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode", "leaderPassiveUsesModifierSlot"];
+      if (payload.turnSeconds !== undefined && payload.turnSeconds !== 30 && payload.turnSeconds !== 60 && payload.turnSeconds !== 90) {
+        issues.push("payload.turnSeconds must be 30, 60 or 90");
+      }
       for (const key of Object.keys(payload)) if (!allowed.includes(key)) issues.push(`payload.${key} is not allowed`);
       for (const key of ["reactionSeconds", "choiceSeconds"]) {
         const seconds = payload[key];
@@ -458,6 +463,12 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
       break;
     case "LEADER_ACTION":
       need("targetPlayerId");
+      break;
+    case "ADD_BOT":
+      for (const key of Object.keys(payload)) issues.push(`payload.${key} is not allowed`);
+      break;
+    case "REMOVE_BOT":
+      need("playerId");
       break;
   }
   return issues.length === 0
@@ -910,10 +921,14 @@ export type RoomSliceSnapshot = ReactionSliceSnapshot | SetupDemoSnapshot | Effe
 
 export type {
   AttackMonsterCommand,
+  AddBotCommand,
+  RemoveBotCommand,
   ConfigureGameCommand,
   BaseChainView,
   BaseGameSettings,
   BaseRollView,
+  BaseRollOutcome,
+  BaseRollResultView,
   BaseTargets,
   BaseTurnCommand,
   BaseTurnCommandKind,

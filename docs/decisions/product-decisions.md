@@ -154,3 +154,14 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 |---|---|---|
 | CHALLENGE-SKIP | Người vừa chơi lá KHÔNG nằm trong cửa sổ Challenge của chính lá đó (không có nút Skip); cửa sổ đóng khi mọi đối thủ Skip/hết giờ. Thay quyết định 2026-10-28 cho trường hợp này. | Giữ code hiện tại (base-engine.ts ~1083, ~1207) |
 | CHOICE-TIMER | Lựa chọn trong hiệu ứng thẻ (bỏ lá, chọn mục tiêu, có/không, roll ngay): 30 giây mặc định, host chỉnh qua CONFIGURE_GAME (`choiceSeconds`). Reaction vẫn 20 giây. Thay PC-CONTRACT-001-PM. | Giữ code hiện tại (base-rules.ts `choiceSeconds: 30`) |
+
+## Owner chốt lần 5 (2026-11-03, review bản deploy)
+
+| # | Quyết định | Triển khai |
+|---|---|---|
+| LOBBY-LEADER | Chọn Party Leader ngay trong sảnh chờ; host bấm START GAME khi mọi ghế đã có Leader. | `SELECT_PARTY_LEADER` / `START_GAME` ở phase `lobby` (base-game.ts) |
+| LOBBY-BOT | Host thêm bot ở sảnh chờ; bot tự chọn Leader. | `ADD_BOT` / `REMOVE_BOT` (room.ts), bot driver trong `settleBaseGame` |
+| TURN-TIMER | Mỗi lượt có đếm ngược 30/60/90 s (chọn ở sảnh). Dùng AP reset đồng hồ; hết giờ tự kết thúc lượt. | `settings.turnSeconds`, `game.turnDeadlineAt`; tạm dừng khi đang resolve chain, chạy lại từ đầu khi chain đóng (owner xác nhận) |
+| ROLL-TARGET | Hero/Magic/Item cần mục tiêu: hỏi mục tiêu ngay lúc chơi/roll (chỉ liệt kê lựa chọn hợp lệ), không còn bị từ chối âm thầm `INVALID_TARGET`. | UI `TargetDialog` / `TargetOptions`; server vẫn validate (Q-08) |
+| BOT-AUTO | Bot tự xử lý hết: tự Skip cửa sổ phản ứng, tự roll, tự chọn khi có lựa chọn, tự chơi lượt. | bot driver (base-game.ts `runBots`) |
+| BOT-RESULT | Màn kết quả roll của bot hiển thị như của người chơi (tự ẩn ~5 s hoặc CONTINUE). | `ResultStage` không phân biệt bot |

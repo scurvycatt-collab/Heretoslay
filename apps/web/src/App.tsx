@@ -242,7 +242,7 @@ const poll = window.setInterval(async () => { try { const next = await snapshot(
 const tick = window.setInterval(() => setLocalNow(Date.now()), 250); return () => window.clearInterval(tick); }, [mode]);
   if (mode === "preview") return <PreviewApp />;
   if (mode === "room" && session) { const state = session.snapshot;
-const send = async (kind: string, payload: object) => { setPending(true); try { const result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), state.revision, kind, payload); accept({ ...session, snapshot: result.snapshot, receivedAt: Date.now() }, result.outcome.accepted); if (!result.outcome.accepted) setNotice(`Command rejected: ${result.outcome.code}. Refreshed from the server.`); } catch (error) { setNotice(error instanceof Error ? error.message : "Command failed."); } finally { setPending(false); } };
+const send = async (kind: string, payload: object) => { setPending(true); try { let result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), state.revision, kind, payload); if (!result.outcome.accepted && result.outcome.code === "STALE_REVISION") result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), result.snapshot.revision, kind, payload); /* one retry: the board moved (e.g. a bot acted); the server re-validates the command */ accept({ ...session, snapshot: result.snapshot, receivedAt: Date.now() }, result.outcome.accepted); if (!result.outcome.accepted) setNotice(`Command rejected: ${result.outcome.code}. Refreshed from the server.`); } catch (error) { setNotice(error instanceof Error ? error.message : "Command failed."); } finally { setPending(false); } };
 if (state.mode === "base") return <BaseRoom state={state} send={send} pending={pending} serverNow={state.serverNow + (localNow - session.receivedAt)} notice={notice} onLobby={() => setMode("lobby")} />;
 if (state.mode === "setup_demo") return <main className="app-shell"><header className="review-bar"><div><b>HERE TO SLAY</b><span>SETUP DEMO · SERVER SNAPSHOT</span></div><button onClick={() => setMode("lobby")}>LOBBY</button></header><SetupRoom state={state} pending={pending} send={send}/><p className="sr-note" role="status">{notice || "Personalized synthetic setup state from server."}</p></main>;
 if (state.mode === "effect_demo") return <><EffectRoom state={state} pending={pending} send={send} serverNow={state.serverNow + (localNow - session.receivedAt)} />{notice && <p className="sr-note" role="status">{notice}</p>}</>;
@@ -326,7 +326,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <button className="expansion" disabled>+ Expansion → max 8 (not supported)</button>
 <p className="lobby-notice" role="status">{notice}</p>
 <button className="lobby-preview" onClick={() => setMode("preview")}>OPEN APPROVED DESIGN PREVIEW (LOCAL MOCK)</button>
-<a className="base-collection-link" href="/?cards">BROWSE BASE CARD COLLECTION →</a>
+<a className="base-collection-link" href={`${import.meta.env.BASE_URL}?cards`}>BROWSE BASE CARD COLLECTION →</a>
 </section>
 </main>;
 }

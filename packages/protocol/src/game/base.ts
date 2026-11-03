@@ -121,8 +121,22 @@ export interface ConfigureGameCommand extends BaseCommandBase {
   payload: Partial<BaseGameSettings>;
 }
 
+/** Host-only, lobby: add a server-driven bot seat (it picks a free Leader at once). */
+export interface AddBotCommand extends BaseCommandBase {
+  kind: "ADD_BOT";
+  payload: Record<string, never>;
+}
+
+/** Host-only, lobby: remove a bot seat. */
+export interface RemoveBotCommand extends BaseCommandBase {
+  kind: "REMOVE_BOT";
+  payload: { playerId: string };
+}
+
 export type BaseTurnCommand =
   | ConfigureGameCommand
+  | AddBotCommand
+  | RemoveBotCommand
   | PlayHandCardCommand
   | UseHeroEffectCommand
   | AttackMonsterCommand
@@ -156,6 +170,8 @@ export interface BaseGameSnapshot {
     nickname: string;
     joinIndex: number;
     isHost: boolean;
+    /** Server-driven seat added by the host in the lobby. */
+    isBot: boolean;
     handCount: number;
     /** Party Leader definitionId (placed in Party per RULE-03), or null. */
     leaderId: string | null;
@@ -181,10 +197,16 @@ export interface BaseGameSnapshot {
     turnNumber: number;
     turnId: string | null;
     actionPoints: number | null;
+    /** Turn countdown: end of the current turn unless an action is taken (resets on AP spend, paused while a chain resolves). */
+    turnDeadlineAt: number | null;
     mainDeckCount: number;
     monsterDeckCount: number;
     faceUpMonsters: BaseCardView[];
     discardCount: number;
+    /** Public discard pile, oldest first (last = most recently discarded). */
+    discardPile: BaseCardView[];
+    /** Last resolved roll (result screen; display only). Null before the first roll. */
+    lastRoll: BaseRollResultView | null;
     /** Hero instance ids whose effect was already rolled this turn. */
     heroRollsUsed: string[];
     /** Current turn's +N to all rolls of the active player (Wise Shield etc.). */
@@ -200,6 +222,8 @@ export interface BaseGameSnapshot {
 }
 
 export interface BaseGameSettings {
+  /** Turn timer chosen in the lobby: 30, 60 or 90 seconds. Expiry ends the turn. */
+  turnSeconds: number;
   reactionSeconds: number;
   choiceSeconds: number;
   /** Q-01 (owner 2026-11-02): true = retail rulebook, Leader fills a Monster class slot. */
@@ -226,6 +250,20 @@ export interface BaseRollView {
   heroInstanceId?: string;
   monsterInstanceId?: string;
   threshold?: number;
+  /** Challenge only: the Hero/Item/Magic card being challenged. */
+  attemptCard?: BaseCardView;
+}
+
+/** Outcome as decided by the server; the client never re-derives it. */
+export type BaseRollOutcome = "success" | "fail" | "slay" | "penalty" | "none" | "challenge_succeeded" | "challenge_failed";
+
+export interface BaseRollResultView {
+  id: string;
+  resolvedAt: number;
+  outcome: BaseRollOutcome;
+  roll: BaseRollView;
+  /** Hero / challenged card / attacked Monster, when still known. */
+  card: BaseCardView | null;
 }
 
 export type BaseChainView =
