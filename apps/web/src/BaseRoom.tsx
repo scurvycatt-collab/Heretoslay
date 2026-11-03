@@ -4,7 +4,7 @@
 // (+ static card data by definitionId); the client only sends commands and never
 // computes game state. Command kinds/payloads are unchanged from UI-001/002.
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, HeroClass } from "@here-to-slay/protocol";
+import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, HeroClass, TargetRule } from "@here-to-slay/protocol";
 import { CardRenderer, InspectContext, type CardLike, type InspectFn } from "./CardRenderer";
 import { Glyph } from "./ClassIcon";
 import { CLASS_COLOR, HERO_CLASSES, cardData, leaderDisplayName, titleCase } from "./cardCatalog";
@@ -82,6 +82,116 @@ function TargetChips({ state, targets }: { state: BaseGameSnapshot; targets: Bas
       {playerName && <span className="t3-chip t3-chip--target">⌖ {playerName}</span>}
       {heroes.map((h) => <span key={h} className="t3-chip t3-chip--target">{h}</span>)}
     </>
+  );
+}
+
+/* ----------------------------------------------------------- target dialog */
+
+/** What a play/roll needs (Q-08: chosen up front, server re-validates). Items equip a Hero (Q-06). */
+type PickRule = TargetRule | "equip_own" | "equip_any";
+type PartyEntry = Player["party"][number];
+type TargetOption = { key: string; player: Player; entry?: PartyEntry };
+type TargetStep = { label: string; options: TargetOption[]; count: number };
+
+function ruleFor(card: CardLike): PickRule | null {
+  if (card.kind === "item") return "equip_own";
+  if (card.kind === "cursed_item") return "equip_any";
+  const data = cardData(card.definitionId);
+  const rule = data && (data.kind === "hero" || data.kind === "magic") ? data.target : "none";
+  return rule === "none" ? null : rule;
+}
+
+/** Legal options from public snapshot data only (same checks as the server's validateTargets / playTargetError). */
+function targetSteps(state: BaseGameSnapshot, rule: PickRule): TargetStep[] {
+  const me = state.you.playerId;
+  const others = state.players.filter((p) => p.playerId !== me);
+  const self = state.players.find((p) => p.playerId === me);
+  const heroes = (players: Player[], keep: (e: PartyEntry) => boolean = () => true) =>
+    players.flatMap((player) => player.party.filter(keep).map((entry) => ({ key: entry.hero.cardId, player, entry })));
+  const own = self ? [self] : [];
+  switch (rule) {
+    case "other_player": return [{ label: "Choose a player", options: others.map((player) => ({ key: player.playerId, player })), count: 1 }];
+    case "hero_other_party": return [{ label: "Choose a Hero in another player's Party", options: heroes(others), count: 1 }];
+    case "two_heroes_other_party": return [{ label: "Choose 2 Heroes in other players' Parties", options: heroes(others), count: 2 }];
+    case "hero_other_party_and_own_hero": return [
+      { label: "1 · Choose a Hero in another player's Party", options: heroes(others), count: 1 },
+      { label: "2 · Choose one of your Heroes", options: heroes(own), count: 1 },
+    ];
+    case "own_hero": return [{ label: "Choose one of your Heroes", options: heroes(own), count: 1 }];
+    case "own_hero_with_cursed_item": return [{ label: "Choose your Hero with a Cursed Item", options: heroes(own, (e) => e.item?.kind === "cursed_item"), count: 1 }];
+    case "any_hero_with_item": return [{ label: "Choose a Hero with an Item", options: heroes(state.players, (e) => Boolean(e.item)), count: 1 }];
+    case "equip_own": return [{ label: "Equip to one of your Heroes (without an Item)", options: heroes(own, (e) => !e.item), count: 1 }];
+    case "equip_any": return [{ label: "Equip to any Hero (without an Item)", options: heroes(state.players, (e) => !e.item), count: 1 }];
+    default: return [];
+  }
+}
+
+function buildTargets(rule: PickRule, picks: string[][]): BaseTargets {
+  if (rule === "other_player") return { playerId: picks[0]?.[0] };
+  return { heroInstanceIds: picks.flat() };
+}
+
+/** Inline picker: one row per step; auto-selects a step that has exactly the needed number of options. */
+function TargetOptions({ state, rule, onChange }: { state: BaseGameSnapshot; rule: PickRule; onChange: (targets: BaseTargets | null) => void }) {
+  const steps = targetSteps(state, rule);
+  const [picks, setPicks] = useState<string[][]>(() => steps.map((step) => (step.options.length === step.count ? step.options.map((o) => o.key) : [])));
+  const complete = steps.length > 0 && steps.every((step, i) => (picks[i] ?? []).length === step.count);
+  useEffect(() => { onChange(complete ? buildTargets(rule, picks) : null); }, [complete, picks.map((p) => p.join(",")).join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+  const toggle = (i: number, key: string, count: number) =>
+    setPicks((current) => current.map((row, k) => {
+      if (k !== i) return row;
+      if (row.includes(key)) return row.filter((x) => x !== key);
+      return count === 1 ? [key] : row.length < count ? [...row, key] : [row[0], key];
+    }));
+  if (steps.some((step) => step.options.length < step.count)) {
+    return <p className="t3-target-none">No valid target right now — this effect cannot be used.</p>;
+  }
+  return (
+    <div className="t3-target-steps">
+      {steps.map((step, i) => (
+        <div key={step.label} className="t3-target-step">
+          <b>{step.label}</b>
+          <div className="t3-target-row">
+            {step.options.map((option) => {
+              const order = (picks[i] ?? []).indexOf(option.key);
+              const on = order >= 0;
+              return (
+                <button key={option.key} type="button" className={`t3-target-opt${on ? " is-on" : ""}`} aria-pressed={on} onClick={() => toggle(i, option.key, step.count)}>
+                  {option.entry ? (
+                    <CardRenderer card={option.entry.hero} classes={option.entry.classes} equipped={Boolean(option.entry.item)} variant="art" size="sm" badge={on && step.count > 1 ? `${order + 1}` : on ? "✓" : undefined} />
+                  ) : (
+                    <span className="t3-target-face" style={{ background: leaderColor(option.player) }}>{option.player.nickname.slice(0, 1).toUpperCase()}</span>
+                  )}
+                  <span className="t3-target-name">{option.entry ? option.entry.hero.name : option.player.nickname}</span>
+                  <small>{option.entry ? `${option.player.nickname}${option.player.playerId === state.you.playerId ? " (you)" : ""}${option.entry.item ? ` · ${option.entry.item.name}` : ""}` : `${option.player.handCount} cards · ${option.player.party.length} Heroes`}</small>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+type TargetRequest = { title: string; verb: string; card: CardLike; rule: PickRule; onConfirm: (targets: BaseTargets) => void };
+
+function TargetDialog({ state, request, onClose }: { state: BaseGameSnapshot; request: TargetRequest; onClose: () => void }) {
+  const [targets, setTargets] = useState<BaseTargets | null>(null);
+  return (
+    <div className="t3-pileview t3-target-dialog" role="dialog" aria-label={request.title} onClick={onClose}>
+      <div className="t3-target-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="t3-target-card"><CardRenderer card={request.card} size="lg" /></div>
+        <div className="t3-target-body">
+          <h2>{request.title}</h2>
+          <TargetOptions state={state} rule={request.rule} onChange={setTargets} />
+          <div className="t3-target-actions">
+            <button className="t3-btn t3-btn--ghost" onClick={onClose}>CANCEL</button>
+            <button className="t3-btn t3-btn--continue" disabled={!targets} onClick={() => { if (targets) { request.onConfirm(targets); onClose(); } }}>{request.verb}</button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -221,7 +331,7 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
   );
   return (
     <div className={`t3-cluster${isActive ? " is-active" : ""}`}>
-      <span className={`t3-nametag${isActive ? " is-active" : ""}`}>{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
+      <span className={`t3-nametag${isActive ? " is-active" : ""}`}>{player.isBot ? "🤖 " : ""}{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
       <div className="t3-hexes" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
         {HERO_CLASSES.map((c, i) => {
           const lit = player.partyClasses.includes(c);
@@ -503,7 +613,8 @@ function ResultStage({ state, result, onClose }: { state: BaseGameSnapshot; resu
   );
 }
 
-function ReactionStage({ state, send, pending, serverNow, targets }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; targets: BaseTargets }) {
+function ReactionStage({ state, send, pending, serverNow, askTargets }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; askTargets: (request: TargetRequest) => void }) {
+  const [rollTargets, setRollTargets] = useState<BaseTargets | null>(null);
   const chain = state.game.chain!;
   const me = state.you.playerId;
   const settings = state.game.settings;
@@ -621,19 +732,20 @@ function ReactionStage({ state, send, pending, serverNow, targets }: { state: Ba
     headline = `${chain.hero.name} entered ${name(chain.actorPlayerId)}'s Party`;
     kicker = "ROLL ITS EFFECT?";
     featured = <CardRenderer card={chain.hero} size="xl" />;
+    const rule = ruleFor(chain.hero);
+    const threshold = (() => { const d = cardData(chain.hero.definitionId); return d?.kind === "hero" ? d.rollThreshold : undefined; })();
     center =
       chain.actorPlayerId === me ? (
         <div className="t3-stage-copy">
-          <p>Roll the effect now (free) or skip.</p>
-          <p className="t3-muted">Effect needs a target? Press <b>TABLE</b>, click the player / Hero, then come back.</p>
-          <p className="t3-chips"><TargetChips state={state} targets={targets} /></p>
+          <p>Roll the effect now (free){threshold ? <> — needs <b>{threshold}+</b></> : null}, or skip.</p>
+          {rule && <TargetOptions state={state} rule={rule} onChange={setRollTargets} />}
         </div>
       ) : <p className="t3-stage-copy">Waiting for {name(chain.actorPlayerId)}…</p>;
     if (chain.actorPlayerId === me) {
       primary = (
         <>
           <button className="t3-btn t3-btn--ghost" disabled={pending} onClick={() => send("IMMEDIATE_ROLL", { choice: "skip" })}>SKIP</button>
-          <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("IMMEDIATE_ROLL", { choice: "roll", targets })}>ROLL</button>
+          <button className="t3-btn t3-btn--continue" disabled={pending || (rule !== null && !rollTargets)} onClick={() => send("IMMEDIATE_ROLL", { choice: "roll", ...(rule ? { targets: rollTargets } : {}) })}>🎲 ROLL</button>
         </>
       );
     }
@@ -650,7 +762,7 @@ function ReactionStage({ state, send, pending, serverNow, targets }: { state: Ba
       <div className="t3-choice">
         <p className="t3-muted">
           {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hold Ctrl + hover for full text.
-          {chain.kind === "play_card" && <> Targets: <TargetChips state={state} targets={targets} /></>}
+          {chain.kind === "play_card" && <> You will choose targets after confirming.</>}
         </p>
         <div className="t3-choice-row">
           {chain.options.map((card) => {
@@ -684,7 +796,17 @@ function ReactionStage({ state, send, pending, serverNow, targets }: { state: Ba
         <button
           className="t3-btn t3-btn--continue"
           disabled={pending}
-          onClick={() => { send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked, ...(chain.kind === "play_card" && picked.length ? { targets } : {}) }); setPicked([]); }}
+          onClick={() => {
+            const card = chain.kind === "play_card" && picked.length ? chain.options?.find((c) => c.cardId === picked[0]) : undefined;
+            const rule = card ? ruleFor(card) : null;
+            if (card && rule) {
+              const ids = picked;
+              askTargets({ title: `Targets for ${card.name}`, verb: "PLAY", card, rule, onConfirm: (t) => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: ids, targets: t }) });
+            } else {
+              send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked, ...(chain.kind === "play_card" && picked.length ? { targets: {} } : {}) });
+            }
+            setPicked([]);
+          }}
         >
           {chain.kind === "view_hand" ? "CLOSE" : picked.length === 0 && chain.min === 0 ? "SKIP" : `CONFIRM (${picked.length})`}
         </button>
@@ -814,6 +936,113 @@ function Hand({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolea
   );
 }
 
+/* -------------------------------------------------------------------- lobby */
+
+const TURN_CHOICES = [30, 60, 90] as const;
+
+/** Waiting room: seats (humans + bots), Leader pick for everyone, host settings, start. */
+function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: Send; pending: boolean }) {
+  const game = state.game;
+  const me = state.you.playerId;
+  const host = state.you.isHost;
+  const mine = state.players.find((p) => p.playerId === me);
+  const ownerOf = (leaderId: string) => state.players.find((p) => p.leaderId === leaderId);
+  const missing = state.players.filter((p) => !p.leaderId);
+  const shadowBanned = state.players.length === 2;
+  const blockedShadow = shadowBanned && state.players.some((p) => p.leaderId?.endsWith("the-shadow-claw"));
+  const canStart = host && state.players.length >= 2 && missing.length === 0 && !blockedShadow;
+  const hint = state.players.length < 2
+    ? "Need at least 2 players — invite a friend or add a bot."
+    : missing.length
+      ? `Waiting for ${missing.map((p) => p.nickname).join(", ")} to pick a Leader.`
+      : blockedShadow
+        ? "The Shadow Claw cannot be used in a 2-player game."
+        : host ? "Everyone is ready." : "Waiting for the host to start.";
+  return (
+    <section className="t3-lobby" aria-label="Lobby">
+      <header className="t3-lobby-head">
+        <div>
+          <p className="t3-kicker">ROOM CODE — SHARE TO INVITE</p>
+          <strong className="t3-roomcode">{state.roomCode}</strong>
+        </div>
+        <div className="t3-lobby-settings">
+          <span className="t3-kicker">TURN TIMER</span>
+          <div className="t3-seg t3-seg--light" role="group" aria-label="Turn timer">
+            {TURN_CHOICES.map((seconds) => (
+              <button
+                key={seconds}
+                className={game.settings.turnSeconds === seconds ? "is-on" : ""}
+                aria-pressed={game.settings.turnSeconds === seconds}
+                disabled={!host || pending}
+                onClick={() => send("CONFIGURE_GAME", { turnSeconds: seconds })}
+              >
+                {seconds}s
+              </button>
+            ))}
+          </div>
+          <small>{host ? "Using AP resets the timer; time out = turn passes." : "Set by the host."}</small>
+        </div>
+      </header>
+
+      <div className="t3-lobby-body">
+        <aside className="t3-lobby-seats" aria-label="Players">
+          <h3>PLAYERS {state.players.length}/6</h3>
+          {state.players.map((p) => (
+            <div key={p.playerId} className={`t3-lobby-seat${p.playerId === me ? " is-me" : ""}`}>
+              <span className="t3-roster-face" style={{ background: leaderColor(p) }}>{p.isBot ? "🤖" : p.nickname.slice(0, 1).toUpperCase()}</span>
+              <span className="t3-lobby-seat-name">
+                <b>{p.nickname}{p.playerId === me ? " (you)" : ""}</b>
+                <small>
+                  {p.isHost && <em className="t3-tag">HOST</em>}
+                  {p.isBot && <em className="t3-tag t3-tag--bot">BOT</em>}
+                  {p.leaderId ? leaderDisplayName(p.leaderId) : <i>choosing a Leader…</i>}
+                </small>
+              </span>
+              {host && p.isBot && (
+                <button className="t3-icon-btn" disabled={pending} onClick={() => send("REMOVE_BOT", { playerId: p.playerId })} aria-label={`Remove ${p.nickname}`}>✕</button>
+              )}
+            </div>
+          ))}
+          {host && state.players.length < 6 && (
+            <button className="t3-lobby-add" disabled={pending} onClick={() => send("ADD_BOT", {})}>+ ADD BOT</button>
+          )}
+          {Array.from({ length: Math.max(0, 6 - state.players.length - (host ? 1 : 0)) }, (_, i) => <div key={`e${i}`} className="t3-lobby-seat is-empty">open seat</div>)}
+        </aside>
+
+        <div className="t3-lobby-leaders">
+          <h3>CHOOSE YOUR PARTY LEADER {mine?.leaderId ? <small>— you picked {leaderDisplayName(mine.leaderId)} (click another to change)</small> : null}</h3>
+          <div className="t3-leaders">
+            {game.leaderPool.map((id) => {
+              const owner = ownerOf(id);
+              const isMine = owner?.playerId === me;
+              const banned = shadowBanned && id.endsWith("the-shadow-claw");
+              return (
+                <div key={id} className="t3-leader-slot">
+                  <CardRenderer
+                    card={{ definitionId: id, kind: "party_leader", name: leaderDisplayName(id) }}
+                    size="lg"
+                    selected={isMine}
+                    dimmed={Boolean(owner && !isMine) || banned}
+                    disabled={pending || Boolean(owner && !isMine)}
+                    badge={owner ? (isMine ? "YOU" : owner.nickname) : banned ? "3+ PLAYERS" : undefined}
+                    onClick={owner && !isMine ? undefined : () => send("SELECT_PARTY_LEADER", { leaderId: id })}
+                    ariaLabel={`${leaderDisplayName(id)}${owner ? ` — taken by ${owner.nickname}` : ""}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <footer className="t3-lobby-foot">
+        <span className="t3-muted">{hint}</span>
+        {host && <button className="t3-btn t3-btn--continue t3-btn--big" disabled={pending || !canStart} onClick={() => send("START_GAME", {})}>START GAME</button>}
+      </footer>
+    </section>
+  );
+}
+
 /* --------------------------------------------------------------------- room */
 
 /** Seat slots by opponent count (clockwise after you): left edge, top row, right edge. */
@@ -837,6 +1066,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const [hovered, setHovered] = useState<{ card: CardLike; rect: DOMRect | null; pinned: boolean } | null>(null);
   const [panel, setPanel] = useState<null | "log" | "discard" | "targets" | "help" | "menu">(null);
   const [hideGameOver, setHideGameOver] = useState(false);
+  const [targetRequest, setTargetRequest] = useState<TargetRequest | null>(null);
   const [leaderHover, setLeaderHover] = useState<{ playerId: string; rect: DOMRect } | null>(null);
   const [stack, setStack] = useState<{ heroId: string; rect: DOMRect } | null>(null);
   const stackTimer = useRef<number | null>(null);
@@ -859,7 +1089,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const chainTargets =
     (chain?.step === "immediate_roll_choice" && chain.actorPlayerId === me) || (chain?.step === "choice" && chain.playerId === me && chain.kind === "play_card");
   const targetApi: TargetApi = {
-    enabled: (active && game.phase === "turn_active") || Boolean(chainTargets),
+    // Targets are picked in a dialog at the moment of playing/rolling (see TargetDialog); table clicks stay off.
+    enabled: false && ((active && game.phase === "turn_active") || Boolean(chainTargets)),
     value: targets,
     togglePlayer: (playerId) => setTargets((t) => ({ ...t, playerId: t.playerId === playerId ? undefined : playerId })),
     toggleHero: (heroId) =>
@@ -871,6 +1102,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   };
   const inspect: InspectFn = (card, rect, pinned) => setHovered(card ? { card, rect: rect ?? null, pinned: Boolean(pinned) } : null);
 
+  const turnLeft = game.turnDeadlineAt ? Math.max(0, Math.ceil((game.turnDeadlineAt - serverNow) / 1000)) : 0;
+  const turnFraction = game.turnDeadlineAt ? Math.min(1, Math.max(0, (game.turnDeadlineAt - serverNow) / (game.settings.turnSeconds * 1000))) : 0;
   const canDraw = !pending && free && ap >= 1;
   const canRedraw = !pending && free && ap >= 3;
   const canEnd = !pending && free;
@@ -915,20 +1148,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
           </header>
         )}
 
-        {game.phase === "lobby" && (
-          <section className="t3-prestage" aria-label="Lobby">
-            <p className="t3-kicker">SHARE THIS ROOM CODE</p>
-            <strong className="t3-roomcode">{state.roomCode}</strong>
-            <div className="t3-lobby-players">
-              {state.players.map((p) => <span key={p.playerId} className="t3-lobby-player"><span className="t3-roster-face" style={{ background: leaderColor(p) }}>{p.nickname.slice(0, 1).toUpperCase()}</span>{p.nickname}{p.isHost ? " · HOST" : ""}</span>)}
-              {Array.from({ length: Math.max(0, 6 - state.players.length) }, (_, i) => <span key={`e${i}`} className="t3-lobby-player is-empty">open seat</span>)}
-            </div>
-            <p>Players {state.players.length}/6 · base game needs 2–6.</p>
-            {state.you.isHost ? (
-              <button className="t3-btn t3-btn--continue" disabled={pending || state.players.length < 2} onClick={() => send("BEGIN_LEADER_SELECTION", {})}>BEGIN LEADER SELECTION</button>
-            ) : <p className="t3-muted">Waiting for the host to begin.</p>}
-          </section>
-        )}
+        {game.phase === "lobby" && <LobbyStage state={state} send={send} pending={pending} />}
 
         {game.phase === "leader_selection" && (
           <section className="t3-prestage" aria-label="Party Leader selection">
@@ -963,13 +1183,12 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               <div className="t3-rail-players">
                 {railPlayers.map((p) => (
                   <span key={p.playerId} className={`t3-rail-face${p.playerId === game.currentPlayerId ? " is-active" : ""}${p.playerId === me ? " is-me" : ""}`} style={{ background: leaderColor(p) }} title={`${p.nickname}${p.playerId === game.currentPlayerId ? " — turn" : ""}`}>
-                    {p.nickname.slice(0, 1).toUpperCase()}
+                    {p.isBot ? "🤖" : p.nickname.slice(0, 1).toUpperCase()}
                   </span>
                 ))}
               </div>
               <div className="t3-rail-tools">
                 <button className="t3-icon-btn" onClick={() => setPanel("log")} aria-label="Game log (L)" title="Game log (L)">☰<small>LOG</small></button>
-                <button className={`t3-icon-btn${targetApi.enabled ? "" : " is-off"}`} onClick={() => setPanel("targets")} aria-label="Targets" title="Targets">⌖<small>TGT</small></button>
                 <button className="t3-icon-btn" onClick={() => setPanel("help")} aria-label="Controls help" title="Controls">?<small>KEYS</small></button>
               </div>
             </nav>
@@ -978,6 +1197,9 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               <button className="t3-corner t3-corner--menu" onClick={() => setPanel("menu")} aria-label="Menu">≡</button>
               <div className="t3-corner t3-corner--status" aria-label="Turn status">
                 {chain ? <span className="t3-status-timer">⧗ {Math.max(0, Math.ceil((chain.deadlineAt - serverNow) / 1000))}s</span> : null}
+                {game.turnDeadlineAt ? (
+                  <span className={`t3-turn-clock${turnLeft <= 10 ? " is-urgent" : ""}`} title="Turn timer — resets when AP is spent">⏱ {turnLeft}s</span>
+                ) : game.phase === "turn_active" && chain ? <span className="t3-turn-clock is-paused" title="Turn timer paused while this resolves">⏸</span> : null}
                 <span>T{game.turnNumber}</span>
                 <span className="t3-ap" aria-label={`${ap} action points`}>{Array.from({ length: Math.max(3, ap) }, (_, i) => <i key={i} className={i < ap ? "on" : ""} />)}</span>
               </div>
@@ -1024,7 +1246,11 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                         <button
                           className="t3-roll-btn"
                           disabled={pending || !free || ap < 1 || used}
-                          onClick={() => send("USE_HERO_EFFECT", { heroInstanceId: entry.hero.cardId, targets })}
+                          onClick={() => {
+                            const rule = ruleFor(entry.hero);
+                            if (!rule) send("USE_HERO_EFFECT", { heroInstanceId: entry.hero.cardId, targets: {} });
+                            else setTargetRequest({ title: `Roll ${entry.hero.name} — choose targets`, verb: "🎲 ROLL · 1 AP", card: entry.hero, rule, onConfirm: (t) => send("USE_HERO_EFFECT", { heroInstanceId: entry.hero.cardId, targets: t }) });
+                          }}
                           title={used ? "Already rolled this turn" : "Roll effect · 1 AP"}
                         >
                           {used ? "✓" : "🎲 1"}
@@ -1035,20 +1261,29 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                 </div>
               )}
 
-              {targetApi.enabled && (targets.playerId || targets.heroInstanceIds?.length) ? (
-                <div className="t3-target-bar">
-                  <TargetChips state={state} targets={targets} />
-                  <button className="t3-icon-btn" onClick={() => setTargets({})} aria-label="Clear targets">✕</button>
-                </div>
-              ) : null}
 
-              <Hand hand={state.yourHand} canPlay={!pending && free && ap >= 1} onPlay={(card) => send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets })} />
+
+              <Hand
+                hand={state.yourHand}
+                canPlay={!pending && free && ap >= 1}
+                onPlay={(card) => {
+                  const rule = card.kind === "hero" ? null : ruleFor(card); // Heroes need targets only when they roll
+                  if (!rule) send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets: {} });
+                  else setTargetRequest({ title: card.kind === "item" || card.kind === "cursed_item" ? `Equip ${card.name}` : `Play ${card.name} — choose targets`, verb: "PLAY · 1 AP", card, rule, onConfirm: (t) => send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets: t }) });
+                }}
+              />
 
               <div className="t3-turn-actions" aria-label="Turn actions">
                 {active && game.phase === "turn_active" ? (
                   <>
+                    {game.turnDeadlineAt ? (
+                      <div className={`t3-turnbar${turnLeft <= 10 ? " is-urgent" : ""}`} role="timer" aria-label={`${turnLeft} seconds left in your turn`}>
+                        <span className="t3-turnbar-fill" style={{ transform: `scaleX(${turnFraction})` }} />
+                        <b>YOUR TURN · {turnLeft}s</b>
+                      </div>
+                    ) : null}
                     {mySeat?.leaderId === "hts.base.v1.party-leader.the-shadow-claw" && (
-                      <button className="t3-act" disabled={pending || !free || ap < 1 || !targets.playerId} onClick={() => send("LEADER_ACTION", { targetPlayerId: targets.playerId })}><kbd>⌖</kbd>PULL</button>
+                      <button className="t3-act" disabled={pending || !free || ap < 1} onClick={() => mySeat && setTargetRequest({ title: "The Shadow Claw — pull a card from…", verb: "PULL · 1 AP", card: { definitionId: mySeat.leaderId!, kind: "party_leader", name: leaderDisplayName(mySeat.leaderId!) }, rule: "other_player", onConfirm: (t) => send("LEADER_ACTION", { targetPlayerId: t.playerId }) })}><kbd>⌖</kbd>PULL</button>
                     )}
                     <button className="t3-act" disabled={!canDraw} onClick={() => send("DRAW_CARD", {})}><kbd>D</kbd>DRAW</button>
                     <button className="t3-act" disabled={!canRedraw} onClick={() => send("REDRAW_HAND", {})}><kbd>R</kbd>REDEAL</button>
@@ -1073,7 +1308,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
           </div>
         )}
 
-        {chain && <ReactionStage key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} targets={targets} />}
+        {chain && <ReactionStage key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} askTargets={setTargetRequest} />}
 
         {game.lastRoll && game.lastRoll.id !== dismissedRoll && serverNow - game.lastRoll.resolvedAt < RESULT_MS && (
           <ResultStage key={game.lastRoll.id} state={state} result={game.lastRoll} onClose={() => setDismissedRoll(game.lastRoll!.id)} />
@@ -1095,20 +1330,12 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
           </Popup>
         )}
         {panel === "discard" && <DiscardView pile={discardPile} count={game.discardCount} onClose={() => setPanel(null)} />}
-        {panel === "targets" && (
-          <Popup title="TARGETS" onClose={() => setPanel(null)}>
-            <p className="t3-muted">Click a player avatar or Hero on the table (Hero order = T1, T2), or pick here. The server checks targets against the card rule.</p>
-            <p className="t3-chips"><TargetChips state={state} targets={targets} /></p>
-            <TargetPicker state={state} value={targets} onChange={setTargets} />
-            <button className="t3-btn" onClick={() => setTargets({})}>CLEAR TARGETS</button>
-          </Popup>
-        )}
         {panel === "help" && (
           <Popup title="CONTROLS" onClose={() => setPanel(null)}>
             <ul className="t3-help">
               <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + hover — full card (touch: long-press)</li>
               <li>Click a hand card — lift it, then PLAY</li>
-              <li>Click an avatar / Hero — set target (T1, T2)</li>
+              <li>Effects that need a target ask for it when you play / roll</li>
               <li><kbd>D</kbd> draw · <kbd>R</kbd> redeal · <kbd>E</kbd> pass turn · <kbd>L</kbd> log · <kbd>Esc</kbd> close</li>
             </ul>
           </Popup>
@@ -1131,6 +1358,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
             </header>
           </div>
         )}
+
+        {targetRequest && <TargetDialog key={targetRequest.title} state={state} request={targetRequest} onClose={() => setTargetRequest(null)} />}
 
         <Inspector hovered={hovered} held={held} />
         {preTable && <p className="sr-note" role="status">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED."}</p>}

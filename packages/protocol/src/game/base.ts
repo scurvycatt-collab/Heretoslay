@@ -121,8 +121,22 @@ export interface ConfigureGameCommand extends BaseCommandBase {
   payload: Partial<BaseGameSettings>;
 }
 
+/** Host-only, lobby: add a server-driven bot seat (it picks a free Leader at once). */
+export interface AddBotCommand extends BaseCommandBase {
+  kind: "ADD_BOT";
+  payload: Record<string, never>;
+}
+
+/** Host-only, lobby: remove a bot seat. */
+export interface RemoveBotCommand extends BaseCommandBase {
+  kind: "REMOVE_BOT";
+  payload: { playerId: string };
+}
+
 export type BaseTurnCommand =
   | ConfigureGameCommand
+  | AddBotCommand
+  | RemoveBotCommand
   | PlayHandCardCommand
   | UseHeroEffectCommand
   | AttackMonsterCommand
@@ -156,6 +170,8 @@ export interface BaseGameSnapshot {
     nickname: string;
     joinIndex: number;
     isHost: boolean;
+    /** Server-driven seat added by the host in the lobby. */
+    isBot: boolean;
     handCount: number;
     /** Party Leader definitionId (placed in Party per RULE-03), or null. */
     leaderId: string | null;
@@ -181,6 +197,8 @@ export interface BaseGameSnapshot {
     turnNumber: number;
     turnId: string | null;
     actionPoints: number | null;
+    /** Turn countdown: end of the current turn unless an action is taken (resets on AP spend, paused while a chain resolves). */
+    turnDeadlineAt: number | null;
     mainDeckCount: number;
     monsterDeckCount: number;
     faceUpMonsters: BaseCardView[];
@@ -204,6 +222,8 @@ export interface BaseGameSnapshot {
 }
 
 export interface BaseGameSettings {
+  /** Turn timer chosen in the lobby: 30, 60 or 90 seconds. Expiry ends the turn. */
+  turnSeconds: number;
   reactionSeconds: number;
   choiceSeconds: number;
   /** Q-01 (owner 2026-11-02): true = retail rulebook, Leader fills a Monster class slot. */

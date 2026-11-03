@@ -27,6 +27,7 @@ import {
   baseNextDeadline,
   initialBaseGameState,
   settleBaseGame,
+  seatBot,
   isBaseGameCommand,
   projectBaseGame,
   type BaseGameState,
@@ -71,6 +72,8 @@ interface PersistedPlayer {
   hand: FixtureCard[];
   party: FixtureCard[];
   leaderId?: string | null;
+  /** Base mode: server-driven seat added by the host (no session token). */
+  isBot?: boolean;
 }
 
 interface RateBucket {
@@ -629,7 +632,7 @@ function effectSnapshot(
 function baseRoster(state: PersistedRoomState): BaseRoster {
   return {
     hostPlayerId: state.hostPlayerId,
-    players: state.players.map(({ playerId, nickname }) => ({ playerId, nickname })),
+    players: state.players.map(({ playerId, nickname, isBot }) => ({ playerId, nickname, isBot: Boolean(isBot) })),
   };
 }
 
@@ -786,7 +789,7 @@ function consumeCard(
 }
 
 function nextEffectDeadline(state: PersistedRoomState): number | null {
-  if (roomMode(state) === "base") return state.game ? baseNextDeadline(state.game) : null;
+  if (roomMode(state) === "base") return state.game ? baseNextDeadline(state.game, baseRoster(state)) : null;
   const reactionDeadline = state.reaction && !state.reaction.resolved
     ? state.reaction.deadlineAt
     : null;
@@ -991,6 +994,8 @@ export class RoomDurableObject {
       if (roomMode(state) === "base" && state.game) {
         // Expired windows/choices close before the command is judged (timer never resets).
         if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) state.revision += 1;
+        const deadline = baseNextDeadline(state.game, baseRoster(state));
+        if (deadline !== null) await txn.setAlarm(deadline);
       }
       await txn.put(ROOM_STATE_KEY, state);
       return { state, player };
@@ -1072,7 +1077,7 @@ export class RoomDurableObject {
         let outcome: CommandOutcome;
         if (roomMode(state) === "base") {
           outcome = this.applyBaseGameCommand(state, player, command, now);
-          const deadline = state.game ? baseNextDeadline(state.game) : null;
+          const deadline = state.game ? baseNextDeadline(state.game, baseRoster(state)) : null;
           if (deadline !== null) await txn.setAlarm(deadline);
         } else if (command.kind === "OPEN_REACTION_DEMO") {
           outcome =
@@ -1172,6 +1177,37 @@ export class RoomDurableObject {
     return { newId: this.randomUUID, shuffle: this.shuffle, rollDice: this.rollDice, now: () => now };
   }
 
+  /** Host-only lobby roster change: add a bot seat (auto Leader) or remove one. */
+  applyBotRoster(state: PersistedRoomState, player: PersistedPlayer, command: RoomSliceCommand, now: number): string {
+    const game = (state.game ??= initialBaseGameState());
+    if (player.playerId !== state.hostPlayerId) return "FORBIDDEN";
+    if (game.phase !== "lobby") return "INVALID_PHASE";
+    if (command.kind === "REMOVE_BOT") {
+      const targetId = (command.payload as { playerId: string }).playerId;
+      const index = state.players.findIndex((candidate) => candidate.playerId === targetId && candidate.isBot);
+      if (index < 0) return "INVALID_TARGET";
+      state.players.splice(index, 1);
+      settleBaseGame(game, baseRoster(state), this.baseDeps(now));
+      return "ACCEPTED";
+    }
+    if (state.players.length >= MAX_PLAYERS) return "ROOM_FULL";
+    let n = 1;
+    while (state.players.some((candidate) => candidate.normalizedNickname === `bot ${n}`)) n += 1;
+    const playerId = this.randomUUID();
+    state.players.push({
+      playerId,
+      nickname: `Bot ${n}`,
+      normalizedNickname: `bot ${n}`,
+      sessionTokenHash: `bot:${playerId}`,
+      hand: [],
+      party: [],
+      leaderId: null,
+      isBot: true,
+    });
+    seatBot(game, baseRoster(state), playerId, this.baseDeps(now));
+    return "ACCEPTED";
+  }
+
   applyBaseGameCommand(
     state: PersistedRoomState,
     player: PersistedPlayer,
@@ -1184,6 +1220,12 @@ export class RoomDurableObject {
     }
     if (command.expectedRevision !== state.revision) {
       return this.commandOutcome(state, command.commandId, "STALE_REVISION");
+    }
+    if (command.kind === "ADD_BOT" || command.kind === "REMOVE_BOT") {
+      const code = this.applyBotRoster(state, player, command, now);
+      if (code !== "ACCEPTED") return this.commandOutcome(state, command.commandId, code);
+      state.revision += 1;
+      return this.commandOutcome(state, command.commandId, "ACCEPTED", true);
     }
     const code = applyBaseCommand(game, baseRoster(state), player.playerId, command, this.baseDeps(now));
     if (code !== "ACCEPTED") return this.commandOutcome(state, command.commandId, code);
@@ -1680,7 +1722,7 @@ export class RoomDurableObject {
           state.revision += 1;
           await txn.put(ROOM_STATE_KEY, state);
         }
-        const deadline = baseNextDeadline(state.game);
+        const deadline = baseNextDeadline(state.game, baseRoster(state));
         if (deadline !== null) await txn.setAlarm(deadline);
         return;
       }

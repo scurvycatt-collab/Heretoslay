@@ -5,7 +5,27 @@ import { createContext, useContext, useRef, type CSSProperties, type PointerEven
 import type { BaseCardKind, CardData, HeroClass, MonsterCardData, RollCompare } from "@here-to-slay/protocol";
 import { CLASS_COLOR, PALETTE, cardData, cardSize, descriptionBox, layoutFor, pct, titleCase } from "./cardCatalog";
 import { Glyph, type GlyphName } from "./ClassIcon";
+import { CardRenderer as FaceRenderer } from "./cards/CardRenderer";
+import { CARD_FACE_PLACEHOLDER, resolveCardArt, resolveCardFace } from "./cards/resolveCardFace";
 import "./card.css";
+
+/**
+ * Real artwork (ADR-004, FAN_MADE_NON_COMMERCIAL): an imported illustration, else
+ * the art area cropped out of an imported complete face. Null = use the placeholder.
+ */
+function realArtStyle(definitionId: string, kind: BaseCardKind): CSSProperties | null {
+  const art = resolveCardArt(definitionId);
+  if (art) return { backgroundImage: `url("${art}")`, backgroundSize: "cover", backgroundPosition: "center" };
+  const face = resolveCardFace(definitionId);
+  if (face === CARD_FACE_PLACEHOLDER) return null;
+  const size = cardSize(kind);
+  const r = (layoutFor(kind) as { art: { x: number; y: number; w: number; h: number } }).art;
+  return {
+    backgroundImage: `url("${face}")`,
+    backgroundSize: `${(size.width / r.w) * 100}% ${(size.height / r.h) * 100}%`,
+    backgroundPosition: `${(r.x / (size.width - r.w)) * 100}% ${(r.y / (size.height - r.h)) * 100}%`,
+  };
+}
 
 export type CardLike = { definitionId: string; kind: BaseCardKind; name: string; cardId?: string; modifierOptions?: number[] };
 export type CardSizeName = "xs" | "sm" | "md" | "lg" | "xl";
@@ -154,6 +174,7 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
   const classNames = [
     "tcard",
     art ? "tcard--art" : "",
+    !art && data ? "tcard--real" : "",
     `tcard--${kind}`,
     `tcard--${size}`,
     tarot ? "tcard--tarot" : "tcard--poker",
@@ -165,10 +186,11 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
     className ?? "",
   ].filter(Boolean).join(" ");
 
+  const real = art ? realArtStyle(card.definitionId, kind) : null;
   const artBlock = (style: CSSProperties) => (
-    <span className="tcard-art" style={{ ...style, "--art-angle": `${seed.angle}deg`, "--art-spot": `${seed.spot}%` } as CSSProperties}>
-      <Glyph name={glyph} className="tcard-art-glyph" />
-      <span className="tcard-mono">{seed.mono}</span>
+    <span className={`tcard-art${real ? " is-real" : ""}`} style={{ ...style, ...(real ?? {}), "--art-angle": `${seed.angle}deg`, "--art-spot": `${seed.spot}%` } as CSSProperties}>
+      {!real && <Glyph name={glyph} className="tcard-art-glyph" />}
+      {!real && <span className="tcard-mono">{seed.mono}</span>}
     </span>
   );
 
@@ -181,7 +203,16 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
     </>
   );
 
-  const body = art ? artBody : (
+  // Full face: the shared card renderer (imported face, or frame + imported art + rules text).
+  const realFace = !art && data ? (
+    <>
+      <FaceRenderer card={data} className="tcard-face" />
+      {badge && <span className="tcard-badge">{badge}</span>}
+      {equipped && <span className="tcard-mini-item tcard-mini-item--face" title="Item equipped"><Glyph name="item" /></span>}
+    </>
+  ) : null;
+
+  const body = art ? artBody : realFace ?? (
     <>
       {artBlock(rect(layout.art))}
       <span className={`tcard-head${blank ? " tcard-head--blank" : ""}`}>

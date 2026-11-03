@@ -403,3 +403,67 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-slain-hex.tcard { --w: calc(var(--hex) * 1.15) !important; height: calc(var(--hex) * 1.32); filter: drop-shadow(0 0 0 #e0383e) drop-shadow(0 0 2px #e0383e) drop-shadow(0 2px 0 #07111c); }
 .t3-slain-hex.tcard .tcard-art { --accent: #6b3a44; }
 .t3-slain-hex.tcard .tcard-art-glyph { color: rgb(255 255 255 / 0.75); }
+
+/* ===== UI-004: lobby, target dialog, turn timer ===== */
+.t3-lobby { margin-top: 14px; display: flex; flex-direction: column; gap: 16px; padding: 22px; background: var(--felt); color: var(--ink); border: 5px solid #050b13; border-radius: 36px; }
+.t3-lobby-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; padding-bottom: 14px; border-bottom: 3px dashed #c9ccd0; }
+.t3-lobby-head .t3-roomcode { display: inline-block; margin-top: 6px; font-size: clamp(34px, 6vw, 60px); }
+.t3-lobby-settings { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.t3-lobby-settings small { color: #6c7a86; font-size: 11px; }
+.t3-seg--light button { background: #fff; color: var(--ink); border-color: #142336; font-size: 15px; padding: 8px 16px; }
+.t3-seg--light button.is-on { background: var(--gold); }
+.t3-seg--light button:disabled:not(.is-on) { opacity: 0.55; }
+.t3-lobby-body { display: grid; grid-template-columns: minmax(230px, 280px) 1fr; gap: 20px; align-items: start; }
+.t3-lobby-seats { display: flex; flex-direction: column; gap: 8px; }
+.t3-lobby-seats h3, .t3-lobby-leaders h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: 2px; }
+.t3-lobby-leaders h3 small { letter-spacing: 0; color: #6c7a86; font-weight: 600; }
+.t3-lobby-seat { display: flex; align-items: center; gap: 10px; padding: 8px; background: #fff; border: 3px solid var(--ink); }
+.t3-lobby-seat.is-me { box-shadow: 0 0 0 3px var(--gold); }
+.t3-lobby-seat.is-empty { justify-content: center; border-style: dashed; color: #9aa4ad; font-size: 12px; background: transparent; min-height: 54px; }
+.t3-lobby-seat-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.t3-lobby-seat-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t3-lobby-seat-name small { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 11px; color: #44525e; font-weight: 600; }
+.t3-tag { font-style: normal; font-size: 9px; padding: 1px 5px; background: var(--gold); border: 1px solid var(--ink); }
+.t3-tag--bot { background: #8fd3ff; }
+.t3-lobby-add { min-height: 54px; font: inherit; font-weight: 900; font-size: 14px; letter-spacing: 1px; background: #dff3e6; color: #12502b; border: 3px dashed #2fbf5b; cursor: pointer; }
+.t3-lobby-add:hover:not(:disabled) { background: #c8ecd4; }
+.t3-lobby-leaders .t3-leaders { justify-content: flex-start; }
+.t3-lobby-leaders .tcard { --w: clamp(130px, 13vw, 175px); }
+.t3-lobby-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; border-top: 3px dashed #c9ccd0; }
+.t3-btn--big { font-size: 18px; padding: 12px 28px; }
+
+.t3-target-dialog { justify-content: center; }
+.t3-target-panel { display: flex; gap: 24px; align-items: flex-start; width: min(980px, 100%); max-height: calc(100dvh - 40px); overflow: auto; padding: 22px; background: #101722; border: 4px solid #8b9baa; box-shadow: 0 0 0 4px #050b13, 0 30px 80px rgb(0 0 0 / 0.6); }
+.t3-target-card .tcard { --w: clamp(160px, 18vw, 230px); }
+.t3-target-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.t3-target-body h2 { margin: 0; font-size: clamp(18px, 2.2vw, 26px); color: var(--gold); letter-spacing: 1px; }
+.t3-target-steps { display: flex; flex-direction: column; gap: 14px; text-align: left; }
+.t3-target-step > b { display: block; margin-bottom: 8px; font-size: 13px; color: #e4ebef; letter-spacing: 1px; }
+.t3-target-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.t3-target-opt { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 120px; padding: 8px 6px; font: inherit; color: #e4ebef; background: #1c2a3a; border: 3px solid #2f4256; cursor: pointer; }
+.t3-target-opt:hover { border-color: #8b9baa; }
+.t3-target-opt.is-on { border-color: var(--gold); background: #2a3a20; box-shadow: 0 0 14px rgb(255 195 29 / 0.4); }
+.t3-target-opt .tcard { --w: 74px; }
+.t3-target-name { font-size: 12px; font-weight: 800; text-align: center; }
+.t3-target-opt small { font-size: 10px; color: #9fb0bd; text-align: center; font-weight: 600; }
+.t3-target-face { display: grid; place-items: center; width: 64px; height: 64px; border: 3px solid #07111c; border-radius: 50%; color: #fff; font-size: 28px; font-weight: 900; }
+.t3-target-none { margin: 0; padding: 10px; background: #3a1d22; color: #ffb4b4; border: 2px solid #e0383e; }
+.t3-target-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.t3-stage-copy .t3-target-steps { margin-top: 12px; }
+
+.t3-turn-clock { padding: 0 6px; background: #20344c; border: 2px solid #3a5270; }
+.t3-turn-clock.is-urgent { background: #e0383e; border-color: #ff6b6b; animation: t3-beat 0.6s ease-in-out infinite; }
+.t3-turn-clock.is-paused { opacity: 0.7; }
+.t3-turnbar { grid-column: 1 / -1; position: relative; width: 100%; min-width: 220px; height: 26px; overflow: hidden; background: var(--navy); border: 3px solid #07111c; }
+.t3-turnbar-fill { position: absolute; inset: 0; background: linear-gradient(90deg, #2fbf5b, var(--gold)); transform-origin: left center; transition: transform 0.25s linear; }
+.t3-turnbar.is-urgent .t3-turnbar-fill { background: #e0383e; }
+.t3-turnbar b { position: relative; display: block; text-align: center; line-height: 20px; font-size: 12px; color: #07111c; letter-spacing: 1px; }
+@media (max-width: 900px) {
+  .t3-lobby-body { grid-template-columns: 1fr; }
+  .t3-target-panel { flex-direction: column; align-items: center; }
+}
+/* top seats: keep party tokens above the Monster row; hint lives in the ? panel */
+.t3-seat--top-l .t3-party, .t3-seat--top-c .t3-party, .t3-seat--top-r .t3-party, .t3-seat--top-l2 .t3-party, .t3-seat--top-r2 .t3-party { --tok: clamp(30px, 4.6cqh, 48px); flex-wrap: nowrap; max-width: 32cqw; overflow-x: auto; padding-bottom: 2px; }
+.t3-center { top: 36%; }
+.t3-center .tcard { --w: clamp(92px, 15cqh, 180px); }
+.t3-hint { display: none; }

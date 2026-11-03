@@ -28,6 +28,8 @@ export interface RulesSeat {
 }
 
 export const DEFAULT_SETTINGS: BaseGameSettings = {
+  /** Owner 2026-11-03: turn timer picked in the lobby (30 / 60 / 90 s); expiry ends the turn. */
+  turnSeconds: 60,
   reactionSeconds: 20,
   choiceSeconds: 30,
   /** Owner 2026-11-02: follow the retail rulebook (Leader can fill a class slot). */
