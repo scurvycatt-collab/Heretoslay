@@ -368,7 +368,7 @@ export function resumeDraft(saved: ImportDraft, inspected: ImportDraft): { draft
 
 export function exportFileName(candidateId: string): string {
   if (!SAFE_ID.test(candidateId)) throw new Error(`candidateId không an toàn cho tên file: ${candidateId}`);
-  return `fronts/${candidateId}.png`;
+  return `cards/${candidateId}.png`;
 }
 
 export function buildManifest(

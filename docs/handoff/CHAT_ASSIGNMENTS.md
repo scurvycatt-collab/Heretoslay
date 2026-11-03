@@ -26,3 +26,7 @@ Mapping old→new và metadata audit tại WORKER_MIGRATION_2026-10-29.md; old c
 ## Vận hành hiện hành — owner2026-11-02
 7worker đã OPS-CHECKPOINT vào docs/handoff/agents/<role>.md, <=150 từ; chat/model/effort giữ nguyên. Dùng OPERATING_MODEL.md và STATUS taskboard thay dispatch lịch sử làm điểm vào. Worker ghi card riêng, PM chốt acceptance/priority. Native compaction chưa xác nhận; không gọi checkpointfile là nén context thật. Tất cả idle khi không có ticket; background chỉ chạy task đã giao, không daemon.
 
+
+## Owner role replacement — 2026-11-03 (current)
+Gemini quản lý, Claude code/kiến trúc. Codex chuyển CHỈ card-asset render sang chat01a19fa0-3f59-7372-b895-99dba0548c71, GPT-6.1Sol/medium. Old PM/worker table là lịch sử, không tiếp tục điều phối/đánh thức roles cũ. Minimalhandoff CARD_ASSET_RENDER_RESUME.md; cardagents/card-render.md. Không inheritPMhistory/backlog/engineauthority; khôngforkchat/nativecompactclaim. Sharedboard Gemini quảnlý.
+

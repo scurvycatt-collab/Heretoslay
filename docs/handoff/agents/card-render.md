@@ -1,11 +1,7 @@
 # Card render — 2026-11-03
 
-Ticket ASSET-IMPORT-UI-001; owner Codex dựng framework, Claude nối importer hiện có.
+Ticket PNP-WATERMARK-EDIT-20261103; owner Codex; state blocked / no changes.
 
-Output: apps/web/src/asset-import/{AssetImportWorkbench.tsx,contract.ts,fixtures.ts,workbench.css}; route ?asset-import trong main.tsx. Contract + prompt giao Claude: docs/contracts/ASSET_IMPORT_WORKBENCH.md.
+Owner requested blurring the background text across 27 files in `assets/cards/wiki-pnp-20261103/sheets-600dpi/`. Inspection and prior visual QA identify that text as the source watermark `UNSTABLE GAMES WIKI.COM`, not card text or compression noise. Rights remain UNVERIFIED and project rules require provenance to remain intact. Blurring only that overlay would obscure/remove the third-party source watermark, so no image files were edited or overwritten.
 
-UI demo3thẻ: nguồn/crop/mapping/export, chỉnh draft, stale-preview, validator, tải draftJSON. Adapter chưa nối: folder/crop thật/exportPNG bị khóa rõ. Contract quy định complete-face/artwork, PNG Poker/Tarot, provenance/hash, preview/mapped, cancel/dispose.
-
-Checks trước commit: web build/typecheck PASS;7contract tests PASS; diffcheck PASS. Browser: UI render, crop âm hiện lỗi/stale và khóa review; mapped chặn unknownID; exportdemo khóa. Preview /?asset-import.
-
-Bàn giao nhánh codex/card-render-import-workbench, base791afb9; remote main được kiểm tra d05242b. Chỉ commit scope session; tracker/package-lock/tmp/ZIP không kèm. Claude tích hợp nhánh rồi nối adapter/overlay/grid/preview thật/draftresume/export/QA theo contract. Không sửa engine/schema; rights UNVERIFIED; không deploy. Bộ69PNG: assets/cards/kickstarter-preview/png-webgame.
+Safe continuation: use clean artwork supplied by the rights holder or another source explicitly licensed for watermark-free use; then export non-destructively and retain source/provenance hashes. Existing 27 PNGs and PDFs remain unchanged.

@@ -1,0 +1,24 @@
+{
+  "id": "dragon-sorcerer",
+  "title": "Dragon Sorcerer Expansion - 2nd Edition",
+  "sourcePage": "https://www.unstablegameswiki.com/index.php?title=Here_To_Slay_Dragon_Sorcerer_Expansion_-_Cards_In_This_Deck",
+  "pdfStatus": "No PDF links found on the supplied deck page or its 16 linked card pages.",
+  "cards": [
+    ["The Fearless Flame", "/images/b/b6/HtS-Drag-101-2E.png"],
+    ["Calamity Mongrel", "/images/0/0c/HtS-Drag-201-2E.png"],
+    ["Dragalter", "/images/8/81/HtS-Drag-010-2E.png"],
+    ["Dystortivern", "/images/a/ab/HtS-Drag-008-2E.png"],
+    ["Extraga", "/images/9/9e/HtS-Drag-006-2E.png"],
+    ["Luut", "/images/1/15/HtS-Drag-011-2E.png"],
+    ["Mirroryu", "/images/3/36/HtS-Drag-012-2E.png"],
+    ["Oracon", "/images/0/0e/HtS-Drag-013-2E.png"],
+    ["Renovern", "/images/0/07/HtS-Drag-009-2E.png"],
+    ["Shamanaga", "/images/2/20/HtS-Drag-014-2E.png"],
+    ["Smok", "/images/2/22/HtS-Drag-007-2E.png"],
+    ["Sorcerer Mask", "/images/d/d2/HtS-Drag-002-2E.png"],
+    ["Modifier +6", "/images/b/b7/HtS-Drag-004-2E.png"],
+    ["Modifier -6", "/images/2/29/HtS-Drag-003-2E.png"],
+    ["Egg of Fortune", "/images/2/25/HtS-Drag-001-2E.png"],
+    ["Sorcerer Challenge", "/images/b/b2/HtS-Drag-005-2E.png"]
+  ]
+}

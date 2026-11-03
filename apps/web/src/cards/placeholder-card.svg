@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="745" height="1040" viewBox="0 0 745 1040">
+  <rect width="745" height="1040" rx="35" fill="#10161b"/>
+  <rect x="18" y="18" width="709" height="1004" rx="24" fill="#1b3027" stroke="#b6a178" stroke-width="3"/>
+  <path d="M372 240 535 480 372 720 209 480Z" fill="none" stroke="#8e9f88" stroke-width="5"/>
+  <circle cx="372" cy="480" r="76" fill="none" stroke="#b6a178" stroke-width="4"/>
+  <text x="372" y="825" text-anchor="middle" fill="#eee9d9" font-family="Arial,sans-serif" font-size="30" letter-spacing="3">CARD IMAGE PENDING</text>
+</svg>
