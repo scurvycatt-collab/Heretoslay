@@ -75,6 +75,8 @@ test("proposals never confirm ids from names; backs are excluded", () => {
   assert.equal(land.rotation, 90);
   const [art] = proposeCandidates(src("x/art.png", 1000, 1000), definitions);
   assert.equal(art.assetType, "artwork");
+  const [page] = proposeCandidates(src("Base/base-12.png", 5100, 6600), definitions);
+  assert.equal(page.assetType, "complete_card_front", "a sheet scan is not artwork");
   const sheet = proposeCandidates(src("Print 04 - Tarot Cards/Tarot - Front.jpg", 3600, 5400), definitions);
   assert.equal(sheet.length, 12);
   assert.ok(sheet.every((c) => c.template === "tarot" && c.rotation === 270 && /^[a-z0-9-]+$/.test(c.candidateId)));

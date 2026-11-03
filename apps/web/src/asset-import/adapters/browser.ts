@@ -13,6 +13,7 @@ import {
   parsePngHeader, proposeCandidates, readZipEntries, readmeText, renderPlan, rotatedSize, sniffImage, toHex,
   type Box, type Limits,
 } from "./core";
+import { ART_LAYOUTS, contentBounds, sampleToSource } from "../cropGeometry";
 
 type Definitions = ReadonlyMap<string, { kind: string }>;
 type AnyCanvas = OffscreenCanvas | HTMLCanvasElement;
@@ -74,12 +75,16 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
   let exportUrls: string[] = [];
   const bitmaps = new Map<string, ImageBitmap>(); // tiny LRU: print sheets are ~80 MB decoded
 
+  /** Art box size: the mapped definition's layout wins; an unmapped crop uses its chosen artLayout (preview only). */
   function artBoxFor(candidate: ImportCandidate): Box | undefined {
     const kind = candidate.definitionId ? definitions.get(candidate.definitionId)?.kind : undefined;
-    if (!kind) return undefined;
-    const layouts = spec.layouts as Record<string, { art?: { x: number; y: number; w: number; h: number } }>;
-    const art = layouts[LAYOUT_ALIAS[kind] ?? kind]?.art;
-    return art ? { x: art.x, y: art.y, width: art.w, height: art.h } : undefined;
+    if (kind) {
+      const layouts = spec.layouts as Record<string, { art?: { x: number; y: number; w: number; h: number } }>;
+      const art = layouts[LAYOUT_ALIAS[kind] ?? kind]?.art;
+      return art ? { x: art.x, y: art.y, width: art.w, height: art.h } : undefined;
+    }
+    const layout = candidate.artLayout ?? "hero";
+    return layout ? { x: 0, y: 0, width: ART_LAYOUTS[layout].width, height: ART_LAYOUTS[layout].height } : undefined;
   }
 
   async function bitmapFor(source: AssetSource, signal: AbortSignal): Promise<ImageBitmap> {
@@ -104,10 +109,9 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
   function render(bitmap: ImageBitmap, c: ImportCandidate): { canvas: AnyCanvas; contentRect: Box } {
     if (!cropInside(c.crop, bitmap.width, bitmap.height)) throw new Error("Vùng cắt nằm ngoài ảnh nguồn hoặc không phải pixel nguyên.");
     if (c.assetType === "artwork") {
-      const box = artBoxFor(c);
+      const box = artBoxFor(c) ?? { x: 0, y: 0, width: ART_LAYOUTS.hero.width, height: ART_LAYOUTS.hero.height };
       const turned = rotatedSize(c.crop.width, c.crop.height, c.rotation);
-      // Without a definition there is no art box: show the reviewed crop as-is (bounded), never a fake face.
-      const size = box ?? (() => { const s = Math.min(1, 1040 / Math.max(turned.width, turned.height)); return { width: Math.max(1, Math.round(turned.width * s)), height: Math.max(1, Math.round(turned.height * s)) }; })();
+      const size = { width: box.width, height: box.height };
       const canvas = makeCanvas(size.width, size.height);
       const ctx = context(canvas);
       const scale = Math.max(size.width / turned.width, size.height / turned.height);
@@ -223,7 +227,8 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
       const cached = sourceUrls.get(source.sourceId);
       if (cached) return cached;
       const bitmap = await bitmapFor(source, signal);
-      const scale = Math.min(1, 1400 / Math.max(bitmap.width, bitmap.height));
+      // Large enough to place a crop to ~1–2 source px when zoomed in; numeric fields give exact pixels.
+      const scale = Math.min(1, 4096 / Math.max(bitmap.width, bitmap.height));
       const canvas = makeCanvas(Math.round(bitmap.width * scale), Math.round(bitmap.height * scale));
       context(canvas).drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       const blob = "convertToBlob" in canvas ? await canvas.convertToBlob({ type: "image/jpeg", quality: 0.85 }) : await canvasToPng(canvas);
@@ -233,15 +238,24 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
       return entry;
     },
 
+    async detectContent(source, region, signal) {
+      check(signal);
+      const bitmap = await bitmapFor(source, signal);
+      if (!cropInside(region, bitmap.width, bitmap.height)) throw new Error("Vùng dò nằm ngoài ảnh nguồn.");
+      const s = Math.min(1, 1200 / Math.max(region.width, region.height));
+      const w = Math.max(3, Math.round(region.width * s)), h = Math.max(3, Math.round(region.height * s));
+      const canvas = makeCanvas(w, h);
+      const ctx = context(canvas) as Ctx & { getImageData: CanvasRenderingContext2D["getImageData"] };
+      ctx.drawImage(bitmap, region.x, region.y, region.width, region.height, 0, 0, w, h);
+      const found = contentBounds(ctx.getImageData(0, 0, w, h).data, w, h);
+      return found ? sampleToSource(found, region, w, h, { width: bitmap.width, height: bitmap.height }) : null;
+    },
+
     async export(draft: ImportDraft, mode: ExportMode, signal: AbortSignal, onProgress?: (p: ExportProgress) => void): Promise<ExportResult> {
       check(signal);
       const issues = validateDraft(draft, mode, definitions);
       if (issues.length) throw new Error(`Draft còn ${issues.length} vấn đề (vd: ${issues[0].candidateId}: ${issues[0].message}).`);
       const included = draft.candidates.filter((c) => !c.excluded);
-      const artwork = included.filter((c) => c.assetType === "artwork");
-      if (artwork.length) {
-        throw new Error(`${artwork.length} artwork cần composite bằng CardRenderer thành mặt thẻ — chưa hỗ trợ xuất trong v1 (pending, contract §5.4). Đổi sang "Nguyên mặt thẻ" nếu ảnh đã là mặt hoàn chỉnh, hoặc loại khỏi batch.`);
-      }
       const total = included.length + 2;
       let done = 0;
       const tick = (label: string) => onProgress?.({ done: ++done, total, label });
@@ -269,7 +283,8 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
           const data = new Uint8Array(await blob.arrayBuffer());
           // Independent verification of what we are about to claim.
           const header = parsePngHeader(data);
-          const size = TEMPLATE_SIZE[c.template];
+          // Complete faces fill the template canvas; artwork fills its definition's art box (validator guarantees one).
+          const size = c.assetType === "artwork" ? artBoxFor(c)! : TEMPLATE_SIZE[c.template];
           if (!header || header.width !== size.width || header.height !== size.height) throw new Error(`PNG xuất cho ${c.candidateId} sai khổ.`);
           const decoded = await createImageBitmap(blob);
           const ok = decoded.width === size.width && decoded.height === size.height;
@@ -279,7 +294,7 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
           pngs.push({ path: relativePath, data, candidateId: c.candidateId });
           assets.push({
             candidateId: c.candidateId, definitionId: c.definitionId, variant: c.variant, inputType: c.assetType,
-            renderMode: "complete_face", template: c.template, relativePath, sha256: await sha256Hex(data),
+            renderMode: c.assetType === "artwork" ? "artwork" : "complete_face", template: c.template, relativePath, sha256: await sha256Hex(data),
             width: size.width, height: size.height, contentRect, sourceId: c.sourceId, crop: { ...c.crop },
             rotation: c.rotation, provenance: { ...c.provenance }, rightsStatus: ARTWORK_RIGHTS_STATUS,
           });

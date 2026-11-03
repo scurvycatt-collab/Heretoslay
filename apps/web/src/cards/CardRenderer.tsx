@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { CardData, RollCompare } from "@here-to-slay/protocol";
 import spec from "../../../../docs/contracts/CARD_TEMPLATE_SPEC.json";
 import { cardAssets, cardById } from "./catalog";
-import { CARD_FACE_PLACEHOLDER, resolveCardFace } from "./resolveCardFace";
+import { CARD_FACE_PLACEHOLDER, resolveCardArt, resolveCardFace } from "./resolveCardFace";
 import "./cards.css";
 
 const rgb = (values: number[]) => `rgb(${values.join(",")})`;
@@ -42,15 +42,15 @@ function Badge({ x, y, size, label, color }: { x: number; y: number; size: numbe
 /** Original geometric frame; layout facts come from the secondary-reference spec.
  * No third-party frames/icons/code are included. SVG remains usable at native size.
  */
-export function CardRenderer({ card, className = "" }: { card: CardData; className?: string }) {
+export function CardRenderer({ card, className = "", artUrl }: { card: CardData; className?: string; /** Workbench preview: draw this art instead of any imported face/art. */ artUrl?: string }) {
   const clipId = useId().replaceAll(":", "");
-  const face = resolveCardFace(card.definitionId);
+  const face = artUrl ? CARD_FACE_PLACEHOLDER : resolveCardFace(card.definitionId);
   if (face !== CARD_FACE_PLACEHOLDER) return <CardFaceImage cardId={card.definitionId} label={card.name} className={className} />;
   const kind = card.kind === "cursed_item" ? "item" : card.kind;
   const layout = spec.layouts[kind];
   const { width, height } = spec.cardSizes[layout.size as "poker" | "tarot"];
   const art = layout.art;
-  const asset = cardAssets[card.definitionId];
+  const artHref = artUrl ?? resolveCardArt(card.definitionId) ?? cardAssets[card.definitionId]?.artUrl;
   const heroClass = "heroClass" in card ? card.heroClass : "maskClass" in card ? card.maskClass : null;
   const accent = rgb(heroClass ? spec.colors.classes[heroClass] : card.kind === "magic" ? spec.colors.magic : spec.colors.itemFrame);
   const label = `${titleCase(card.kind)}${heroClass ? `: ${titleCase(heroClass)}` : ""}`;
@@ -68,12 +68,12 @@ export function CardRenderer({ card, className = "" }: { card: CardData; classNa
     <rect x="16" y="16" width={width - 32} height={height - 32} rx="24" fill={accent} stroke="#b6a178" strokeWidth="3" />
     <g clipPath={`url(#${clipId})`}>
       <rect x={art.x} y={art.y} width={art.w} height={art.h} fill="#252e32" />
-      {asset ? <image href={asset.artUrl} x={art.x} y={art.y} width={art.w} height={art.h} preserveAspectRatio="xMidYMid slice" /> : <g fill="none" stroke="#718481" strokeWidth="3" opacity="0.45">
+      {artHref ? <image href={artHref} x={art.x} y={art.y} width={art.w} height={art.h} preserveAspectRatio="xMidYMid slice" /> : <g fill="none" stroke="#718481" strokeWidth="3" opacity="0.45">
         <path d={`M ${art.x} ${art.y + art.h} L ${art.x + art.w} ${art.y} M ${art.x} ${art.y} L ${art.x + art.w} ${art.y + art.h}`} />
         <circle cx={width / 2} cy={art.y + art.h / 2} r={art.w * 0.23} />
       </g>}
     </g>
-    {!asset && <text x={width / 2} y={art.y + art.h * 0.65} fill="#d5d9cd" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="23" letterSpacing="3">ARTWORK PENDING</text>}
+    {!artHref && <text x={width / 2} y={art.y + art.h * 0.65} fill="#d5d9cd" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="23" letterSpacing="3">ARTWORK PENDING</text>}
     <rect x="41" y="41" width={width - 82} height={largeName ? 125 : 151} rx="12" fill="#10161b" opacity="0.94" />
     <text x={width / 2} y={layout.name.y} dominantBaseline="hanging" textAnchor="middle" fill="#f5f1e7" fontFamily='"Patua One", Georgia, serif' fontSize={nameSize} fontWeight="700">{card.name}</text>
     {"title" in layout && <text x={width / 2} y={layout.title.y + 18} dominantBaseline="hanging" textAnchor="middle" fill={card.kind === "cursed_item" ? rgb(spec.colors.cursedItemTitle) : card.kind === "item" ? rgb(spec.colors.itemTitle) : "#d8c59a"} fontFamily='"Source Sans Pro", Arial, sans-serif' fontSize={spec.fonts.title.size * 0.8}>{label}</text>}

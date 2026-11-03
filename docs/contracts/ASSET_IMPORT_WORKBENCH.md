@@ -81,13 +81,29 @@ Sửa lỗi phát hiện khi QA:
   - Draft: lưu → reload → mở draft → chọn folder: khớp hash 6/6, giữ trạng thái duyệt; folder khác → 0/6, liệt kê nguồn thiếu.
   - Mobile 390 px: không tràn ngang; 0 lỗi console.
 
-### 0.6 Chưa làm / giới hạn
+### 0.6 Chưa làm / giới hạn (cập nhật sau §0.7)
 
-- **Chưa chạy trên 5 sheet JPG thật** (chỉ có ở máy owner). Ô sheet 01 r1c1 và cột 1 + r5–6 cột 2 của sheet 02 được loại *vì trống trên sheet tổng hợp*; nếu trên sheet thật chúng không trống (logo, thẻ luật…), workbench sẽ để chúng **được chọn** và người duyệt phải loại tay → kỳ vọng vẫn là 69.
-- **Artwork composite** chưa có (CardRenderer chưa có rasterizer PNG): artwork preview được, xuất bị chặn có lý do.
-- Grid chỉnh từng ô (kéo/phím/số), chưa có chỉnh cả grid một lần; không có preset cho sheet kích thước khác (dùng "Thêm vùng").
-- Resolver `cards/catalog.ts` chưa đọc pack `complete_face` (việc của Codex, phân biệt với pack artwork của CLI).
-- Safari/Firefox chưa kiểm; Chromium thì OK. Chưa kiểm keyboard/screen-reader đầy đủ ngoài overlay (vùng là `<button>` có `aria-label` + phím).
+- **Chưa chạy trên 5 sheet JPG thật** (chỉ có ở máy owner). Ô sheet 01 r1c1 và cột 1 + r5–6 cột 2 của sheet 02 được loại *vì trống trên sheet tổng hợp*; nếu trên sheet thật chúng không trống, người duyệt phải loại tay → kỳ vọng vẫn là 69.
+- ~~Artwork composite chưa có~~ → §0.7: artwork xuất PNG đúng khung tranh, CardRenderer ghép lúc chạy (không rasterize SVG).
+- ~~Chưa có chỉnh cả grid / preset cho sheet khác~~ → §0.7: vẽ vùng + "Chia lưới" + "Bắt sát mép".
+- ~~Resolver chưa đọc pack~~ → `resolveCardFace` (Codex) đọc `complete_face`; `resolveCardArt` đọc `artwork` (§0.7).
+- Safari/Firefox chưa kiểm; Chromium OK. Trình crop dùng chuột/bút/phím; chưa tối ưu cử chỉ 2 ngón trên điện thoại (zoom bằng nút).
+
+### 0.7 Thiết kế lại bước Cắt & xoay + gộp adapter Codex (Claude, 2026-11-03, theo phản hồi owner)
+
+Phản hồi owner: nhập số khó và không cắt chính xác được; nút "Áp dụng & xem crop" chỉ bấm được một lần; hai loại asset không thấy khác biệt.
+
+- **Một adapter.** Nhánh Codex có adapter thứ hai (`adapters/{browserAdapter,imageOps,zip}.ts`), trái §2. Đã gộp: giữ `adapters/browser.ts` + `core.ts` (đã có overlay, resume draft, ZIP kiểm CRC, test), bỏ bản trùng. Giữ resolver nhiều pack, `assets/cards/packs/`, guide của Codex. PNG trong ZIP nằm ở `cards/<candidateId>.png` cho khớp resolver.
+- **`CropEditor.tsx`** (thay `SheetOverlay.tsx`): ảnh nguồn thu nhỏ ≤ 4096 px cạnh dài; zoom bằng con lăn quanh con trỏ, nút −/＋/Toàn ảnh/Tới vùng/100%; kéo ảnh (công cụ ✥, Space hoặc nút giữa); **vẽ vùng bằng kéo chuột** (Shift + kéo vẽ đè vùng có sẵn; vùng phủ ≥ 90% ảnh thì kéo trong nó là vẽ); 8 tay nắm; **khoá tỉ lệ** theo ảnh xuất (Alt khi kéo = tạm bỏ khoá); làm tối phần ngoài vùng; hiện kích thước/toạ độ px; mũi tên dời 1 px (Shift 10), Alt + mũi tên đổi cỡ. Mọi toạ độ vẫn là pixel nguồn trước xoay (§5).
+- **Chia lưới** vùng đang chọn (hàng × cột, khe ngang/dọc) → nhiều vùng; **Bắt sát mép** (`adapter.detectContent`, mới, tuỳ chọn): dò trên ảnh full-res trong vùng nới 10%, chọn khối nội dung lớn nhất so với màu nền viền, bỏ tiêu đề/chú thích tách rời. Hình học thuần ở `cropGeometry.ts`, test `tests/crop-geometry.test.ts`.
+- **Preview tự cập nhật** (debounce 250 ms, AbortController riêng, không khoá form) mỗi khi crop/xoay/loại/khung đổi; bỏ nút "Áp dụng & xem crop". Ô "Đã kiểm tra" chỉ bật khi preview khớp đúng tham số hiện tại; đổi tham số render tự bỏ tick.
+- **Hai loại asset khác nhau thật:**
+  - *Nguyên mặt thẻ*: cắt cả lá; khoá tỉ lệ theo khổ Poker/Tarot; xuất PNG 745×1040 / 827×1417 `renderMode: complete_face`; game hiện nguyên ảnh.
+  - *Artwork riêng*: cắt **chỉ phần tranh**; khoá tỉ lệ theo **khung tranh** (Hero/Item/Magic 545×545, Modifier 545×545, Challenge 645×550, Monster 745×824, Leader 745×1176 — `ImportCandidate.artLayout` khi chưa gán, theo kind khi đã gán); preview hiện PNG khung tranh **và** thẻ CardRenderer ghép tranh đó; xuất PNG đúng khung `renderMode: artwork` (bắt buộc gán thẻ, validator có sẵn). Pack `mapped` → `resolveCardArt(definitionId)` → CardRenderer vẽ khung + chữ quanh tranh. Pack `preview` không đăng ký.
+  - Đổi loại không tự sửa vùng cắt (không mất công); lệch tỉ lệ > 3% thì hiện cảnh báo + nút "Khớp tỉ lệ".
+- Ảnh không đúng tỉ lệ thẻ/khung (vd. trang scan 5100×6600) giờ mặc định **Nguyên mặt thẻ** (trước: artwork → khoá tỉ lệ vuông gây khó hiểu).
+- Delta contract.ts: `ArtLayout`, `ImportCandidate.artLayout?`, `ExportedCardAsset.renderMode: "complete_face" | "artwork"`, `AssetImportAdapter.detectContent?`.
+- QA (Chromium thật, trang tổng hợp 5100×6600 có tiêu đề + 2×2 thẻ): vẽ vùng khoá tỉ lệ 0.7163 (=745/1040); kéo tay nắm giữ 0.7165; con lăn zoom 11%→20%; Shift+→ và Alt+↓ đều làm preview render lại; chia 2×2 + bắt mép → 4 vùng lệch ≤ 4 px so với mép thẻ (đúng nét viền); artwork 1650×1650 gán Dodgy Dealer → ZIP mapped (545×545, `renderMode: artwork`) → giải nén vào `assets/cards/packs/` → `/?cards` hiện tranh trong khung Dodgy Dealer, thẻ khác không đổi. 0 lỗi console.
 
 ---
 

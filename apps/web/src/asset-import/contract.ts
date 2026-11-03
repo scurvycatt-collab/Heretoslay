@@ -7,6 +7,8 @@ export const TAKEDOWN_CONTACT = "scurvycatt@gmail.com";
 export type AssetType = "complete_card_front" | "artwork";
 export type Template = "poker" | "tarot";
 export type QuarterTurn = 0 | 90 | 180 | 270;
+/** Art box layouts of CARD_TEMPLATE_SPEC (see cropGeometry.ART_LAYOUTS). */
+export type ArtLayout = "hero" | "modifier" | "challenge" | "monster" | "party_leader";
 export interface AssetSource {
   sourceId: string;
   relativePath: string;
@@ -29,6 +31,8 @@ export interface ImportCandidate {
   reviewed: boolean;
   excluded: boolean;
   provenance: { origin: string; rightsStatus: ArtworkRightsStatus };
+  /** Delta 2026-11-03 (Claude): art box used to frame an UNMAPPED artwork crop. Mapped artwork always uses its definition's layout. */
+  artLayout?: ArtLayout;
 }
 /** A file the adapter could not turn into a source; shown separately, never drops the batch. */
 export interface RejectedFile { relativePath: string; code: string; message: string }
@@ -47,7 +51,8 @@ export interface ExportedCardAsset {
   definitionId: string | null;
   variant: string;
   inputType: AssetType;
-  renderMode: "complete_face";
+  /** complete_face: show the PNG as the whole card. artwork: illustration only, CardRenderer draws frame + text from card data. */
+  renderMode: "complete_face" | "artwork";
   template: Template;
   relativePath: string;
   sha256: string;
@@ -85,6 +90,8 @@ export interface AssetImportAdapter {
   export(draft: ImportDraft, mode: ExportMode, signal: AbortSignal, onProgress?: (progress: ExportProgress) => void): Promise<ExportResult>;
   /** Delta 2026-11-03 (Claude): downscaled upright view of the whole source, for the crop overlay. */
   sourcePreview?(source: AssetSource, signal: AbortSignal): Promise<{ url: string; scale: number }>;
+  /** Delta 2026-11-03 (Claude): tight bounds of the card/content inside `region` (full-resolution pixels), or null. */
+  detectContent?(source: AssetSource, region: { x: number; y: number; width: number; height: number }, signal: AbortSignal): Promise<{ x: number; y: number; width: number; height: number } | null>;
   /** Releases URLs/caches. The adapter stays usable afterwards (React StrictMode re-mounts). */
   dispose(): void;
 }

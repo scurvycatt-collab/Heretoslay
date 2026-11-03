@@ -224,7 +224,11 @@ export function guessSingle(width: number, height: number): { assetType: AssetTy
     if (Math.abs(portrait / ASPECT[template] - 1) <= 0.04) return { assetType: "complete_card_front", template, rotation: 0 };
     if (Math.abs(landscape / ASPECT[template] - 1) <= 0.04) return { assetType: "complete_card_front", template, rotation: 90 };
   }
-  return { assetType: "artwork", template: "poker", rotation: 0 };
+  // Shaped like an art box (CARD_TEMPLATE_SPEC layouts) → illustration only.
+  const artBoxes: Array<[number, Template]> = [[545 / 545, "poker"], [645 / 550, "poker"], [745 / 824, "tarot"], [745 / 1176, "tarot"]];
+  for (const [ratio, template] of artBoxes) if (Math.abs(portrait / ratio - 1) <= 0.04) return { assetType: "artwork", template, rotation: 0 };
+  // Anything else (a page/sheet scan, a photo) defaults to a complete face; the owner draws the regions.
+  return { assetType: "complete_card_front", template: "poker", rotation: 0 };
 }
 
 export const looksLikeBack = (relativePath: string) => /(^|[^a-z])back([^a-z]|$)/i.test(relativePath);
@@ -325,6 +329,7 @@ export function parseDraftJson(raw: unknown): ImportDraft {
       crop: { x: crop.x as number, y: crop.y as number, width: crop.width as number, height: crop.height as number },
       rotation: k.rotation as QuarterTurn, definitionId: (k.definitionId as string | null) ?? null,
       variant: k.variant as string, reviewed: k.reviewed as boolean, excluded: k.excluded as boolean,
+      ...(typeof k.artLayout === "string" && ["hero", "modifier", "challenge", "monster", "party_leader"].includes(k.artLayout) ? { artLayout: k.artLayout as ImportCandidate["artLayout"] } : {}),
       provenance: { origin: prov.origin as string, rightsStatus: RIGHTS_STATUS },
     };
   });
@@ -388,12 +393,14 @@ export function buildManifest(
 }
 
 export function readmeText(manifest: CardAssetManifest): string {
-  const poker = manifest.assets.filter((a) => a.template === "poker").length;
-  const tarot = manifest.assets.length - poker;
+  const faces = manifest.assets.filter((a) => a.renderMode === "complete_face");
+  const poker = faces.filter((a) => a.template === "poker").length;
+  const art = manifest.assets.length - faces.length;
   return [
     `${manifest.collection}`,
-    `${manifest.assets.length} complete card faces (${manifest.mode} pack). Poker 745x1040: ${poker}. Tarot 827x1417: ${tarot}.`,
-    "renderMode=complete_face: show the PNG directly; do not overlay frame/text again.",
+    `${faces.length} complete card faces (${manifest.mode} pack). Poker 745x1040: ${poker}. Tarot 827x1417: ${faces.length - poker}.`,
+    `${art} artwork images (art box size; CardRenderer draws frame + text from card data).`,
+    "renderMode=complete_face: show the PNG directly; do not overlay frame/text again. renderMode=artwork: illustration only.",
     manifest.mode === "preview" ? "Preview pack: definitionId may be null; do not load into the gameplay resolver." : "Mapped pack: every definitionId was checked against the catalog at export time.",
     `Rights: ${RIGHTS_STATUS} — fan-made, non-commercial; Unstable Games watermarks kept. Not a licence. gameplaySupported=false.`,
     `DMCA / takedown: ${TAKEDOWN_EMAIL} (handled immediately).`,

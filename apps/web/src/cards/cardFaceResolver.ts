@@ -52,3 +52,23 @@ export function createCardFaceResolver(manifest: unknown, options: CardFaceResol
   }
   return (cardId: string) => faces.get(cardId) ?? options.placeholderUrl;
 }
+
+/** Artwork entries (renderMode "artwork") of a MAPPED pack: definitionId → illustration URL.
+ * CardRenderer draws the frame and rules text from card data around it. Preview packs never register.
+ */
+export function createCardArtResolver(manifest: unknown, options: Pick<CardFaceResolverOptions, "assetUrls">): (definitionId: string) => string | undefined {
+  const art = new Map<string, string>();
+  const ambiguous = new Set<string>();
+  if (record(manifest) && manifest.schema === 1 && manifest.mode === "mapped" && Array.isArray(manifest.assets)) {
+    for (const entry of manifest.assets) {
+      if (!record(entry) || entry.renderMode !== "artwork" || entry.excluded === true) continue;
+      if (entry.variant !== undefined && entry.variant !== "default") continue;
+      const id = entry.definitionId;
+      const path = entry.relativePath;
+      if (typeof id !== "string" || !id || !safePngPath(path) || !options.assetUrls || !Object.hasOwn(options.assetUrls, path)) continue;
+      if (art.has(id) || ambiguous.has(id)) { art.delete(id); ambiguous.add(id); continue; }
+      art.set(id, options.assetUrls[path]);
+    }
+  }
+  return (definitionId: string) => art.get(definitionId);
+}

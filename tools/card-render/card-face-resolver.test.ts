@@ -49,3 +49,14 @@ test("malformed/unsupported manifests and invalid base gracefully fall back", ()
   for (const value of [null, {}, { schema: 2, assets: [face] }, { schema: 1, assets: [null, "bad"] }]) assert.equal(createCardFaceResolver(value, options)("hero-1"), options.placeholderUrl);
   assert.equal(createCardFaceResolver(manifest([face]), { ...options, assetBaseUrl: "not-a-url" })("hero-1"), options.placeholderUrl);
 });
+
+test("artwork entries register only from mapped packs and never as faces", async () => {
+  const { createCardArtResolver, createCardFaceResolver } = await import("../../apps/web/src/cards/cardFaceResolver.ts");
+  const entry = { candidateId: "c1", definitionId: "hts.base.v1.hero.hopper", variant: "default", renderMode: "artwork", relativePath: "cards/c1.png" };
+  const urls = { "cards/c1.png": "blob:art" };
+  const mapped = { schema: 1, mode: "mapped", assets: [entry] };
+  assert.equal(createCardArtResolver(mapped, { assetUrls: urls })("hts.base.v1.hero.hopper"), "blob:art");
+  assert.equal(createCardArtResolver({ ...mapped, mode: "preview" }, { assetUrls: urls })("hts.base.v1.hero.hopper"), undefined);
+  assert.equal(createCardArtResolver({ ...mapped, assets: [entry, { ...entry, candidateId: "c2" }] }, { assetUrls: urls })("hts.base.v1.hero.hopper"), undefined, "ambiguous → none");
+  assert.equal(createCardFaceResolver(mapped, { placeholderUrl: "ph", assetUrls: urls })("hts.base.v1.hero.hopper"), "ph", "artwork is not a complete face");
+});

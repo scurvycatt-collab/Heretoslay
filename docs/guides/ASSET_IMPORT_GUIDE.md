@@ -1,6 +1,6 @@
 # Hướng dẫn nhập asset thẻ bài bằng Adapter
 
-Cập nhật 2026-11-03. Adapter: `apps/web/src/asset-import/adapters/browserAdapter.ts` (hợp đồng: `docs/contracts/ASSET_IMPORT_WORKBENCH.md`).
+Cập nhật 2026-11-03. Adapter: `apps/web/src/asset-import/adapters/browser.ts` (+ `core.ts`, trình crop `CropEditor.tsx`) (hợp đồng: `docs/contracts/ASSET_IMPORT_WORKBENCH.md`).
 
 ## "Database" ở đây là gì?
 
@@ -20,7 +20,13 @@ Web đọc pack lúc build (`apps/web/src/cards/resolveCardFace.ts`). Thẻ có 
    Banner "UI DEMO" nghĩa là chưa nạp ảnh thật.
 2. **Chọn nguồn**: bấm **＋ Chọn folder ảnh**, chọn folder chứa PNG/JPEG/WebP (ví dụ `assets/cards/wiki-monster-expansion-20261103/source-png`). Adapter tính SHA-256, giải mã ảnh, đề xuất khổ thẻ. Ảnh hỏng/sai loại/quá lớn được liệt kê ở mục "Bỏ qua N file", không làm mất cả batch.
    - Ảnh đã là một thẻ → 1 candidate. Ảnh là sheet nhiều thẻ → adapter đề xuất lưới; **phải chỉnh lại số crop** cho đúng.
-3. **Crop & chiều** (từng thẻ): chỉnh `x, y, width, height` (pixel ảnh nguồn, trước khi xoay) và **Xoay** (theo chiều kim đồng hồ). Bấm **Áp dụng & xem crop** → xem preview thật đúng khổ xuất → tick **Đã kiểm tra** (đổi crop/xoay sẽ tự bỏ tick).
+3. **Cắt & xoay** (bước 02):
+   - Chọn loại ở cột phải: **Nguyên mặt thẻ** (cắt cả lá, game hiện nguyên ảnh) hoặc **Artwork riêng** (chỉ cắt phần tranh, game tự vẽ khung + chữ — phải gán thẻ ở bước 03).
+   - Trên ảnh: **kéo chuột để vẽ vùng**, kéo trong vùng để dời, kéo 8 ô vuông để đổi cỡ. Con lăn = zoom; Space/nút giữa hoặc công cụ ✥ = kéo ảnh. "Khoá tỉ lệ" giữ đúng tỉ lệ ảnh xuất (giữ Alt khi kéo để bỏ khoá tạm thời). Shift + kéo = vẽ đè lên vùng có sẵn.
+   - Trang có nhiều thẻ: vẽ (hoặc giữ) vùng bao cả cụm → mở **Chia vùng thành lưới** → nhập hàng/cột → bấm Chia; để tick "Bắt sát mép" thì mỗi ô tự thu sát mép thẻ, bỏ tiêu đề trang.
+   - **⇲ Bắt sát mép** cho một vùng: tìm mép thẻ quanh vùng hiện tại (nền phải tương đối đồng màu).
+   - Tinh chỉnh: mũi tên dời 1 px (Shift 10 px), Alt + mũi tên đổi cỡ, hoặc gõ số x/y/rộng/cao. Xoay bằng ⟲ ⟳.
+   - **Kết quả xuất** ở cột phải tự cập nhật sau mỗi thay đổi (không cần bấm nút). Artwork hiện cả ảnh khung tranh lẫn thẻ đã ghép. Tick **Đã kiểm tra** hoặc bấm **Duyệt & sang vùng kế**.
 4. **Mapping**:
    - Muốn game dùng ảnh: chọn `definitionId` (catalog hiện chỉ có **base**; thẻ expansion để trống).
    - Chỉ để xem: để "Chưa mapping" → xuất bằng chế độ **Preview pack**.
@@ -30,20 +36,20 @@ Web đọc pack lúc build (`apps/web/src/cards/resolveCardFace.ts`). Thẻ có 
 
 ## Quy tắc quan trọng
 
-- `rightsStatus` luôn `UNVERIFIED`, `gameplaySupported` luôn `false`: nhập ảnh **không** bật expansion hay thay đổi luật. Không đăng công khai pack.
+- `rightsStatus` luôn `FAN_MADE_NON_COMMERCIAL` (ADR-004, DMCA: scurvycatt@gmail.com), `gameplaySupported` luôn `false`: nhập ảnh **không** bật expansion hay thay đổi luật.
 - Trùng `definitionId` giữa nhiều pack: pack có **tên thư mục đứng trước theo alphabet thắng**, thẻ mẫu Kickstarter xét sau cùng. Đặt tên pack có chủ đích (vd. `01-base`, `02-alt`).
 - Giới hạn v1: 32 MiB/file, 256 MiB/batch, 40 MP/ảnh. Vượt giới hạn thì bị báo lỗi, không tự thu nhỏ.
 - Ảnh nguyên mặt được **contain** vào canvas (nền `#10161b`), không méo, không vẽ thêm khung/chữ.
+- Artwork được **cover** vào khung tranh của thẻ (Hero/Item/Magic/Modifier 545×545, Challenge 645×550, Monster 745×824, Leader 745×1176); CardRenderer vẽ khung + chữ. Pack phải ở chế độ **Webgame (mapped)** thì game mới dùng.
 - Tên file trong ZIP lấy từ `candidateId` đã làm sạch; ZIP được tự kiểm CRC trước khi cho tải.
 
 ## Chưa hỗ trợ (cần biết)
 
 | Hạng mục | Tình trạng |
 |---|---|
-| Loại **Artwork riêng** (ghép vào khung bằng CardRenderer) | Adapter từ chối với thông báo rõ; hãy dùng "Nguyên mặt thẻ" |
-| Vẽ vùng crop trực quan trên sheet | Chưa có; nhập số |
-| Nạp lại draft JSON đã lưu | Chưa có (chỉ lưu); import lại folder |
 | Hot-reload pack mới | Cần restart dev server / rebuild |
+| Zoom 2 ngón trên điện thoại | Chưa; dùng nút −/＋ |
+| Safari/Firefox | Chưa kiểm; Chromium OK |
 
 ## Xử lý sự cố
 
