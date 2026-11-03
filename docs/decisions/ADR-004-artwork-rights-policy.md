@@ -22,6 +22,9 @@ trạng thái quyền để giữ ảnh trong repo và cho resolver nạp artwor
 - Không đổi luật "chỉ base game": pack Kickstarter là nội dung expansion → giữ `gameplaySupported: false`, không hiển thị
   như expansion đã hỗ trợ.
 
+## Phạm vi bổ sung (owner, 2026-11-03)
+- Icon class / Item / Cursed Item gốc của Unstable Games (lấy từ Card Maker) được dùng trong `CardRenderer`: `apps/web/src/cards/icons/` (README ghi nguồn + file license GPL-3.0 của repo Card Maker).
+
 ## Đường dẫn trong manifest
 Manifest chỉ lưu đường dẫn POSIX **tương đối** (vd. `Print 01 - Poker Cards_Hero/Poker - Front….jpg`,
 `fronts/ks-preview-01-r2-c1.png`). `sheets[].path` tương đối so với folder nguồn Kickstarter trên máy owner

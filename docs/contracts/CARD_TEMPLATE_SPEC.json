@@ -455,7 +455,7 @@
     "monster": "frame colour monsterBottomPanel; art window 41..786 x 41..858 (rounded top); dark band 858..1217; cream strip 1217..1417",
     "party_leader": "class-colour frame on top/sides; art window 41..786 x 41..1217 (rounded top); cream strip 1217..1417",
     "rollPill": "78 px, cream rim 3 px, inner radius ~12",
-    "symbol": "circle 102 px (requirement 83 px), cream ring ~7%; glyph = class initial (reference custom-class style), no third-party icons",
+    "symbol": "circle 102 px (requirement 83 px) with cream ring. Base class, any-Hero (H), Item and Cursed Item symbols = original icons copied unmodified from the reference (apps/web/src/cards/icons, owner decision 2026-11-03, ADR-004); drawn initial-letter circle remains the fallback.",
     "fontSizeUnits": "sizes are Raylib units (full line box). CSS px = size / 1.22 (Patua One) or / 1.32 (Source Sans; calibrated against reference renders)."
   }
 }

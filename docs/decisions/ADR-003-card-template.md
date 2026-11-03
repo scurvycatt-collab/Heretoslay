@@ -18,7 +18,8 @@ Owner đề xuất https://github.com/Danrejk/Here-To-Slay-Card-Maker để Code
 
 > **2026-11-03:** trạng thái quyền artwork/frame được owner chốt thành `FAN_MADE_NON_COMMERCIAL` — xem ADR-004.
 
-> **2026-11-03 (Claude):** đã thực hiện mục 1–3: `CardRenderer` vẽ lại khung bằng SVG riêng theo hình học đo từ Card Maker (viền 41 px, tấm kem bo 10 px, band Item/Monster, dải kem tarot, pill 78 px, symbol 102 px) và toạ độ `Program.cs`; font Patua One + Source Sans 3 (OFL, `@fontsource`). Không dùng code GPL, PNG khung hay icon class của bên thứ ba; icon class = chữ cái đầu. So khớp pixel với ảnh demo của Card Maker: xem `frameGeometry` trong CARD_TEMPLATE_SPEC.json.
+> **2026-11-03 (Claude):** đã thực hiện mục 1–3: `CardRenderer` vẽ lại khung bằng SVG riêng theo hình học đo từ Card Maker (viền 41 px, tấm kem bo 10 px, band Item/Monster, dải kem tarot, pill 78 px, symbol 102 px) và toạ độ `Program.cs`; font Patua One + Source Sans 3 (OFL, `@fontsource`). Không dùng code GPL hay PNG khung.
+> **2026-11-03, owner:** dùng icon gốc của Unstable Games cho class (6 class base), ô "Hero bất kỳ", Item, Cursed Item — chép nguyên từ Card Maker vào `apps/web/src/cards/icons/` (README ghi nguồn, GPL-3.0 text, rights `FAN_MADE_NON_COMMERCIAL`, DMCA theo ADR-004). Gỡ: xoá thư mục + import, renderer tự quay về chữ cái đầu. So khớp pixel với ảnh demo của Card Maker: xem `frameGeometry` trong CARD_TEMPLATE_SPEC.json.
 
 ## Hệ quả
 GAME-004 mở rộng: schema + validator + CARD_TEMPLATE_SPEC. Renderer = Codex (visual).
