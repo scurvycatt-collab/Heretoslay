@@ -1,121 +1,122 @@
-HERE TO SLAY WEB — BAO CAO CLOUD SESSION 2026-11-03
+HERE TO SLAY WEB — BÁO CÁO CLOUD SESSION 2026-11-03
 =====================================================
-Branch : claude/lucid-hypatia-hir4vm  (base: 791afb9)
-Commits: b3f09f6 (UI-002) -> 7f2e539 (UI-003 draft) -> fc907a5 (UI-003)
-Pham vi: UI che do "base" (apps/web) + 2 thay doi contract bo sung (arch)
-Trang thai: da commit + push. Chua mo PR.
+Repo   : https://github.com/scurvycatt-collab/heretoslay
+Nhánh  : claude/lucid-hypatia-hir4vm  (gốc: 791afb9 "merge owner decisions 3 + session export")
+Commit : b3f09f6 (UI-002) → 7f2e539 (UI-003 draft) → fc907a5 (UI-003) → báo cáo này
+Phạm vi: UI chế độ "base" (apps/web) + 2 thay đổi contract chỉ thêm field (vai arch)
+Trạng thái: đã commit + push. Chưa mở PR.
 
 -----------------------------------------------------
-1. TOM TAT
+1. TÓM TẮT
 -----------------------------------------------------
-- Lam lai toan bo UI ban choi "base" thanh tabletop theo anh tham chieu cua owner.
-- Them CardRenderer ve 8 loai bai base tu card data + CARD_TEMPLATE_SPEC.json.
-- Them man reaction / ket qua roll / Challenge / danh quai, panel Leader,
-  Hero+Item xep chong, Discard pile, quai da slay trong o luc giac.
-- 100% command kind/payload giu nguyen; dieu kien enable/disable nut giu nguyen.
-- Verify cuoi: npm run typecheck PASS, npm run build PASS,
-  npm run test:integration 31/31 PASS (truoc session: 30; +1 test moi).
+- Làm lại toàn bộ UI bàn chơi "base" thành tabletop theo ảnh tham chiếu của owner.
+- Thêm CardRenderer vẽ 8 loại bài base từ card data + CARD_TEMPLATE_SPEC.json.
+- Thêm màn reaction / kết quả roll / Challenge / đánh quái, bảng Leader,
+  Hero + Item xếp chồng, Discard pile, quái đã slay trong ô lục giác.
+- Mọi command (kind/payload) giữ nguyên; điều kiện bật/tắt nút giữ nguyên.
+- Kiểm tra cuối: npm run typecheck PASS, npm run build PASS,
+  npm run test:integration 31/31 PASS (trước session: 30; thêm 1 test mới).
 
 -----------------------------------------------------
-2. TIEN TRINH THEO YEU CAU
+2. TIẾN TRÌNH THEO YÊU CẦU
 -----------------------------------------------------
-[UI-002] b3f09f6 — Nang cap tabletop ban dau
-  - CardRenderer: khung mau theo Class (Bard/Fighter/Guardian/Ranger/Thief/Wizard)
-    va theo loai (Hero/Magic/Item/Cursed Item/Modifier/Challenge/Monster/Party Leader),
-    icon class tu ve, pill rollThreshold, Monster requirement + pill slay/penalty
-    (op/value tu data, Dracos nguoc dung), modifier amounts, text hieu ung.
-  - Ban choi: doi thu 2-6 nguoi, 3 Monster trung tam, Party + Item + Monster da slay,
-    hand xoe quat co hover, modal Challenge/Modifier co thanh dem nguoc muot.
+[UI-002] b3f09f6 — Nâng cấp tabletop ban đầu
+  - CardRenderer: khung màu theo Class (Bard/Fighter/Guardian/Ranger/Thief/Wizard)
+    và theo loại (Hero/Magic/Item/Cursed Item/Modifier/Challenge/Monster/Party Leader),
+    icon class tự vẽ, pill rollThreshold, Monster requirement + pill slay/penalty
+    (op/value lấy từ data, Dracos ngược đúng), giá trị Modifier, text hiệu ứng.
+  - Bàn chơi: đối thủ 2–6 người, 3 Monster trung tâm, Party + Item + Monster đã slay,
+    bài trên tay xoè quạt có hover, modal Challenge/Modifier có thanh đếm ngược mượt.
 
-[UI-003 draft] 7f2e539 — Layout theo anh tham chieu (lan 1)
-  - Ghe quanh mep ban (1-5 doi thu: trai / hang tren / phai), avatar Leader giua
-    vong 6 o luc giac class (sang = class da co), thanh chi so classes/6, slay/3, hand.
-  - Bai tren ban thu nho chi con art (variant="art"); hover + giu Ctrl/Cmd
-    (touch: nhan giu) hien la day du. Monster luon hien day du.
-  - Log -> icon tren rail trai + toast thong bao; bam icon mo bang log day du.
-  - Discard hien la gan nhat; bam mo danh sach.
-  - Hand lo len tu mep duoi; DRAW/REDEAL/PASS goc phai (phim D/R/E).
-  - Man reaction toan man hinh: "X IS USING Y", dem nguoc lon,
-    ROLLED/MODIFIER/TOTAL/REQUIRED, chip modifier, xuc xac, roster.
+[UI-003 draft] 7f2e539 — Layout theo ảnh tham chiếu (lần 1)
+  - Ghế quanh mép bàn (1–5 đối thủ: trái / hàng trên / phải), avatar Leader giữa
+    vòng 6 ô lục giác class (sáng = class đã có), thanh chỉ số class/6, slay/3, bài trên tay.
+  - Bài trên bàn thu nhỏ chỉ còn art (variant="art"); hover + giữ Ctrl/⌘
+    (cảm ứng: nhấn giữ) hiện lá đầy đủ. Monster luôn hiện đầy đủ.
+  - Log → icon trên thanh trái + thông báo nhỏ (toast); bấm icon mở bảng log đầy đủ.
+  - Discard hiện lá gần nhất; bấm mở danh sách.
+  - Bài trên tay ló lên từ mép dưới; DRAW / REDEAL / PASS ở góc phải (phím D/R/E).
+  - Màn reaction toàn màn hình: "X IS USING Y", đếm ngược lớn,
+    ROLLED / MODIFIER / TOTAL / REQUIRED, chip modifier, xúc xắc, danh sách người chơi.
 
-[UI-003] fc907a5 — Bo sung theo anh tham chieu (lan 2) + danh quai
-  - Hover Leader: la Leader + bang HEROES / DISTINCT CLASSES / SLAIN MONSTERS /
+[UI-003] fc907a5 — Bổ sung theo ảnh tham chiếu (lần 2) + đánh quái
+  - Hover Leader: lá Leader + bảng HEROES / DISTINCT CLASSES / SLAIN MONSTERS /
     MISSING / CARDS IN HAND / ACTION POINTS / EQUIPPED ITEMS.
-  - Hero co Item: token co Item o goc; hover hien Hero + Item chong phia sau;
-    re vao giua la Hero thi 2 la tach ra.
-  - Challenge: "CHALLENGED BY X!" + "THE DICE GODS WILL DECIDE", la bi challenge
-    ben trai, 2 phe ROLLED/MODIFIER/TOTAL, "X WINS!".
-  - Ket qua roll Hero: SUCCESS! / FAIL + "X failed Y's roll (4/10)".
-  - Danh quai: "X IS ATTACKING Y", REQUIRED = dieu kien slay (vd <=5);
-    ket qua SUCCESS! / FAIL / NO EFFECT + "X slayed Y!".
-  - Quai da slay vao 3 o luc giac duoi avatar (co hieu ung).
-  - Discard pile: dai la day du cuon ngang tren nen mo, nut < >.
+  - Hero có Item: thẻ Hero có Item thu nhỏ ở góc; hover hiện Hero + Item chồng phía sau;
+    rê vào giữa lá Hero thì 2 lá tách ra.
+  - Challenge: "CHALLENGED BY X!" + "THE DICE GODS WILL DECIDE", lá bị challenge
+    bên trái, mỗi bên ROLLED / MODIFIER / TOTAL, "X WINS!".
+  - Kết quả roll Hero: SUCCESS! / FAIL + "X failed Y's roll (4/10)".
+  - Đánh quái: "X IS ATTACKING Y", REQUIRED = điều kiện slay (vd ≤5);
+    kết quả SUCCESS! / FAIL / NO EFFECT + "X slayed Y!".
+  - Quái đã slay vào 3 ô lục giác dưới avatar (có hiệu ứng).
+  - Discard pile: dải lá đầy đủ cuộn ngang trên nền mờ, nút ◀ ▶.
 
-Owner quyet: bai tren tay giu dang la day du lo len (khong doi sang art-only).
+Owner quyết: bài trên tay giữ dạng lá đầy đủ ló lên (không đổi sang chỉ có art).
 
 -----------------------------------------------------
-3. THAY DOI CONTRACT (ARCH, CHI THEM FIELD)
+3. THAY ĐỔI CONTRACT (ARCH, CHỈ THÊM FIELD)
 -----------------------------------------------------
-Ly do: client khong duoc tu tinh trang thai/ket qua; snapshot cu thieu du lieu.
-  - game.discardPile: BaseCardView[]   (cong khai, cu truoc moi sau)
+Lý do: client không được tự tính trạng thái/kết quả; snapshot cũ thiếu dữ liệu.
+  - game.discardPile: BaseCardView[]   (công khai, cũ trước mới sau)
   - game.lastRoll: { id, resolvedAt, outcome, roll, card } | null
-      outcome do server quyet: success | fail | slay | penalty | none |
+      outcome do server quyết: success | fail | slay | penalty | none |
       challenge_succeeded | challenge_failed
-  - BaseRollView.attemptCard (chi Challenge roll): la dang bi challenge
-Files: packages/protocol/src/game/base.ts, packages/protocol/src/index.ts,
-       apps/worker/src/game/base-engine.ts (rememberRoll trong resolveRoll),
-       apps/worker/src/game/base-game.ts (projection, normalize lastRoll ??= null),
-       docs/contracts/GAME_ROOM_API.md
+  - BaseRollView.attemptCard (chỉ Challenge roll): lá đang bị challenge
+File: packages/protocol/src/game/base.ts, packages/protocol/src/index.ts,
+      apps/worker/src/game/base-engine.ts (rememberRoll trong resolveRoll),
+      apps/worker/src/game/base-game.ts (projection; normalize lastRoll ??= null),
+      docs/contracts/GAME_ROOM_API.md
 Test: tests/base-turn.integration.test.ts
       "UI-003 contract: discardPile + lastRoll ... after a Hero roll"
 
 -----------------------------------------------------
-4. FILE THAY DOI (791afb9..fc907a5)
+4. FILE THAY ĐỔI (791afb9..fc907a5)
 -----------------------------------------------------
   apps/web/index.html                 (+ Google Fonts: Patua One, Source Sans 3 — OFL)
   apps/web/tsconfig.json              (resolveJsonModule)
-  apps/web/src/BaseRoom.tsx           (viet lai)
-  apps/web/src/base-room.css          (viet lai)
-  apps/web/src/CardRenderer.tsx       (moi)
-  apps/web/src/ClassIcon.tsx          (moi, glyph tu ve)
-  apps/web/src/cardCatalog.ts         (moi, doc base-cards.json + CARD_TEMPLATE_SPEC.json)
-  apps/web/src/card.css               (moi)
-  + cac file contract o muc 3
-  Tong: 14 files, +2182 / -222
+  apps/web/src/BaseRoom.tsx           (viết lại)
+  apps/web/src/base-room.css          (viết lại)
+  apps/web/src/CardRenderer.tsx       (mới)
+  apps/web/src/ClassIcon.tsx          (mới, glyph tự vẽ)
+  apps/web/src/cardCatalog.ts         (mới, đọc base-cards.json + CARD_TEMPLATE_SPEC.json)
+  apps/web/src/card.css               (mới)
+  + các file contract ở mục 3
+  Tổng: 14 file, +2182 / −222
 
 -----------------------------------------------------
-5. KIEM THU
+5. KIỂM THỬ
 -----------------------------------------------------
 - typecheck / build / integration: PASS (31/31).
-- Browser that (wrangler dev + vite, Playwright, 3-6 client, 1 client 390px):
-  lobby -> chon Leader -> start -> play Hero -> Challenge window -> roll ngay ->
-  Hero roll SUCCESS/FAIL -> danh quai FAIL/NO EFFECT -> panel Leader -> Discard.
-  Khong co loi JS.
-- Chi xem qua trang preview tam (du lieu co dinh, da xoa, khong commit) vi
-  khong boc duoc trong van ngau nhien: Challenge duel + "X WINS!", Hero+Item
-  chong/tach, slay SUCCESS + o quai da slay.
-- Loi da sua khi test: ban choi tu cuon lech khi focus la bai (overflow: clip);
-  bien CSS tu tham chieu lam Item bien mat; stat Challenge bi xuong dong.
+- Browser thật (wrangler dev + vite, Playwright, 3–6 client, 1 client 390px):
+  lobby → chọn Leader → start → chơi Hero → cửa sổ Challenge → roll ngay →
+  roll Hero SUCCESS/FAIL → đánh quái FAIL/NO EFFECT → bảng Leader → Discard.
+  Không có lỗi JS.
+- Chỉ xem qua trang preview tạm (dữ liệu cố định, đã xoá, không commit) vì
+  không bốc được trong ván ngẫu nhiên: Challenge duel + "X WINS!", Hero + Item
+  chồng/tách, slay SUCCESS + ô quái đã slay.
+- Lỗi đã sửa khi test: bàn chơi tự cuộn lệch khi focus lá bài (overflow: clip);
+  biến CSS tự tham chiếu làm Item biến mất; số liệu Challenge bị xuống dòng.
 
 -----------------------------------------------------
-6. CON MO / RUI RO
+6. CÒN MỞ / RỦI RO
 -----------------------------------------------------
-- Hop thoai chon bai (Bullseye xep thu tu, Steal/Destroy/Discard): moi kiem bang
-  code, chua thay chay trong van that.
-- Panel Leader + Hero/Item chi co tren desktop; man <1100px dang tat (chua co
-  thao tac cham).
-- Art la placeholder tu ve (mau class + 2 chu viet tat). Khong dung logo, rong,
-  font pixel hay art cua game goc. Asset ben thu ba van UNVERIFIED (ADR-003).
-- Toast log hien text log cua server (dang tieng Viet).
-- Man ket qua tu hien ~5 giay theo serverNow uoc luong, hoac den khi CONTINUE.
-- package-lock.json bi npm local sinh lai -> da revert, khong commit.
-- Dev server (wrangler/vite) bat de test da tu dung khi het gio; khong can bat lai.
+- Hộp thoại chọn bài (Bullseye xếp thứ tự, Steal/Destroy/Discard): mới kiểm bằng
+  code, chưa thấy chạy trong ván thật.
+- Bảng Leader + Hero/Item chỉ có trên desktop; màn dưới 1100px đang tắt (chưa có
+  thao tác chạm).
+- Art là placeholder tự vẽ (màu class + 2 chữ viết tắt). Không dùng logo, rồng,
+  font pixel hay art của game gốc. Asset bên thứ ba vẫn UNVERIFIED (ADR-003).
+- Toast log hiện text log của server (đang tiếng Việt).
+- Màn kết quả tự hiện ~5 giây theo serverNow ước lượng, hoặc đến khi bấm CONTINUE.
+- package-lock.json bị npm local sinh lại → đã revert, không commit.
+- Dev server (wrangler/vite) bật để test đã tự dừng khi hết giờ; không cần bật lại.
 
 -----------------------------------------------------
-7. GOI Y BUOC TIEP
+7. GỢI Ý BƯỚC TIẾP
 -----------------------------------------------------
-- QA: test UI cho hop thoai chon bai va Challenge duel trong van that.
-- Reviewer: review diff contract (lastRoll, attemptCard, discardPile) truoc merge.
-- UI: thao tac cham cho panel Leader / Hero+Item; thay placeholder art khi asset
-  duoc xac nhan quyen.
-- Mo PR khi owner yeu cau.
+- QA: test UI cho hộp thoại chọn bài và Challenge duel trong ván thật.
+- Reviewer: review diff contract (lastRoll, attemptCard, discardPile) trước khi merge.
+- UI: thao tác chạm cho bảng Leader / Hero+Item; thay placeholder art khi asset
+  được xác nhận quyền.
+- Mở PR khi owner yêu cầu.
