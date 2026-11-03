@@ -1,0 +1,79 @@
+HERE TO SLAY WEB — BÁO CÁO CLOUD SESSION 2026-11-02 → 2026-11-03
+=================================================================
+Repo: https://github.com/scurvycatt-collab/heretoslay  (nhánh main)
+Commit cuối: 35585a3  (nhánh claude/inspiring-brown-rq45oa = cùng commit)
+Cập nhật máy local: tải lại repo từ GitHub (main) — máy E:\Code\here-to-slay-web chưa có git.
+
+KIỂM TRA (npm run verify trên main 35585a3)
+-------------------------------------------
+- worker: 70 pass / 0 fail
+- protocol: 11 pass / 0 fail
+- integration: 30 pass / 0 fail / 1 skip (live test có sẵn từ trước)
+- web: typecheck + build PASS
+- Trình duyệt (Playwright, wrangler dev + vite, 2 client): tạo phòng → vào phòng → chọn Leader
+  → START → chơi Hero → Skip Challenge → Skip roll ngay → ATTACK bị từ chối đúng
+  REQUIREMENT_NOT_MET. 0 lỗi console.
+
+TASK ĐÃ XONG (theo thứ tự merge vào main)
+-----------------------------------------
+1. GAME-004  (3fafec1)  Schema card data + data cơ chế/text cho 95 loại thẻ / 136 lá
+   (115 main + 15 Monster + 6 Leader), provenance từng field, validator + test,
+   docs/contracts/CARD_TEMPLATE_SPEC.json (chỉ số liệu layout từ Card Maker, không code GPL / frame PNG).
+   Nguồn: community (ShadowzLmao2, jingxianlau, LanCorC, 1nk-bl0t, fandom) + bản text rulebook retail
+   (Wayback). Không có scan retail; rights UNVERIFIED. Chi tiết: docs/content/BASE_CARD_DATA.md
+2. GAME-002  (d1d96cd)  Turn loop đầy đủ mode base: PLAY Hero/Item/Magic → cửa sổ Challenge (20s)
+   → cửa sổ Modifier → resolve; roll hiệu ứng Hero (server tạo dice); ATTACK Monster (2 AP);
+   slay/penalty; Monster deck hết không refill; deadline qua alarm của Durable Object.
+   Code: apps/worker/src/game/base-engine.ts, base-rules.ts, base-game.ts
+3. GAME-003  (81d6b8c)  Thắng: slay 3 Monster (GAME_OVER ngay) hoặc đủ 6 class khi kết thúc lượt mình
+   (Leader tính class); trùng → active player; sau GAME_OVER từ chối mọi command.
+4. MOD-005   (a97a467)  Modifier chọn đúng lá + giá trị; passive Leader hiển thị riêng
+   ("passive của Leader"), mặc định không chiếm suất Modifier (switch Q-11);
+   lệnh CONFIGURE_GAME cho host chỉnh luật trước ván.
+5. QA-001    (86d8248)  Test end-to-end qua HTTP: 2 người thắng 6 class, 3 người thắng 3 slay;
+   toàn bộ nit từ review GAME-001.
+6. UI-001    (e6bd4c2, 35585a3)  apps/web/src/BaseRoom.tsx: lobby, chọn Leader, bàn chơi, tay bài,
+   các nút lệnh, cửa sổ Challenge/Modifier, lựa chọn, log, người thắng. Chỉ wiring + layout dạng cột
+   đơn giản; phần làm đẹp để Codex.
+7. Quyết định owner lần 2 (cebe3f9)  — xem mục dưới. Kèm fix: kỹ năng Arctic Aries trước đó không
+   bao giờ kích hoạt (id catalog là "artic-aries").
+8. GAME-005  (0bf26a7)  Mọi hiệu ứng Hero/Magic + kỹ năng Monster đã slay đều có xử lý
+   (không còn no-op): "chơi ngay", Pan Chucks, Qi Bear, Beary Wise, Bullseye, Sharp Fox,
+   Silent Shadow, Wiggles, Corrupted Sabretooth, Malamammoth, Orthus, Rex Major.
+
+Mỗi task đổi engine/contract đều có 1 reviewer độc lập: không có finding CRITICAL;
+các finding MAJOR/MINOR đã sửa trước khi merge.
+
+QUYẾT ĐỊNH OWNER ĐÃ ÁP DỤNG (2026-11-02, lần 2)
+----------------------------------------------
+- Q-01: Leader thỏa slot class của Monster theo rulebook retail (không tính là "Hero bất kỳ").
+        settings.leaderFillsClassSlot = true
+- Q-04: Mask THAY class của Hero (không cộng thêm). settings.maskMode = "replace"
+- Hết giờ lựa chọn → skip, không chọn gì, không có hiệu ứng.
+- Mọi mệnh đề "may" → hỏi người chơi Có/Không (hết giờ = từ chối).
+Ghi tại docs/decisions/product-decisions.md (cuối file). Hai switch đầu vẫn đổi được bằng
+CONFIGURE_GAME trước ván.
+
+CẦN OWNER XÁC NHẬN
+------------------
+1. Bullseye: "return the other two to the top in any order" — hiện giữ nguyên thứ tự 2 lá còn lại.
+   Có cần cho người chơi tự xếp thứ tự?
+2. Cursed Item có tính là "Item card" cho Malamammoth, Quick Draw, Sly Pickings? Hiện: có.
+3. DESTROY của Pan Chucks / Qi Bear chỉ chọn Hero của người khác (theo định nghĩa DESTROY trong
+   rulebook: "from another player's Party"). Giữ như vậy?
+4. Deploy Cloudflare (DEPL-001): cần tài khoản/account_id + domain của owner.
+
+VIỆC TIẾP THEO
+--------------
+- Codex: làm giao diện BaseRoom + CardRenderer theo docs/contracts/CARD_TEMPLATE_SPEC.json.
+- Browser review sâu hơn với 3–6 người (đã smoke 2 người).
+- DEPL-001 khi có tài khoản Cloudflare.
+
+FILE CHÍNH CẦN ĐỌC
+------------------
+- docs/LEAD.md (Trạng thái, Việc tiếp theo, Chờ owner quyết)
+- docs/STATUS.md (board task)
+- docs/contracts/GAME_ROOM_API.md (contract command/snapshot mode base)
+- docs/content/BASE_CARD_DATA.md (nguồn data thẻ + sai lệch)
+- docs/decisions/product-decisions.md (quyết định owner)
+- Board: https://claude.ai/artifact/1efXb5aNZ26Y6GwgsGjQyh (đã cập nhật GAME-002..005, MOD-005, QA-001, UI-001)
