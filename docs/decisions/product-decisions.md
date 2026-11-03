@@ -146,3 +146,10 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 | BULLSEYE | Người chơi tự xếp thứ tự 2 lá trả lại đỉnh deck. | choice `order_top` |
 | ITEM-CURSED | Cursed Item tính là "Item card" (Malamammoth, Quick Draw, Sly Pickings, Hook). | giữ như đã làm |
 | DESTROY | DESTROY chỉ chọn Hero trong Party người khác (RB glossary), kể cả Pan Chucks / Qi Bear. | giữ như đã làm |
+
+## Owner chốt lần 4 (2026-11-03, sau AUDIT-001)
+
+| # | Quyết định | Triển khai |
+|---|---|---|
+| CHALLENGE-SKIP | Người vừa chơi lá KHÔNG nằm trong cửa sổ Challenge của chính lá đó (không có nút Skip); cửa sổ đóng khi mọi đối thủ Skip/hết giờ. Thay quyết định 2026-10-28 cho trường hợp này. | Giữ code hiện tại (base-engine.ts ~1083, ~1207) |
+| CHOICE-TIMER | Lựa chọn trong hiệu ứng thẻ (bỏ lá, chọn mục tiêu, có/không, roll ngay): 30 giây mặc định, host chỉnh qua CONFIGURE_GAME (`choiceSeconds`). Reaction vẫn 20 giây. Thay PC-CONTRACT-001-PM. | Giữ code hiện tại (base-rules.ts `choiceSeconds: 30`) |
