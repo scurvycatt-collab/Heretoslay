@@ -88,7 +88,8 @@ test("run() writes a verified artwork pack into --out, never touching sources or
 
     const manifest = JSON.parse(await readFile(path.join(out, MANIFEST_NAME), "utf8"));
     assert.equal(manifest.schema, 2);
-    assert.equal(manifest.rightsStatus, "UNVERIFIED");
+    assert.equal(manifest.rightsStatus, "FAN_MADE_NON_COMMERCIAL");
+    assert.equal(manifest.takedownContact, "scurvycatt@gmail.com");
     assert.equal(manifest.gameplaySupported, false);
     assert.deepEqual(Object.keys(manifest.cards), ["hts.base.v1.hero.bad-axe", "hts.base.v1.monster.dracos"]);
 

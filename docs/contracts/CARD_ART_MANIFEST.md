@@ -9,7 +9,8 @@ A resolver must not show these images as finished card faces.
   "schema": 2,
   "packType": "artwork",
   "setId": "hts.base.v1",
-  "rightsStatus": "UNVERIFIED",
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",   // ADR-004; owner policy, not a licence
+  "takedownContact": "scurvycatt@gmail.com",
   "gameplaySupported": false,
   "generatedAt": "2026-11-03T08:00:03.000Z",
   "cards": {
@@ -43,5 +44,7 @@ Rules
 - A card absent from `cards` has no artwork → renderer keeps the placeholder.
 - Only `mappingStatus: "confirmed"` entries should be loaded without human review.
 - Image is pre-cropped to the art box; renderer draws it at the spec's `art.x/y/w/h` with no further crop.
-- No absolute paths; all paths are POSIX, relative to the pack dir / input dir.
+- No absolute paths; all paths are POSIX, relative to the pack dir / input dir. The CLI refuses to write a manifest that
+  breaks this (`assertRelativePaths`); `tests/card-art-rights-paths.test.ts` checks committed manifests.
+- `rightsStatus` is always `FAN_MADE_NON_COMMERCIAL` and `takedownContact` is set (ADR-004); importers never change them.
 - Merged across runs only when the owner points `--out` at an existing pack; ids no longer in card data and vanished files are pruned. Schema-1 manifests are replaced.

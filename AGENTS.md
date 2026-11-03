@@ -38,7 +38,7 @@ File khôi phục ngày 2026-10-28, KHÔNG phải AGENTS.md gốc. Quy trình ti
 - Chỉ ghi done khi có đầu ra và bằng chứng kiểm tra phù hợp; báo cáo cũ không thay thế test trên checkout hiện tại.
 - Cập nhật docs/STATUS.md sau công việc; quyết định sản phẩm vào decision register, quyết định kỹ thuật vào docs/decisions/.
 - Không tự ghi đè thay đổi của task khác. Nếu phân công song song đã được yêu cầu, chia quyền sở hữu file rõ ràng và chỉ PM tích hợp tracker chung.
-- Không commit secrets. Asset bên thứ ba tách riêng khỏi engine và mapping bằng card ID; trạng thái quyền hiện là UNVERIFIED. D-12 cho phép nghiên cứu/thu thập công khai mà không chờ kiểm tra giấy phép; không đổi thành LICENSED.
+- Không commit secrets. Asset bên thứ ba tách riêng khỏi engine và mapping bằng card ID; trạng thái quyền artwork là `FAN_MADE_NON_COMMERCIAL` (ADR-004, DMCA/gỡ: scurvycatt@gmail.com) — chính sách owner, không phải giấy phép. D-12 cho phép nghiên cứu/thu thập công khai mà không chờ kiểm tra giấy phép; không đổi thành LICENSED.
 - Không deploy hoặc công bố artwork chỉ vì công cụ tải được. Giữ quy trình gỡ nội dung và xóa cache trong release plan.
 - Khi cần commit, chỉ stage các file thuộc task; ghi rõ thay đổi và kiểm tra. Không tự push/deploy khi task chỉ yêu cầu chuẩn bị tài liệu.
 

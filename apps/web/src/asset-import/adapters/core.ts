@@ -4,9 +4,17 @@
  * Contract: docs/contracts/ASSET_IMPORT_WORKBENCH.md + ../contract.ts.
  */
 import type {
-  AssetSource, AssetType, CardAssetManifest, ExportedCardAsset, ExportMode, ImportCandidate, ImportDraft,
+  ArtworkRightsStatus, AssetSource, AssetType, CardAssetManifest, ExportedCardAsset, ExportMode, ImportCandidate, ImportDraft,
   QuarterTurn, RejectedFile, Template,
 } from "../contract";
+
+/**
+ * Mirrors ARTWORK_RIGHTS_STATUS / TAKEDOWN_CONTACT in ../contract (ADR-004). Kept as literals because this
+ * module only type-imports the contract (Node strip-types cannot resolve extensionless value imports);
+ * tests/asset-import-core.test.ts asserts they stay equal.
+ */
+export const RIGHTS_STATUS: ArtworkRightsStatus = "FAN_MADE_NON_COMMERCIAL";
+export const TAKEDOWN_EMAIL = "scurvycatt@gmail.com";
 
 export type Box = { x: number; y: number; width: number; height: number };
 export type ImageFormat = "png" | "jpeg" | "webp";
@@ -235,7 +243,7 @@ export function proposeCandidates(
 ): Array<ImportCandidate & { cell?: { row: number; column: number } }> {
   const base = {
     sourceId: source.sourceId, previewUrl: null, variant: "default", reviewed: false,
-    provenance: { origin: `Owner folder · ${source.relativePath}`, rightsStatus: "UNVERIFIED" as const },
+    provenance: { origin: `Owner folder · ${source.relativePath}`, rightsStatus: RIGHTS_STATUS },
   };
   const back = looksLikeBack(source.relativePath);
   const key = source.sha256 ? source.sha256.slice(0, 10) : source.sourceId;
@@ -309,7 +317,7 @@ export function parseDraftJson(raw: unknown): ImportDraft {
     if (k.definitionId !== null && typeof k.definitionId !== "string") fail(`candidates[${i}].definitionId`);
     if (typeof k.variant !== "string" || typeof k.reviewed !== "boolean" || typeof k.excluded !== "boolean") fail(`candidates[${i}] flags`);
     if (!isObj(prov) || typeof prov.origin !== "string") fail(`candidates[${i}].provenance`);
-    if (prov.rightsStatus !== "UNVERIFIED") fail(`candidates[${i}].provenance.rightsStatus phải là UNVERIFIED`);
+    if (prov.rightsStatus !== RIGHTS_STATUS) fail(`candidates[${i}].provenance.rightsStatus phải là ${RIGHTS_STATUS}`);
     return {
       candidateId: k.candidateId as string, sourceId: k.sourceId as string, label: k.label as string,
       previewUrl: null, // blob URLs never survive a reload
@@ -317,7 +325,7 @@ export function parseDraftJson(raw: unknown): ImportDraft {
       crop: { x: crop.x as number, y: crop.y as number, width: crop.width as number, height: crop.height as number },
       rotation: k.rotation as QuarterTurn, definitionId: (k.definitionId as string | null) ?? null,
       variant: k.variant as string, reviewed: k.reviewed as boolean, excluded: k.excluded as boolean,
-      provenance: { origin: prov.origin as string, rightsStatus: "UNVERIFIED" },
+      provenance: { origin: prov.origin as string, rightsStatus: RIGHTS_STATUS },
     };
   });
   return { schema: 1, collection: d.collection as string, sources, candidates };
@@ -372,6 +380,8 @@ export function buildManifest(
     collection: draft.collection,
     mode,
     gameplaySupported: false,
+    rightsStatus: RIGHTS_STATUS,
+    takedownContact: TAKEDOWN_EMAIL,
     sources: draft.sources.filter((s) => used.has(s.sourceId)).map((s) => ({ ...s })),
     assets,
   };
@@ -385,7 +395,8 @@ export function readmeText(manifest: CardAssetManifest): string {
     `${manifest.assets.length} complete card faces (${manifest.mode} pack). Poker 745x1040: ${poker}. Tarot 827x1417: ${tarot}.`,
     "renderMode=complete_face: show the PNG directly; do not overlay frame/text again.",
     manifest.mode === "preview" ? "Preview pack: definitionId may be null; do not load into the gameplay resolver." : "Mapped pack: every definitionId was checked against the catalog at export time.",
-    "Rights: UNVERIFIED. gameplaySupported=false. Not for public hosting.",
+    `Rights: ${RIGHTS_STATUS} — fan-made, non-commercial; Unstable Games watermarks kept. Not a licence. gameplaySupported=false.`,
+    `DMCA / takedown: ${TAKEDOWN_EMAIL} (handled immediately).`,
     "Source paths are relative to the folder chosen in the workbench; hashes are SHA-256 of the original bytes.",
     "",
   ].join("\n");

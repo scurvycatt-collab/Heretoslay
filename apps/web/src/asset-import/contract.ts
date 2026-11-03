@@ -1,4 +1,9 @@
 /** UI/importer boundary only. Card mechanics and protocol data remain read-only. */
+/** Artwork rights policy (ADR-004, owner 2026-11-03): fan-made, non-commercial, watermarks kept. Not a licence. */
+export const ARTWORK_RIGHTS_STATUS = "FAN_MADE_NON_COMMERCIAL" as const;
+export type ArtworkRightsStatus = typeof ARTWORK_RIGHTS_STATUS;
+/** DMCA / takedown requests are handled immediately via this address (ADR-004). */
+export const TAKEDOWN_CONTACT = "scurvycatt@gmail.com";
 export type AssetType = "complete_card_front" | "artwork";
 export type Template = "poker" | "tarot";
 export type QuarterTurn = 0 | 90 | 180 | 270;
@@ -23,7 +28,7 @@ export interface ImportCandidate {
   variant: string;
   reviewed: boolean;
   excluded: boolean;
-  provenance: { origin: string; rightsStatus: "UNVERIFIED" };
+  provenance: { origin: string; rightsStatus: ArtworkRightsStatus };
 }
 /** A file the adapter could not turn into a source; shown separately, never drops the batch. */
 export interface RejectedFile { relativePath: string; code: string; message: string }
@@ -53,13 +58,15 @@ export interface ExportedCardAsset {
   crop: ImportCandidate["crop"];
   rotation: QuarterTurn;
   provenance: ImportCandidate["provenance"];
-  rightsStatus: "UNVERIFIED";
+  rightsStatus: ArtworkRightsStatus;
 }
 export interface CardAssetManifest {
   schema: 1;
   collection: string;
   mode: ExportMode;
   gameplaySupported: false;
+  rightsStatus: ArtworkRightsStatus;
+  takedownContact: string;
   sources: AssetSource[];
   assets: ExportedCardAsset[];
 }
@@ -112,7 +119,7 @@ export function validateDraft(draft: ImportDraft, mode: ExportMode, definitions:
     if (card.side !== "front") add("back_excluded", "Batch hiện tại chỉ xuất front; hãy loại back khỏi batch.");
     if (!card.reviewed) add("not_reviewed", "Cần duyệt vùng cắt và chiều thẻ.");
     if (!card.provenance.origin.trim()) add("provenance", "Cần ghi nguồn/provenance.");
-    if (card.provenance.rightsStatus !== "UNVERIFIED") add("rights", "Importer không được tự nâng trạng thái quyền.");
+    if (card.provenance.rightsStatus !== ARTWORK_RIGHTS_STATUS) add("rights", `Importer không được tự đổi trạng thái quyền (phải là ${ARTWORK_RIGHTS_STATUS}).`);
     if (!card.variant.trim()) add("variant", "Variant phải có giá trị, ví dụ default hoặc alternate.");
     if (mode === "mapped" || card.assetType === "artwork") {
       const definition = card.definitionId ? definitions.get(card.definitionId) : undefined;

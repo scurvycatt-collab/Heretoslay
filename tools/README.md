@@ -67,5 +67,6 @@ challenge 645×550.
 
 ### Quyền tác giả
 
-Artwork bên thứ ba = rights **UNVERIFIED** (ADR-003), `gameplaySupported: false`. Đừng trỏ `--out` vào
-`apps/web/public/` (sẽ bị deploy theo bản build) khi owner chưa xác nhận quyền.
+Artwork = rights **FAN_MADE_NON_COMMERCIAL** (ADR-004: fan-made, phi thương mại, giữ watermark Unstable Games;
+DMCA/gỡ: scurvycatt@gmail.com) — chính sách owner, không phải giấy phép. `gameplaySupported: false`. Manifest chỉ chứa
+path tương đối (CLI từ chối ghi nếu không). Đừng trỏ `--out` vào `apps/web/public/` (sẽ bị deploy theo bản build).

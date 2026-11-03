@@ -117,7 +117,8 @@
   },
   "assets": {
     "frames": ["frame_hero", "frame_item", "frame_leader", "frame_monster", "cursed_item"],
-    "rightsStatus": "UNVERIFIED",
+    "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+    "takedownContact": "scurvycatt@gmail.com",
     "policy": "Not copied into this repo. Renderer maps frames by card kind via an asset manifest; may be redrawn in-house (ADR-003)."
   }
 }

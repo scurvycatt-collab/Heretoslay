@@ -7,42 +7,44 @@
   "sheets": [
     {
       "id": "01",
-      "path": "E:\\Code\\Here to play asset\\Expansion\\UPDATED Here to Slay Kickstarter Exclusive Pack\\Print 01 - Poker Cards_Hero\\Poker - Front of Poker Card_HTS Kickstarter Exclusive Pack 01.jpg",
+      "path": "Print 01 - Poker Cards_Hero/Poker - Front of Poker Card_HTS Kickstarter Exclusive Pack 01.jpg",
       "width": 3600,
       "sha256": "66da4bdb149378ac92632c07e2200d1e2ab8d4cdacbfe8e7c5709c106e248741",
       "height": 5400
     },
     {
       "id": "02",
-      "path": "E:\\Code\\Here to play asset\\Expansion\\UPDATED Here to Slay Kickstarter Exclusive Pack\\Print 02 - Poker Cards_Hero Alternate\\Poker - Front of Poker Card_HTS Kickstarter Exclusive Pack 01.jpg",
+      "path": "Print 02 - Poker Cards_Hero Alternate/Poker - Front of Poker Card_HTS Kickstarter Exclusive Pack 01.jpg",
       "width": 3600,
       "sha256": "0ce4ec978c26aedc8e05cf9e7c62a289b3f5ffc635db9b7a3231a8ed894d8de9",
       "height": 5400
     },
     {
       "id": "03",
-      "path": "E:\\Code\\Here to play asset\\Expansion\\UPDATED Here to Slay Kickstarter Exclusive Pack\\Print 03 - Poker Cards_Challenges Modifiers Items\\Poker - Front of Poker Card_HTS Kickstarter Exclusive Pack 02.jpg",
+      "path": "Print 03 - Poker Cards_Challenges Modifiers Items/Poker - Front of Poker Card_HTS Kickstarter Exclusive Pack 02.jpg",
       "width": 3600,
       "sha256": "e253276cab9927a67a1acea0cdc067bce44cca02a7e0360a456e102e9d0c698b",
       "height": 5400
     },
     {
       "id": "04",
-      "path": "E:\\Code\\Here to play asset\\Expansion\\UPDATED Here to Slay Kickstarter Exclusive Pack\\Print 04 - Tarot Cards_Monsters\\Tarot - Front of Tarot Card_HTS Kickstarter Exclusive Pack 02.jpg",
+      "path": "Print 04 - Tarot Cards_Monsters/Tarot - Front of Tarot Card_HTS Kickstarter Exclusive Pack 02.jpg",
       "width": 3600,
       "sha256": "57493e66023509ce844e2866a7ff8068252061f9edede5fb178ba332cdfcc7bf",
       "height": 5400
     },
     {
       "id": "05",
-      "path": "E:\\Code\\Here to play asset\\Expansion\\UPDATED Here to Slay Kickstarter Exclusive Pack\\Print 05 - Tarot Cards_ Party Leaders & Monsters\\Tarot - Front of Tarot Card_HTS Kickstarter Exclusive Pack 01 -Corrected.jpg",
+      "path": "Print 05 - Tarot Cards_ Party Leaders & Monsters/Tarot - Front of Tarot Card_HTS Kickstarter Exclusive Pack 01 -Corrected.jpg",
       "width": 3600,
       "sha256": "a163270d751dddbe5bd60c12c2d3bb344f480da294b6c3bce581a70be3b61c46",
       "height": 5400
     }
   ],
   "gameplaySupported": false,
-  "rightsStatus": "UNVERIFIED",
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "sheetPathBase": "relative to the owner-local Kickstarter source folder; sheets are not committed",
   "cards": [
     {
       "sourceSha256": "66da4bdb149378ac92632c07e2200d1e2ab8d4cdacbfe8e7c5709c106e248741",
@@ -59,7 +61,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r2-c1.png",
       "contentRect": {
@@ -87,7 +89,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r3-c1.png",
       "contentRect": {
@@ -115,7 +117,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r4-c1.png",
       "contentRect": {
@@ -143,7 +145,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r5-c1.png",
       "contentRect": {
@@ -171,7 +173,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r6-c1.png",
       "contentRect": {
@@ -199,7 +201,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r1-c2.png",
       "contentRect": {
@@ -227,7 +229,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r2-c2.png",
       "contentRect": {
@@ -255,7 +257,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r3-c2.png",
       "contentRect": {
@@ -283,7 +285,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r4-c2.png",
       "contentRect": {
@@ -311,7 +313,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r5-c2.png",
       "contentRect": {
@@ -339,7 +341,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r6-c2.png",
       "contentRect": {
@@ -367,7 +369,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r1-c3.png",
       "contentRect": {
@@ -395,7 +397,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r2-c3.png",
       "contentRect": {
@@ -423,7 +425,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r3-c3.png",
       "contentRect": {
@@ -451,7 +453,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r4-c3.png",
       "contentRect": {
@@ -479,7 +481,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r5-c3.png",
       "contentRect": {
@@ -507,7 +509,7 @@
       "sheet": "01",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-01-r6-c3.png",
       "contentRect": {
@@ -535,7 +537,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r1-c2.png",
       "contentRect": {
@@ -563,7 +565,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r2-c2.png",
       "contentRect": {
@@ -591,7 +593,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r3-c2.png",
       "contentRect": {
@@ -619,7 +621,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r4-c2.png",
       "contentRect": {
@@ -647,7 +649,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r1-c3.png",
       "contentRect": {
@@ -675,7 +677,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r2-c3.png",
       "contentRect": {
@@ -703,7 +705,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r3-c3.png",
       "contentRect": {
@@ -731,7 +733,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r4-c3.png",
       "contentRect": {
@@ -759,7 +761,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r5-c3.png",
       "contentRect": {
@@ -787,7 +789,7 @@
       "sheet": "02",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-02-r6-c3.png",
       "contentRect": {
@@ -815,7 +817,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r1-c1.png",
       "contentRect": {
@@ -843,7 +845,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r2-c1.png",
       "contentRect": {
@@ -871,7 +873,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r3-c1.png",
       "contentRect": {
@@ -899,7 +901,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r4-c1.png",
       "contentRect": {
@@ -927,7 +929,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r5-c1.png",
       "contentRect": {
@@ -955,7 +957,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r6-c1.png",
       "contentRect": {
@@ -983,7 +985,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r1-c2.png",
       "contentRect": {
@@ -1011,7 +1013,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r2-c2.png",
       "contentRect": {
@@ -1039,7 +1041,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r3-c2.png",
       "contentRect": {
@@ -1067,7 +1069,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r4-c2.png",
       "contentRect": {
@@ -1095,7 +1097,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r5-c2.png",
       "contentRect": {
@@ -1123,7 +1125,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r6-c2.png",
       "contentRect": {
@@ -1151,7 +1153,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r1-c3.png",
       "contentRect": {
@@ -1179,7 +1181,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r2-c3.png",
       "contentRect": {
@@ -1207,7 +1209,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r3-c3.png",
       "contentRect": {
@@ -1235,7 +1237,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r4-c3.png",
       "contentRect": {
@@ -1263,7 +1265,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r5-c3.png",
       "contentRect": {
@@ -1291,7 +1293,7 @@
       "sheet": "03",
       "rotationDegrees": 270,
       "column": 3,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-03-r6-c3.png",
       "contentRect": {
@@ -1319,7 +1321,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r1-c1.png",
       "contentRect": {
@@ -1347,7 +1349,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r2-c1.png",
       "contentRect": {
@@ -1375,7 +1377,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r3-c1.png",
       "contentRect": {
@@ -1403,7 +1405,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r4-c1.png",
       "contentRect": {
@@ -1431,7 +1433,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r5-c1.png",
       "contentRect": {
@@ -1459,7 +1461,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r6-c1.png",
       "contentRect": {
@@ -1487,7 +1489,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r1-c2.png",
       "contentRect": {
@@ -1515,7 +1517,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r2-c2.png",
       "contentRect": {
@@ -1543,7 +1545,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r3-c2.png",
       "contentRect": {
@@ -1571,7 +1573,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r4-c2.png",
       "contentRect": {
@@ -1599,7 +1601,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r5-c2.png",
       "contentRect": {
@@ -1627,7 +1629,7 @@
       "sheet": "04",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-04-r6-c2.png",
       "contentRect": {
@@ -1655,7 +1657,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r1-c1.png",
       "contentRect": {
@@ -1683,7 +1685,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r2-c1.png",
       "contentRect": {
@@ -1711,7 +1713,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r3-c1.png",
       "contentRect": {
@@ -1739,7 +1741,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r4-c1.png",
       "contentRect": {
@@ -1767,7 +1769,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r5-c1.png",
       "contentRect": {
@@ -1795,7 +1797,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 1,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r6-c1.png",
       "contentRect": {
@@ -1823,7 +1825,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r1-c2.png",
       "contentRect": {
@@ -1851,7 +1853,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r2-c2.png",
       "contentRect": {
@@ -1879,7 +1881,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r3-c2.png",
       "contentRect": {
@@ -1907,7 +1909,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r4-c2.png",
       "contentRect": {
@@ -1935,7 +1937,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r5-c2.png",
       "contentRect": {
@@ -1963,7 +1965,7 @@
       "sheet": "05",
       "rotationDegrees": 270,
       "column": 2,
-      "rightsStatus": "UNVERIFIED",
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
       "fit": "contain",
       "src": "fronts/ks-preview-05-r6-c2.png",
       "contentRect": {

@@ -17,9 +17,9 @@ Ngày 2026-11-03. Owner yêu cầu Codex dựng UI/contract để Claude triển
 | 5 sheet JPG Kickstarter gốc | **Không** có trong repo (chỉ ở máy owner, `E:\…`) → nghiệm thu §7 cần owner chọn folder đó trên máy thật. |
 | Importer CLI | `tools/import-card-art.ts` (Node + sharp, artwork pack, `CARD_ART_MANIFEST.md`). |
 
-Vấn đề phát hiện khi merge (chưa sửa, cần Codex/owner quyết):
-- `assets/cards/kickstarter-preview/manifest.json` và `png-webgame/manifest.json` chứa **đường dẫn tuyệt đối Windows** của máy owner (`sheets[].path`), trái với §4/§6 "không đưa absolute path vào gói chia sẻ". Nên đổi sang `relativePath` theo `AssetSource`.
-- Ảnh Kickstarter (rights UNVERIFIED, nội dung expansion) đã nằm trong lịch sử git của nhánh. Không nằm dưới `apps/web/public/` nên không bị deploy theo bản build, nhưng repo/remote đã chứa chúng. Owner xác nhận chấp nhận, hoặc chuyển sang ignore + giữ ngoài repo.
+Vấn đề phát hiện khi merge:
+- ~~Manifest Kickstarter chứa **đường dẫn tuyệt đối Windows** (`sheets[].path`).~~ **Đã sửa 2026-11-03:** `sheets[].path` giờ là POSIX tương đối so với folder nguồn Kickstarter (`sheetPathBase`); hai script PowerShell sinh path tương đối, script export resolve qua `-Source`. CLI có guard `assertRelativePaths`; adapter browser vốn chỉ dùng `webkitRelativePath`. Test: `tests/card-art-rights-paths.test.ts`.
+- ~~Ảnh Kickstarter trong lịch sử git — chờ owner.~~ **Owner quyết 2026-11-03 (ADR-004):** giữ trong git, rights `FAN_MADE_NON_COMMERCIAL`, DMCA/gỡ qua scurvycatt@gmail.com. Vẫn không đặt dưới `apps/web/public/`; `gameplaySupported: false` (expansion).
 - Hai schema manifest song song: `CardAssetManifest` (contract.ts, complete_face) và artwork pack schema 2 của CLI. Đã phân biệt bằng `packType`/`renderMode` (§0.2-C); resolver cần đọc cả hai có chủ đích.
 
 ### 0.2 Mâu thuẫn đã giải quyết
@@ -163,7 +163,7 @@ Font chưa local / layout chưa đủ: báo pending ở composite. Không tự �
 - Gói mapped: ID phải có trong catalog, template đúng kind. Key `(definitionId, variant, inputType)` duy nhất; trùng phải chọn rõ replace/skip/variant. Không lấy tên ảnh làm ID engine.
 - Chọn variant dùng một policy rõ tại resolver, không ngẫu nhiên/last-write-wins.
 - `inputType` ghi nguồn ban đầu; `renderMode=complete_face` ghi cách dùng PNG cuối. Vì artwork đã composite cũng là complete face, renderer hiển thị trực tiếp PNG, không composite hai lần.
-- `rightsStatus=UNVERIFIED`, `gameplaySupported=false` ở pack import. Mapping ảnh không được tự nâng quyền hoặc chứng nhận hỗ trợ gameplay.
+- `rightsStatus=FAN_MADE_NON_COMMERCIAL` + `takedownContact` (ADR-004), `gameplaySupported=false` ở pack import. Mapping ảnh không được tự đổi trạng thái quyền hoặc chứng nhận hỗ trợ gameplay.
 - Pack artwork của CLI (`packType: "artwork"`, `renderMode: "artwork"`) là loại khác, xem `CARD_ART_MANIFEST.md`; resolver phải phân biệt (§0.2-C).
 
 Resolver hiện `apps/web/src/cards/catalog.ts` chỉ có `artUrl` và manifest rỗng; **chưa nhận whole-face asset**. Claude cần cung cấp pack đúng contract, không nhét ảnh nguyên mặt vào `artUrl`. Tích hợp renderer cần resolver phân biệt `artwork` và `complete_face`, fallback hiện tại khi thiếu/lỗi ảnh. Không sửa BaseRoom commands.

@@ -19,7 +19,7 @@
  * Scope: this is the "artwork" input type of docs/contracts/ASSET_IMPORT_WORKBENCH.md.
  * Output is NOT a complete card face (renderMode "artwork"); compositing into a
  * 745×1040 / 827×1417 face is the renderer/workbench's job.
- * base-cards.json is only READ. Artwork rights are UNVERIFIED (ADR-003).
+ * base-cards.json is only READ. Artwork rights: FAN_MADE_NON_COMMERCIAL (ADR-004) — not a licence.
  */
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -91,7 +91,8 @@ export type Manifest = {
   schema: 2;
   packType: "artwork";
   setId: string;
-  rightsStatus: "UNVERIFIED";
+  rightsStatus: typeof RIGHTS_STATUS;
+  takedownContact: string;
   gameplaySupported: false;
   generatedAt: string;
   cards: Record<string, ManifestEntry>;
@@ -102,6 +103,10 @@ export type Limits = { maxFileBytes: number; maxBatchBytes: number; maxPixels: n
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
+
+/** ADR-004 artwork rights policy; same values as apps/web/src/asset-import/contract.ts. */
+export const RIGHTS_STATUS = "FAN_MADE_NON_COMMERCIAL" as const;
+export const TAKEDOWN_CONTACT = "scurvycatt@gmail.com";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_CARDS = path.join(REPO_ROOT, "apps/worker/src/content/base-cards.json");
@@ -604,9 +609,10 @@ export async function run(argv: string[]): Promise<number> {
   for (const [id, entry] of imported) merged[id] = entry;
   const sorted = Object.fromEntries(Object.entries(merged).sort(([a], [b]) => a.localeCompare(b)));
   const manifest: Manifest = {
-    schema: 2, packType: "artwork", setId, rightsStatus: "UNVERIFIED", gameplaySupported: false,
+    schema: 2, packType: "artwork", setId, rightsStatus: RIGHTS_STATUS, takedownContact: TAKEDOWN_CONTACT, gameplaySupported: false,
     generatedAt: importedAt, cards: sorted,
   };
+  assertRelativePaths(manifest);
   if (!opts.dryRun && (imported.size > 0 || Object.keys(previous).length > 0)) {
     await writeAtomic(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   } else if (!opts.dryRun && opts.outIsDefault) {
@@ -620,6 +626,19 @@ export async function run(argv: string[]): Promise<number> {
 
   if (opts.strict && (skipped.length || failed.length || proposed.length || missing.length)) return 1;
   return failed.length > 0 ? 2 : 0;
+}
+
+/** Contract: a manifest never records a machine path (POSIX, relative to the pack / input dir). */
+export function isRelativePosixPath(p: string): boolean {
+  return !!p && !p.startsWith("/") && !/^[a-zA-Z]:/.test(p) && !p.includes("\\") && !p.split("/").includes("..");
+}
+
+function assertRelativePaths(manifest: Manifest): void {
+  for (const [id, e] of Object.entries(manifest.cards)) {
+    for (const p of [e.relativePath, e.source.relativePath]) {
+      if (!isRelativePosixPath(p)) throw new Error(`manifest entry ${id}: path must be relative POSIX, got "${p}"`);
+    }
+  }
 }
 
 function shown(p: string): string {
@@ -659,7 +678,7 @@ function printReport(r: {
   }
   if (!r.opts.verbose && r.missing.length) console.log("   (use --verbose to list missing ids)");
   if (!r.opts.dryRun && r.imported.size) console.log(`\n manifest  ${shown(r.manifestPath)}`);
-  console.log(` rights    UNVERIFIED (ADR-003) · gameplaySupported=false — do not publish without owner sign-off\n${line}\n`);
+  console.log(` rights    ${RIGHTS_STATUS} (ADR-004) · takedown ${TAKEDOWN_CONTACT} · gameplaySupported=false\n${line}\n`);
 }
 
 // Entry point (skipped when imported by tests).

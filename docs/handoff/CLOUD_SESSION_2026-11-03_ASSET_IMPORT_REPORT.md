@@ -21,6 +21,9 @@ Nhánh: `claude/cool-cray-tu3i5h` (base `main` d05242b). **Chưa merge `main`, c
 3. Ảnh Kickstarter (rights UNVERIFIED, expansion) đã nằm trong lịch sử git của nhánh: chấp nhận, hay đưa ra ngoài repo.
 4. Review rồi quyết merge nhánh vào `main`.
 
+## Cập nhật sau owner quyết (2026-11-03)
+- Mục 2 (path tuyệt đối) và 3 (ảnh trong git) đã xử lý: path tương đối + rights `FAN_MADE_NON_COMMERCIAL`, xem ADR-004.
+
 ## Việc tiếp theo (không thuộc session này)
 - Codex: resolver `cards/catalog.ts` đọc pack `complete_face` (khác pack `artwork` của CLI); tiếp nhận delta `contract.ts` (§0.4).
 - Artwork composite → PNG (cần rasterizer cho CardRenderer); hiện artwork bị chặn xuất có lý do.

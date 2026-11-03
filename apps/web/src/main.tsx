@@ -6,7 +6,7 @@ import { App } from "./App";
 import { CardGallery } from "./cards/CardGallery";
 
 const params = new URLSearchParams(location.search);
-// Dev-only route: the workbench and its Kickstarter demo fixtures (rights UNVERIFIED, ADR-003)
+// Dev-only route: the workbench and its Kickstarter demo fixtures (rights FAN_MADE_NON_COMMERCIAL, ADR-004)
 // must not be bundled into production. `import.meta.env.DEV` is false at build time, so the
 // dynamic import below is dead code and its chunk + images are never emitted.
 const AssetImportRoute = import.meta.env.DEV && params.has("asset-import")

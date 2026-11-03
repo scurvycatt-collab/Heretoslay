@@ -102,12 +102,12 @@ test("draft JSON boundary + resume by SHA-256", () => {
   const saved: ImportDraft = {
     schema: 1, collection: "Saved",
     sources: [{ sourceId: "old-1", relativePath: "A/sheet.jpg", sha256: sha("b"), width: 10, height: 10 }, { sourceId: "old-2", relativePath: "A/gone.jpg", sha256: sha("c"), width: 10, height: 10 }],
-    candidates: [{ candidateId: "kept", sourceId: "old-1", label: "k", previewUrl: "blob:stale", assetType: "complete_card_front", side: "front", template: "poker", crop: { x: 1, y: 1, width: 5, height: 5 }, rotation: 0, definitionId: null, variant: "default", reviewed: true, excluded: false, provenance: { origin: "o", rightsStatus: "UNVERIFIED" } }],
+    candidates: [{ candidateId: "kept", sourceId: "old-1", label: "k", previewUrl: "blob:stale", assetType: "complete_card_front", side: "front", template: "poker", crop: { x: 1, y: 1, width: 5, height: 5 }, rotation: 0, definitionId: null, variant: "default", reviewed: true, excluded: false, provenance: { origin: "o", rightsStatus: "FAN_MADE_NON_COMMERCIAL" } }],
   };
   const parsed = parseDraftJson(JSON.parse(JSON.stringify(saved)));
   assert.equal(parsed.candidates[0].previewUrl, null, "blob URLs never survive");
   assert.throws(() => parseDraftJson({ ...saved, sources: [{ ...saved.sources[0], relativePath: "C:/Users/me/a.jpg" }] }), /tương đối/);
-  assert.throws(() => parseDraftJson({ ...saved, candidates: [{ ...saved.candidates[0], provenance: { origin: "o", rightsStatus: "VERIFIED" } }] }), /UNVERIFIED/);
+  assert.throws(() => parseDraftJson({ ...saved, candidates: [{ ...saved.candidates[0], provenance: { origin: "o", rightsStatus: "VERIFIED" } }] }), /FAN_MADE_NON_COMMERCIAL/);
   const inspected: ImportDraft = {
     schema: 1, collection: "New", sources: [{ sourceId: "src-new", relativePath: "B/renamed.jpg", sha256: sha("b"), width: 10, height: 10 }],
     candidates: [{ ...saved.candidates[0], candidateId: "fresh", sourceId: "src-new", reviewed: false }],

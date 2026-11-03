@@ -16,5 +16,7 @@ Owner đề xuất https://github.com/Danrejk/Here-To-Slay-Card-Maker để Code
 3. Frame/khung: asset thay thế được, map theo card type trong manifest, rights UNVERIFIED; có thể vẽ lại khung riêng.
 4. Một nguồn data duy nhất: Codex điền card data (class, threshold, requirement, effect text) theo schema GAME-004 → engine và renderer cùng đọc.
 
+> **2026-11-03:** trạng thái quyền artwork/frame được owner chốt thành `FAN_MADE_NON_COMMERCIAL` — xem ADR-004.
+
 ## Hệ quả
 GAME-004 mở rộng: schema + validator + CARD_TEMPLATE_SPEC. Renderer = Codex (visual).

@@ -6,7 +6,7 @@
 import spec from "../../../../../docs/contracts/CARD_TEMPLATE_SPEC.json";
 import {
   validateDraft, type AssetImportAdapter, type AssetSource, type ExportedCardAsset, type ExportMode, type ExportProgress,
-  type ExportResult, type ImportCandidate, type ImportDraft, type RejectedFile,
+  type ExportResult, type ImportCandidate, type ImportDraft, type RejectedFile, ARTWORK_RIGHTS_STATUS,
 } from "../contract";
 import {
   DEFAULT_LIMITS, FRONT_PADDING, TEMPLATE_SIZE, buildManifest, buildZip, cropInside, exportFileName, isProbablyBlank,
@@ -281,7 +281,7 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
             candidateId: c.candidateId, definitionId: c.definitionId, variant: c.variant, inputType: c.assetType,
             renderMode: "complete_face", template: c.template, relativePath, sha256: await sha256Hex(data),
             width: size.width, height: size.height, contentRect, sourceId: c.sourceId, crop: { ...c.crop },
-            rotation: c.rotation, provenance: { ...c.provenance }, rightsStatus: "UNVERIFIED",
+            rotation: c.rotation, provenance: { ...c.provenance }, rightsStatus: ARTWORK_RIGHTS_STATUS,
           });
           tick(c.label);
         }
