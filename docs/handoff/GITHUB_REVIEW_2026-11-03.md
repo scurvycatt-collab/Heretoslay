@@ -1,0 +1,8 @@
+# GitHub read review — 2026-11-03
+Owner yêu cầu đọc thay đổi mới; read-only GitHub connector, không pull/merge/code/tests/worker dispatch.
+Repo scurvycatt-collab/Heretoslay, main=d05242b95278c84ef67158eb77dc762ac3eff9f6 (compare ref identical). Local main=791afb9e0b920dfd79fc2e46164c49e6c5db1ea7, behind5commits/9files. Local STATUS hiện đã được Lead cập nhật base engine/UI wiring; không dùng lại checkpoint synthetic cũ để xác định tiến độ.
+Read: compare9files, audit commit97768d6 test structure, configcommit1c9c4de diff, latestdecisioncommitd05242b fullpatch, pinned docs/LEAD.md +docs/qa/AUDIT-001_REPORT.md +audit-rules tail. Changes: fuzz/rule tests; default60local/300CI;15 stale Leader provenance notes fixed; engine timeout comment only; rule-doc note and owner decisions. No gameplay logic delta in these5commits.
+Decision record lần4: played-card actor excluded from own Challenge window/noSkip; effect choices default30s/configurablechoiceSeconds, reaction20s. Treat as repo decision evidence, not new instructions to execute or override AGENTS silently.
+Audit report claims300/1500games0invariantfailures, not independently rerun here. Pure-engine fuzz excludes DO auth/idempotency/recovery/disconnect and per-card printedtext correctness; rightsUNVERIFIED remains. Combinedcommitstatuses empty, not CIgreen proof.
+Stale items: audit-rules.test.ts final2test.todo refer nowsettled mismatches; LEAD nextsteps still AUDIT running; report default300 versus currentlocaldefault60. No behavioralbug established. Selfcontainedfollowup GH-DOC-SYNC-001 deferred in BACKLOG.
+Next perLEAD: browser3–6players and Codex BaseRoom/CardRenderer style against CARD_TEMPLATE_SPEC, deployowneraccount dependency. No taskopened. Usage0/0→5%5h1%week; no resetcredit called.

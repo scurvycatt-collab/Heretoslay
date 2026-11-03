@@ -1,5 +1,5 @@
 {
-  "$comment": "Layout facts (pixel numbers only) extracted from Danrejk/Here-To-Slay-Card-Maker GeneratorBackend/Program.cs @1a3705d5 (2026-03-20). No GPL code and no frame/icon PNG copied. Coordinates are top-left origin, px at native card size. Frame/icon art = third-party, rights UNVERIFIED (ADR-003). Consumer: web CardRenderer (Codex).",
+  "$comment": "Layout facts (pixel numbers only) extracted from Danrejk/Here-To-Slay-Card-Maker GeneratorBackend/Program.cs @1a3705d5 (2026-03-20). No GPL code and no frame/icon PNG copied. Coordinates are top-left origin, px at native card size. Frame/icon art = third-party; our frames are own SVG redraws of the measured geometry (ADR-003). Consumer: web CardRenderer (Codex).",
   "source": {
     "repo": "https://github.com/Danrejk/Here-To-Slay-Card-Maker",
     "file": "GeneratorBackend/Program.cs",
@@ -9,115 +9,453 @@
     "status": "secondary_reference_layout"
   },
   "cardSizes": {
-    "tarot": { "width": 827, "height": 1417, "usedBy": ["party_leader", "monster"] },
-    "poker": { "width": 745, "height": 1040, "usedBy": ["hero", "item", "cursed_item", "magic", "modifier", "challenge"] }
+    "tarot": {
+      "width": 827,
+      "height": 1417,
+      "usedBy": [
+        "party_leader",
+        "monster"
+      ]
+    },
+    "poker": {
+      "width": 745,
+      "height": 1040,
+      "usedBy": [
+        "hero",
+        "item",
+        "cursed_item",
+        "magic",
+        "modifier",
+        "challenge"
+      ]
+    }
   },
   "fonts": {
-    "name": { "family": "Patua One", "size": 60, "spacing": 0, "license": "OFL (Google Fonts)" },
-    "nameBlankCard": { "family": "Patua One", "size": 97, "spacing": 0, "usedBy": ["modifier", "challenge"] },
-    "title": { "family": "Source Sans Pro", "size": 47, "spacing": 1, "license": "OFL" },
-    "requirement": { "family": "Source Sans Pro Bold", "size": 49, "spacing": 0 },
-    "additionalRequirement": { "family": "Source Sans Pro Bold", "size": 36, "spacing": 2 },
-    "roll": { "family": "Patua One", "size": 43, "spacing": 0 },
-    "description": { "family": "Source Sans Pro", "size": 36, "spacing": 1, "lineSpacingTighten": 4.5, "paragraphGap": 13 },
-    "modifierAmount": { "family": "Patua One", "size": 97 },
-    "heroSymbolLetter": { "family": "Patua One", "size": 75 }
+    "name": {
+      "family": "Patua One",
+      "size": 60,
+      "spacing": 0,
+      "license": "OFL (Google Fonts)"
+    },
+    "nameBlankCard": {
+      "family": "Patua One",
+      "size": 97,
+      "spacing": 0,
+      "usedBy": [
+        "modifier",
+        "challenge"
+      ]
+    },
+    "title": {
+      "family": "Source Sans Pro",
+      "size": 47,
+      "spacing": 1,
+      "license": "OFL"
+    },
+    "requirement": {
+      "family": "Source Sans Pro Bold",
+      "size": 49,
+      "spacing": 0
+    },
+    "additionalRequirement": {
+      "family": "Source Sans Pro Bold",
+      "size": 36,
+      "spacing": 2
+    },
+    "roll": {
+      "family": "Patua One",
+      "size": 43,
+      "spacing": 0
+    },
+    "description": {
+      "family": "Source Sans Pro",
+      "size": 36,
+      "spacing": 1,
+      "lineSpacingTighten": 4.5,
+      "paragraphGap": 13
+    },
+    "modifierAmount": {
+      "family": "Patua One",
+      "size": 97
+    },
+    "heroSymbolLetter": {
+      "family": "Patua One",
+      "size": 75
+    }
   },
   "colors": {
-    "bottomText": [245, 241, 231],
-    "bottomTextDark": [78, 78, 78],
-    "magic": [127, 117, 116],
-    "modifierPositive": [100, 171, 66],
-    "modifierNegative": [224, 33, 37],
-    "itemFrame": [68, 64, 61],
-    "itemTitle": [0, 163, 172],
-    "cursedItemTitle": [160, 59, 139],
-    "monsterBottomPanel": [23, 26, 30],
-    "monsterBottomPanelAlt": [0, 0, 0],
-    "monsterHeroBonusBox": [59, 59, 59],
+    "bottomText": [
+      245,
+      241,
+      231
+    ],
+    "bottomTextDark": [
+      78,
+      78,
+      78
+    ],
+    "magic": [
+      127,
+      117,
+      116
+    ],
+    "modifierPositive": [
+      100,
+      171,
+      66
+    ],
+    "modifierNegative": [
+      224,
+      33,
+      37
+    ],
+    "itemFrame": [
+      68,
+      64,
+      61
+    ],
+    "itemTitle": [
+      0,
+      163,
+      172
+    ],
+    "cursedItemTitle": [
+      160,
+      59,
+      139
+    ],
+    "monsterBottomPanel": [
+      23,
+      26,
+      30
+    ],
+    "monsterBottomPanelAlt": [
+      0,
+      0,
+      0
+    ],
+    "monsterHeroBonusBox": [
+      59,
+      59,
+      59
+    ],
     "classes": {
-      "none": [91, 93, 92],
-      "ranger": [35, 94, 57],
-      "wizard": [116, 46, 137],
-      "bard": [194, 81, 47],
-      "guardian": [235, 171, 33],
-      "fighter": [151, 40, 44],
-      "thief": [0, 78, 125]
+      "none": [
+        91,
+        93,
+        92
+      ],
+      "ranger": [
+        35,
+        94,
+        57
+      ],
+      "wizard": [
+        116,
+        46,
+        137
+      ],
+      "bard": [
+        194,
+        81,
+        47
+      ],
+      "guardian": [
+        235,
+        171,
+        33
+      ],
+      "fighter": [
+        151,
+        40,
+        44
+      ],
+      "thief": [
+        0,
+        78,
+        125
+      ]
     },
     "$classesNote": "Expansion class colours exist in the source but are out of scope (base only)."
   },
   "layouts": {
     "party_leader": {
       "size": "tarot",
-      "art": { "x": 41, "y": 41, "w": 745, "h": 1176 },
-      "classSymbol": { "x": 363, "y": 1167, "w": 102, "h": 102 },
-      "name": { "align": "center", "y": 67, "shadowOffset": 3 },
-      "title": { "align": "center", "y": 118, "shadowOffset": 2, "pattern": "Party Leader: <Class>" },
-      "description": { "left": 87, "right": 90, "areaHeightFromBottom": 200, "extraOffsetIfLines>=4": 16 },
+      "art": {
+        "x": 41,
+        "y": 41,
+        "w": 745,
+        "h": 1176
+      },
+      "classSymbol": {
+        "x": 363,
+        "y": 1167,
+        "w": 102,
+        "h": 102
+      },
+      "name": {
+        "align": "center",
+        "y": 67,
+        "shadowOffset": 3
+      },
+      "title": {
+        "align": "center",
+        "y": 118,
+        "shadowOffset": 2,
+        "pattern": "Party Leader: <Class>"
+      },
+      "description": {
+        "left": 87,
+        "right": 90,
+        "areaHeightFromBottom": 200,
+        "extraOffsetIfLines>=4": 16
+      },
       "frameTint": "class colour"
     },
     "monster": {
       "size": "tarot",
-      "art": { "x": 41, "y": 41, "w": 745, "h": 824 },
-      "requirementLabel": { "x": 88, "y": 920 },
-      "requirementIcons": { "xStart": "93 + labelWidth + 10", "y": 902, "w": 83, "h": 83, "gap": 13 },
-      "requirementPlus": { "y": 911, "size": 63 },
-      "penaltyRollPill": { "x": 87, "y": 1002, "w": 78, "h": 78, "colour": "red", "textSuffix": "-" },
-      "slayRollPill": { "x": 87, "y": 1099, "w": 78, "h": 78, "colour": "green", "textSuffix": "+" },
-      "rollOutcomeText": { "x": 187, "centerYOffset": 39, "maxWidth": 600, "maxWidthWithHeroBonus": 300 },
-      "heroBonusBox": { "x": 490, "y": 1000, "w": 252, "h": 175, "textMaxWidth": 230 },
-      "name": { "align": "center", "y": 67 },
-      "title": { "align": "center", "y": 118, "pattern": "Monster" },
-      "description": { "left": 87, "right": 90, "areaHeightFromBottom": 200 },
+      "art": {
+        "x": 41,
+        "y": 41,
+        "w": 745,
+        "h": 824
+      },
+      "requirementLabel": {
+        "x": 88,
+        "y": 920
+      },
+      "requirementIcons": {
+        "xStart": "93 + labelWidth + 10",
+        "y": 902,
+        "w": 83,
+        "h": 83,
+        "gap": 13
+      },
+      "requirementPlus": {
+        "y": 911,
+        "size": 63
+      },
+      "penaltyRollPill": {
+        "x": 87,
+        "y": 1002,
+        "w": 78,
+        "h": 78,
+        "colour": "red",
+        "textSuffix": "-"
+      },
+      "slayRollPill": {
+        "x": 87,
+        "y": 1099,
+        "w": 78,
+        "h": 78,
+        "colour": "green",
+        "textSuffix": "+"
+      },
+      "rollOutcomeText": {
+        "x": 187,
+        "centerYOffset": 39,
+        "maxWidth": 600,
+        "maxWidthWithHeroBonus": 300
+      },
+      "heroBonusBox": {
+        "x": 490,
+        "y": 1000,
+        "w": 252,
+        "h": 175,
+        "textMaxWidth": 230
+      },
+      "name": {
+        "align": "center",
+        "y": 67
+      },
+      "title": {
+        "align": "center",
+        "y": 118,
+        "pattern": "Monster"
+      },
+      "description": {
+        "left": 87,
+        "right": 90,
+        "areaHeightFromBottom": 200
+      },
       "$note": "Pill colours are by meaning on the base cards: red = penalty range, green = slay range. Dracos (base) has an inverted range (slay 5-, penalty 8+); a renderer must take op/value from card data, not assume red=low."
     },
     "hero": {
       "size": "poker",
-      "art": { "x": 100, "y": 232, "w": 545, "h": 545 },
-      "classSymbol": { "x": 322, "y": 722, "w": 102, "h": 102 },
-      "rollPill": { "x": 94, "y": 852, "w": 78, "h": 78, "textSuffix": "+" },
-      "itemSlots": { "xRight": 637, "y": 935, "w": 47, "h": 47, "step": 60 },
-      "name": { "align": "center", "y": 80 },
-      "title": { "align": "center", "y": 134, "pattern": "Hero: <Class>" },
-      "description": { "left": 200, "right": 90, "areaHeightFromBottom": 215, "frameOffset": -41, "extraOffsetIfLines>=5": 12 },
+      "art": {
+        "x": 100,
+        "y": 232,
+        "w": 545,
+        "h": 545
+      },
+      "classSymbol": {
+        "x": 322,
+        "y": 722,
+        "w": 102,
+        "h": 102
+      },
+      "rollPill": {
+        "x": 94,
+        "y": 852,
+        "w": 78,
+        "h": 78,
+        "textSuffix": "+"
+      },
+      "itemSlots": {
+        "xRight": 637,
+        "y": 935,
+        "w": 47,
+        "h": 47,
+        "step": 60
+      },
+      "name": {
+        "align": "center",
+        "y": 80
+      },
+      "title": {
+        "align": "center",
+        "y": 134,
+        "pattern": "Hero: <Class>"
+      },
+      "description": {
+        "left": 200,
+        "right": 90,
+        "areaHeightFromBottom": 215,
+        "frameOffset": -41,
+        "extraOffsetIfLines>=5": 12
+      },
       "frameTint": "class colour"
     },
     "item": {
       "size": "poker",
-      "art": { "x": 100, "y": 232, "w": 545, "h": 545 },
-      "kindSymbol": { "x": 99, "y": 886, "w": 102, "h": 102, "$note": "item icon / cursed icon / class icon for Masks" },
-      "name": { "align": "center", "y": 80 },
-      "title": { "align": "center", "y": 134, "pattern": "Item | Cursed Item" },
-      "description": { "left": 225, "right": 90, "areaHeightFromBottom": 205 }
+      "art": {
+        "x": 100,
+        "y": 232,
+        "w": 545,
+        "h": 545
+      },
+      "kindSymbol": {
+        "x": 99,
+        "y": 886,
+        "w": 102,
+        "h": 102,
+        "$note": "item icon / cursed icon / class icon for Masks"
+      },
+      "name": {
+        "align": "center",
+        "y": 80
+      },
+      "title": {
+        "align": "center",
+        "y": 134,
+        "pattern": "Item | Cursed Item"
+      },
+      "description": {
+        "left": 225,
+        "right": 90,
+        "areaHeightFromBottom": 205
+      }
     },
     "magic": {
       "size": "poker",
-      "art": { "x": 100, "y": 232, "w": 545, "h": 545 },
-      "name": { "align": "center", "y": 80 },
-      "title": { "align": "center", "y": 134, "pattern": "Magic" },
-      "description": { "left": 100, "right": 90, "areaHeightFromBottom": 222, "frameOffset": -41 },
+      "art": {
+        "x": 100,
+        "y": 232,
+        "w": 545,
+        "h": 545
+      },
+      "name": {
+        "align": "center",
+        "y": 80
+      },
+      "title": {
+        "align": "center",
+        "y": 134,
+        "pattern": "Magic"
+      },
+      "description": {
+        "left": 100,
+        "right": 90,
+        "areaHeightFromBottom": 222,
+        "frameOffset": -41
+      },
       "frameTint": "magic"
     },
     "modifier": {
       "size": "poker",
-      "art": { "x": 100, "y": 182, "w": 545, "h": 545 },
-      "name": { "align": "center", "y": 52, "font": "nameBlankCard" },
-      "amounts": { "x": 187, "centerY": 1041, "maxWidth": 300 },
-      "description": { "left": 100, "right": 90, "areaHeightFromBottom": 264 }
+      "art": {
+        "x": 100,
+        "y": 182,
+        "w": 545,
+        "h": 545
+      },
+      "name": {
+        "align": "center",
+        "y": 52,
+        "font": "nameBlankCard"
+      },
+      "amounts": {
+        "x": 187,
+        "centerY": 1041,
+        "maxWidth": 300
+      },
+      "description": {
+        "left": 100,
+        "right": 90,
+        "areaHeightFromBottom": 264
+      }
     },
     "challenge": {
       "size": "poker",
-      "art": { "x": 50, "y": 215, "w": 645, "h": 550 },
-      "name": { "align": "center", "y": 52, "font": "nameBlankCard" },
-      "description": { "left": 100, "right": 90, "areaHeightFromBottom": 264 }
+      "art": {
+        "x": 50,
+        "y": 215,
+        "w": 645,
+        "h": 550
+      },
+      "name": {
+        "align": "center",
+        "y": 52,
+        "font": "nameBlankCard"
+      },
+      "description": {
+        "left": 100,
+        "right": 90,
+        "areaHeightFromBottom": 264
+      }
     }
   },
   "descriptionLayout": {
     "rule": "lines wrap to (cardWidth - left - right); block vertically centred in the bottom area: y0 = cardHeight - areaHeightFromBottom + (area - lines*lineHeight + (lines-1)*4.5)/2 (+ per-type offsets above)"
   },
   "assets": {
-    "frames": ["frame_hero", "frame_item", "frame_leader", "frame_monster", "cursed_item"],
-    "rightsStatus": "UNVERIFIED",
+    "frames": [
+      "frame_hero",
+      "frame_item",
+      "frame_leader",
+      "frame_monster",
+      "cursed_item"
+    ],
+    "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+    "takedownContact": "scurvycatt@gmail.com",
     "policy": "Not copied into this repo. Renderer maps frames by card kind via an asset manifest; may be redrawn in-house (ADR-003)."
+  },
+  "frameGeometry": {
+    "$comment": "Measured 2026-11-03 from the reference frame masks (shape only; no PNG copied). Redrawn as SVG in apps/web/src/cards/{cardLayout.ts,CardRenderer.tsx}.",
+    "borderWidth": 41,
+    "innerCornerRadius": 10,
+    "cream": [
+      245,
+      241,
+      231
+    ],
+    "hero_magic": "coloured frame (class / magic colour) + cream panel 41..704 x 41..999",
+    "item": "frame colour itemFrame; cream panel 41..704 x 41..836 (square bottom), dark band below with cream text",
+    "modifier_challenge": "cream card, no frame",
+    "monster": "frame colour monsterBottomPanel; art window 41..786 x 41..858 (rounded top); dark band 858..1217; cream strip 1217..1417",
+    "party_leader": "class-colour frame on top/sides; art window 41..786 x 41..1217 (rounded top); cream strip 1217..1417",
+    "rollPill": "78 px, cream rim 3 px, inner radius ~12",
+    "symbol": "circle 102 px (requirement 83 px) with cream ring. Base class, any-Hero (H), Item and Cursed Item symbols = original icons copied unmodified from the reference (apps/web/src/cards/icons, owner decision 2026-11-03, ADR-004); drawn initial-letter circle remains the fallback.",
+    "fontSizeUnits": "sizes are Raylib units (full line box). CSS px = size / 1.22 (Patua One) or / 1.32 (Source Sans; calibrated against reference renders)."
   }
 }
