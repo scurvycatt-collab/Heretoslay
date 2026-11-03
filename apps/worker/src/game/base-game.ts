@@ -666,6 +666,7 @@ export function projectBaseGame(
       monsterDeckCount: game.monsterDeck.length,
       faceUpMonsters: game.faceUpMonsters.map(monsterView),
       discardCount: game.discard.length,
+      discardPile: game.discard.map(cardView),
       heroRollsUsed: [...game.heroRollsUsed],
       turnRollBonus: game.turnRollBonus,
       chain: chainView(game, viewerPlayerId),

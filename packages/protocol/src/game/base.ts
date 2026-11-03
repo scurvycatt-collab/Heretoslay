@@ -185,6 +185,8 @@ export interface BaseGameSnapshot {
     monsterDeckCount: number;
     faceUpMonsters: BaseCardView[];
     discardCount: number;
+    /** Public discard pile, oldest first (last = most recently discarded). */
+    discardPile: BaseCardView[];
     /** Hero instance ids whose effect was already rolled this turn. */
     heroRollsUsed: string[];
     /** Current turn's +N to all rolls of the active player (Wise Shield etc.). */

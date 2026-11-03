@@ -1,7 +1,7 @@
 // CardRenderer (ADR-003): draws a base card from public card data + the layout
 // facts in docs/contracts/CARD_TEMPLATE_SPEC.json. No third-party frame/art:
 // frames are CSS, art is an in-house geometric placeholder.
-import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useRef, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import type { BaseCardKind, CardData, HeroClass, MonsterCardData, RollCompare } from "@here-to-slay/protocol";
 import { CLASS_COLOR, PALETTE, cardData, cardSize, descriptionBox, layoutFor, pct, titleCase } from "./cardCatalog";
 import { Glyph, type GlyphName } from "./ClassIcon";
@@ -10,8 +10,22 @@ import "./card.css";
 export type CardLike = { definitionId: string; kind: BaseCardKind; name: string; cardId?: string; modifierOptions?: number[] };
 export type CardSizeName = "xs" | "sm" | "md" | "lg" | "xl";
 
-/** Hover/focus preview: any card rendered inside the provider can feed the inspector. */
-export const InspectContext = createContext<((card: CardLike | null) => void) | null>(null);
+/**
+ * Card inspector: cards report hover/focus (with their screen rect) and touch
+ * long-press (`pinned`). The provider decides when to show the full card
+ * (e.g. only while Ctrl is held, or always when pinned).
+ */
+export type InspectFn = (card: CardLike | null, rect?: DOMRect | null, pinned?: boolean) => void;
+export const InspectContext = createContext<InspectFn | null>(null);
+
+/** Two-letter monogram + stable hue shift so placeholder art tells cards apart. */
+function artSeed(card: CardLike) {
+  const words = card.name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
+  const mono = (words.length > 1 ? words[0][0] + words[1][0] : (words[0] ?? "?").slice(0, 2)).toUpperCase();
+  let hash = 0;
+  for (const ch of card.definitionId) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
+  return { mono, angle: Math.abs(hash) % 180, spot: 15 + (Math.abs(hash >> 3) % 70) };
+}
 
 const KIND_LABEL: Record<BaseCardKind, string> = {
   hero: "Hero",
@@ -109,12 +123,17 @@ type CardRendererProps = {
   className?: string;
   style?: CSSProperties;
   inspect?: boolean;
+  /** "art": compact table token (art only); "full": the whole card face. */
+  variant?: "full" | "art";
   onClick?: () => void;
   ariaLabel?: string;
 };
 
-export function CardRenderer({ card, size = "md", classes, equipped, selected, dimmed, disabled, badge, className, style, inspect = true, onClick, ariaLabel }: CardRendererProps) {
+export function CardRenderer({ card, size = "md", classes, equipped, selected, dimmed, disabled, badge, className, style, inspect = true, variant = "full", onClick, ariaLabel }: CardRendererProps) {
   const setInspect = useContext(InspectContext);
+  const pressTimer = useRef<number | null>(null);
+  const pinnedRef = useRef(false);
+  const seed = artSeed(card);
   const data = cardData(card.definitionId);
   const kind = card.kind;
   const heroClass = (classes?.[0] as HeroClass | undefined) ?? heroClassOf(data);
@@ -131,8 +150,10 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
   const options = card.modifierOptions ?? (data?.kind === "modifier" ? data.options : undefined);
   const rect = (r: unknown) => pct(kind, r as { x: number; y: number; w: number; h: number });
 
+  const art = variant === "art";
   const classNames = [
     "tcard",
+    art ? "tcard--art" : "",
     `tcard--${kind}`,
     `tcard--${size}`,
     tarot ? "tcard--tarot" : "tcard--poker",
@@ -144,11 +165,25 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
     className ?? "",
   ].filter(Boolean).join(" ");
 
-  const body = (
+  const artBlock = (style: CSSProperties) => (
+    <span className="tcard-art" style={{ ...style, "--art-angle": `${seed.angle}deg`, "--art-spot": `${seed.spot}%` } as CSSProperties}>
+      <Glyph name={glyph} className="tcard-art-glyph" />
+      <span className="tcard-mono">{seed.mono}</span>
+    </span>
+  );
+
+  const artBody = (
     <>
-      <span className="tcard-art" style={rect(layout.art)}>
-        <Glyph name={glyph} className="tcard-art-glyph" />
-      </span>
+      {artBlock({ left: "6%", top: "6%", width: "88%", height: "88%" })}
+      {heroClass && <span className="tcard-mini-class"><Glyph name={heroClass} /></span>}
+      {equipped && <span className="tcard-mini-item" title="Item equipped"><Glyph name="item" /></span>}
+      {badge && <span className="tcard-badge">{badge}</span>}
+    </>
+  );
+
+  const body = art ? artBody : (
+    <>
+      {artBlock(rect(layout.art))}
       <span className={`tcard-head${blank ? " tcard-head--blank" : ""}`}>
         <span className="tcard-name">{card.name}</span>
         {!blank && <span className="tcard-title">{title}</span>}
@@ -204,13 +239,31 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
     </>
   );
 
+  const canInspect = inspect && setInspect;
+  const clearPress = () => {
+    if (pressTimer.current !== null) window.clearTimeout(pressTimer.current);
+    pressTimer.current = null;
+    if (pinnedRef.current && setInspect) setInspect(null);
+    pinnedRef.current = false;
+  };
   const common = {
     className: classNames,
-    style: { ...frameColors(kind, heroClass), aspectRatio: `${spec.width} / ${spec.height}`, ...style },
-    onMouseEnter: inspect && setInspect ? () => setInspect(card) : undefined,
-    onMouseLeave: inspect && setInspect ? () => setInspect(null) : undefined,
-    onFocus: inspect && setInspect ? () => setInspect(card) : undefined,
-    onBlur: inspect && setInspect ? () => setInspect(null) : undefined,
+    style: { ...frameColors(kind, heroClass), aspectRatio: art ? "4 / 5" : `${spec.width} / ${spec.height}`, ...style },
+    onMouseEnter: canInspect ? (e: { currentTarget: Element }) => setInspect(card, e.currentTarget.getBoundingClientRect()) : undefined,
+    onMouseLeave: canInspect ? () => setInspect(null) : undefined,
+    onFocus: canInspect ? (e: { currentTarget: Element }) => setInspect(card, e.currentTarget.getBoundingClientRect()) : undefined,
+    onBlur: canInspect ? () => setInspect(null) : undefined,
+    // Touch: long-press shows the full card until release.
+    onPointerDown: canInspect
+      ? (e: PointerEvent<Element>) => {
+          if (e.pointerType === "mouse") return;
+          const rectNow = e.currentTarget.getBoundingClientRect();
+          pressTimer.current = window.setTimeout(() => { pinnedRef.current = true; setInspect(card, rectNow, true); }, 380);
+        }
+      : undefined,
+    onPointerUp: canInspect ? clearPress : undefined,
+    onPointerCancel: canInspect ? clearPress : undefined,
+    title: art ? card.name : undefined,
     "aria-label": ariaLabel ?? `${card.name} — ${title}${text ? `. ${text}` : ""}`,
   };
 

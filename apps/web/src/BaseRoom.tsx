@@ -1,19 +1,22 @@
-// UI-002 — tabletop for mode "base". Everything shown comes from the server
-// snapshot (+ static card data by definitionId); the client only sends commands
-// and never computes game state. Command kinds/payloads are unchanged from UI-001.
-import { useState, type CSSProperties, type ReactNode } from "react";
-import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseTargets } from "@here-to-slay/protocol";
-import { CardRenderer, InspectContext, type CardLike } from "./CardRenderer";
+// UI-003 draft — tabletop for mode "base" after the owner's reference captures:
+// perimeter seats, central Monsters + Discard, peeking hand, left rail, toasts,
+// full-screen reaction stage. Everything shown comes from the server snapshot
+// (+ static card data by definitionId); the client only sends commands and never
+// computes game state. Command kinds/payloads are unchanged from UI-001/002.
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseTargets, HeroClass } from "@here-to-slay/protocol";
+import { CardRenderer, InspectContext, type CardLike, type InspectFn } from "./CardRenderer";
 import { Glyph } from "./ClassIcon";
-import { HERO_CLASSES, cardData, leaderDisplayName, titleCase } from "./cardCatalog";
+import { CLASS_COLOR, HERO_CLASSES, cardData, leaderDisplayName, titleCase } from "./cardCatalog";
 import "./base-room.css";
 
 type Send = (kind: string, payload: object) => void;
 type Player = BaseGameSnapshot["players"][number];
+type Game = BaseGameSnapshot["game"];
 
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
-const AVATAR_COLORS = ["#6ba2cc", "#e0884a", "#8fc06a", "#c77fd6", "#e5c34a", "#e46a6a"];
-const avatarColor = (player: Player) => AVATAR_COLORS[player.joinIndex % AVATAR_COLORS.length];
+const leaderColor = (player: Player) => (player.leaderClass ? CLASS_COLOR[player.leaderClass as HeroClass] ?? CLASS_COLOR.none : CLASS_COLOR.none);
+const rollText = (roll: { op: "gte" | "lte"; value: number }) => `${roll.value}${roll.op === "gte" ? "+" : "-"}`;
 
 /* ------------------------------------------------------------------ targets */
 
@@ -24,7 +27,7 @@ type TargetApi = {
   toggleHero: (heroId: string) => void;
 };
 
-/** Optional targets for a play/roll; the server validates them against the card's rule. */
+/** Precise target form (fallback to clicking on the table). */
 function TargetPicker({ state, value, onChange }: { state: BaseGameSnapshot; value: BaseTargets; onChange: (next: BaseTargets) => void }) {
   const heroes = state.players.flatMap((player) => player.party.map((entry) => ({ owner: player.nickname, hero: entry.hero })));
   const heroIds = value.heroInstanceIds ?? [];
@@ -35,7 +38,7 @@ function TargetPicker({ state, value, onChange }: { state: BaseGameSnapshot; val
     onChange({ ...value, heroInstanceIds: cleaned.length ? cleaned : undefined });
   };
   return (
-    <div className="tt-targets-fields">
+    <div className="t3-target-fields">
       <label>
         <span>Player</span>
         <select value={value.playerId ?? ""} onChange={(event) => onChange({ ...value, playerId: event.target.value || undefined })}>
@@ -60,181 +63,220 @@ function TargetPicker({ state, value, onChange }: { state: BaseGameSnapshot; val
   );
 }
 
-/* ------------------------------------------------------------------- timers */
+function findHero(state: BaseGameSnapshot, heroId: string | undefined) {
+  if (!heroId) return undefined;
+  for (const player of state.players) {
+    const entry = player.party.find((e) => e.hero.cardId === heroId);
+    if (entry) return { ...entry, owner: player };
+  }
+  return undefined;
+}
 
-/** Smooth deadline bar: CSS animation from the remaining fraction to 0, keyed by deadline. */
-function CountdownBar({ deadlineAt, serverNow, totalMs }: { deadlineAt: number; serverNow: number; totalMs: number }) {
-  const [initialRemaining] = useState(() => Math.max(0, deadlineAt - serverNow));
-  const remaining = Math.max(0, deadlineAt - serverNow);
-  const seconds = Math.ceil(remaining / 1000);
-  const from = Math.min(1, initialRemaining / Math.max(1, totalMs));
-  const live = Math.min(1, remaining / Math.max(1, totalMs));
+function TargetChips({ state, targets }: { state: BaseGameSnapshot; targets: BaseTargets }) {
+  const playerName = targets.playerId ? state.players.find((p) => p.playerId === targets.playerId)?.nickname : undefined;
+  const heroes = (targets.heroInstanceIds ?? []).map((id, i) => `T${i + 1} · ${findHero(state, id)?.hero.name ?? id}`);
+  if (!playerName && heroes.length === 0) return <span className="t3-muted">No targets — click a player or a Hero.</span>;
   return (
-    <div className={`tt-timer${seconds <= 5 ? " is-urgent" : ""}`} role="timer" aria-label={`${seconds} seconds left`}>
-      <div className="tt-timer-track">
-        <div className="tt-timer-fill" style={{ "--from": from, transform: `scaleX(${live})`, animationDuration: `${initialRemaining}ms` } as CSSProperties} />
-      </div>
-      <b className="tt-timer-num">{seconds}s</b>
+    <>
+      {playerName && <span className="t3-chip t3-chip--target">⌖ {playerName}</span>}
+      {heroes.map((h) => <span key={h} className="t3-chip t3-chip--target">{h}</span>)}
+    </>
+  );
+}
+
+/* --------------------------------------------------------------- inspector */
+
+function useModifierKey() {
+  const [held, setHeld] = useState(false);
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === "Control" || e.key === "Meta") setHeld(true); };
+    const up = (e: KeyboardEvent) => { if (e.key === "Control" || e.key === "Meta") setHeld(false); };
+    const reset = () => setHeld(false);
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", reset);
+    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("blur", reset); };
+  }, []);
+  return held;
+}
+
+/** Full card next to the hovered token while Ctrl/⌘ is held (or on touch long-press). */
+function Inspector({ hovered, held }: { hovered: { card: CardLike; rect: DOMRect | null; pinned: boolean } | null; held: boolean }) {
+  if (!hovered || (!held && !hovered.pinned)) return null;
+  const w = 300;
+  const h = Math.round(w * (hovered.card.kind === "monster" || hovered.card.kind === "party_leader" ? 1.713 : 1.396));
+  const r = hovered.rect;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let left = vw / 2 - w / 2;
+  let top = vh / 2 - h / 2;
+  if (r) {
+    left = r.right + 14 + w < vw ? r.right + 14 : Math.max(8, r.left - 14 - w);
+    top = Math.min(Math.max(8, r.top + r.height / 2 - h / 2), Math.max(8, vh - h - 8));
+  }
+  if (vw < 640) { left = (vw - w) / 2; top = Math.max(8, (vh - h) / 2); }
+  return (
+    <div className="t3-inspect" style={{ left, top }} aria-hidden>
+      <CardRenderer card={hovered.card} size="xl" inspect={false} style={{ "--w": `${w}px` } as CSSProperties} />
     </div>
   );
 }
 
-function Die({ value }: { value: number }) {
-  const pips: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-  return (
-    <span className="tt-die" aria-label={`die ${value}`}>
-      {Array.from({ length: 9 }, (_, i) => <i key={i} className={pips[value]?.includes(i) ? "on" : ""} />)}
-    </span>
-  );
-}
+/* ------------------------------------------------------------------- seats */
 
-/* ------------------------------------------------------------------ players */
+const HEX_RING: Array<[number, number]> = [[0.5, -0.866], [1, 0], [0.5, 0.866], [-0.5, 0.866], [-1, 0], [-0.5, -0.866]];
 
-function Avatar({ player, size = "md" }: { player: Player; size?: "sm" | "md" }) {
-  return (
-    <span className={`tt-avatar tt-avatar--${size}`} style={{ background: avatarColor(player) }} aria-hidden>
-      {player.nickname.slice(0, 1).toUpperCase()}
-    </span>
-  );
-}
-
-function ClassPips({ classes }: { classes: string[] }) {
-  return (
-    <span className="tt-pips" aria-label={`Classes ${classes.length}/6: ${classes.join(", ") || "none"}`}>
-      {HERO_CLASSES.map((c) => (
-        <span key={c} className={`tt-pip tt-pip--${c}${classes.includes(c) ? " is-on" : ""}`} title={titleCase(c)}>
-          <Glyph name={c} />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-function SeatHeader({ player, game, me, target }: { player: Player; game: BaseGameSnapshot["game"]; me: string; target: TargetApi }) {
+/** Leader avatar in a ring of six class hexes (lit = class present in the Party). */
+function SeatCluster({ player, game, me, target }: { player: Player; game: Game; me: string; target: TargetApi }) {
   const isActive = player.playerId === game.currentPlayerId;
   const isMe = player.playerId === me;
   const targetable = target.enabled && !isMe;
   const targeted = target.value.playerId === player.playerId;
-  const content = (
+  const avatar = (
     <>
-      <Avatar player={player} />
-      <span className="tt-seat-id">
-        <b>{player.nickname}{isMe ? " (you)" : ""}</b>
-        <small>
-          {player.isHost && <span className="tt-chip">HOST</span>}
-          <span className="tt-chip" title="Cards in hand">✋ {player.handCount}</span>
-          <span className="tt-chip" title="Monsters slain">☠ {player.slainMonsters.length}/3</span>
-          {player.protections.map((p) => <span key={p} className="tt-chip tt-chip--shield">{p === "no_destroy" ? "NO DESTROY" : "NO STEAL"}</span>)}
-        </small>
+      <span className="t3-avatar-face" style={{ background: leaderColor(player) }}>
+        <Glyph name={(player.leaderClass as HeroClass) ?? "leader"} className="t3-avatar-glyph" />
+        <b>{player.nickname.slice(0, 1).toUpperCase()}</b>
       </span>
-      {isActive && <span className="tt-turn-flag">TURN</span>}
-      {targeted && <span className="tt-target-flag">TARGET</span>}
+      {targeted && <span className="t3-reticle" aria-hidden />}
     </>
   );
-  return targetable ? (
-    <button type="button" className={`tt-seat-head is-targetable${targeted ? " is-targeted" : ""}`} onClick={() => target.togglePlayer(player.playerId)} aria-pressed={targeted} title="Click to set as target player">
-      {content}
-    </button>
-  ) : (
-    <div className="tt-seat-head">{content}</div>
+  return (
+    <div className={`t3-cluster${isActive ? " is-active" : ""}`}>
+      <span className={`t3-nametag${isActive ? " is-active" : ""}`}>{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
+      <div className="t3-hexes">
+        {HERO_CLASSES.map((c, i) => {
+          const lit = player.partyClasses.includes(c);
+          return (
+            <span
+              key={c}
+              className={`t3-hex${lit ? " is-lit" : ""}`}
+              style={{ "--dx": HEX_RING[i][0], "--dy": HEX_RING[i][1], ...(lit ? { background: CLASS_COLOR[c] } : {}) } as CSSProperties}
+              title={`${titleCase(c)}${lit ? " — in Party" : ""}`}
+            >
+              {lit && <Glyph name={c} />}
+            </span>
+          );
+        })}
+        {targetable ? (
+          <button type="button" className={`t3-avatar is-targetable${targeted ? " is-targeted" : ""}`} onClick={() => target.togglePlayer(player.playerId)} aria-pressed={targeted} aria-label={`Target ${player.nickname}`}>
+            {avatar}
+          </button>
+        ) : (
+          <span className="t3-avatar" title={player.leaderId ? leaderDisplayName(player.leaderId) : "No Leader"}>{avatar}</span>
+        )}
+      </div>
+      <span className="t3-stats">
+        <span title="Classes in Party (6 = win)">◆ {player.partyClasses.length}/6</span>
+        <span title="Monsters slain (3 = win)">☠ {player.slainMonsters.length}/3</span>
+        <span title="Cards in hand">✋ {player.handCount}</span>
+      </span>
+      {player.protections.length > 0 && (
+        <span className="t3-protect">{player.protections.map((p) => (p === "no_destroy" ? "NO DESTROY" : "NO STEAL")).join(" · ")}</span>
+      )}
+    </div>
   );
 }
 
-function PartyRow({ player, size, target, heroAction }: { player: Player; size: "sm" | "md"; target: TargetApi; heroAction?: (entry: Player["party"][number]) => ReactNode }) {
+function PartyTokens({ player, target, heroAction, vertical }: { player: Player; target: TargetApi; heroAction?: (entry: Player["party"][number]) => ReactNode; vertical?: boolean }) {
   const heroIds = target.value.heroInstanceIds ?? [];
   return (
-    <div className={`tt-party tt-party--${size}`}>
+    <div className={`t3-party${vertical ? " is-vertical" : ""}`}>
       {player.leaderId && (
-        <div className="tt-party-slot tt-party-slot--leader">
-          <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} size={size === "md" ? "sm" : "xs"} />
-          <small>Leader</small>
-        </div>
+        <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-token--leader" />
       )}
       {player.party.map((entry) => {
         const order = heroIds.indexOf(entry.hero.cardId);
         return (
-          <div key={entry.hero.cardId} className={`tt-party-slot${entry.item ? " has-item" : ""}`}>
-            {entry.item && (
-              <CardRenderer card={entry.item} size="xs" className="tt-equip" />
-            )}
+          <div key={entry.hero.cardId} className="t3-hero">
             <CardRenderer
               card={entry.hero}
-              size={size}
+              variant="art"
+              size="xs"
+              className="t3-token"
               classes={entry.classes}
               equipped={Boolean(entry.item)}
               selected={order >= 0}
               badge={order >= 0 ? `T${order + 1}` : undefined}
               onClick={target.enabled ? () => target.toggleHero(entry.hero.cardId) : undefined}
-              ariaLabel={`${entry.hero.name} (${entry.classes.join("/")})${entry.item ? ` equipped with ${entry.item.name}` : ""}${target.enabled ? " — click to target" : ""}`}
+              ariaLabel={`${entry.hero.name} (${entry.classes.join("/")})${entry.item ? ` with ${entry.item.name}` : ""}`}
             />
-            {entry.classes.length > 1 && <small className="tt-mask-note">{entry.classes.map(titleCase).join(" / ")}</small>}
+            {entry.item && <CardRenderer card={entry.item} variant="art" size="xs" className="t3-token t3-token--item" />}
             {heroAction?.(entry)}
           </div>
         );
       })}
-      {player.party.length === 0 && <p className="tt-empty">No Heroes yet</p>}
+      {player.slainMonsters.map((monster) => (
+        <CardRenderer key={monster.cardId} card={monster} variant="art" size="xs" className="t3-token t3-token--slain" />
+      ))}
     </div>
   );
 }
 
-function SlainRow({ player }: { player: Player }) {
-  if (player.slainMonsters.length === 0) return null;
-  return (
-    <div className="tt-slain" aria-label="Slain monsters">
-      {player.slainMonsters.map((monster) => <CardRenderer key={monster.cardId} card={monster} size="xs" />)}
-    </div>
-  );
-}
-
-function OpponentSeat({ player, game, me, target }: { player: Player; game: BaseGameSnapshot["game"]; me: string; target: TargetApi }) {
-  return (
-    <section className={`tt-seat${player.playerId === game.currentPlayerId ? " is-active" : ""}`} aria-label={`${player.nickname}'s party`}>
-      <SeatHeader player={player} game={game} me={me} target={target} />
-      <ClassPips classes={player.partyClasses} />
-      <PartyRow player={player} size="sm" target={target} />
-      <SlainRow player={player} />
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------ chain overlay */
+/* ------------------------------------------------------------- reaction UI */
 
 const chainKey = (chain: BaseChainView) =>
   chain.step === "choice" ? chain.choiceId : chain.step === "immediate_roll_choice" ? `imm-${chain.deadlineAt}` : chain.windowId;
 
-const STATUS_LABEL: Record<string, string> = { pending: "Waiting", passed: "Skipped", played: "Played" };
+const STATUS_LABEL: Record<string, string> = { pending: "THINKING", passed: "PASSED", played: "PLAYED" };
 
 function Roster({ state, responders }: { state: BaseGameSnapshot; responders: Record<string, string> }) {
   return (
-    <aside className="tt-roster" aria-label="Reaction roster">
-      <h3>PLAYERS</h3>
+    <aside className="t3-roster" aria-label="Reaction roster">
       {state.players.filter((p) => p.playerId in responders).map((p) => (
-        <div key={p.playerId} className={`tt-roster-row is-${responders[p.playerId]}`}>
-          <Avatar player={p} size="sm" />
-          <span>{p.nickname}{p.playerId === state.you.playerId ? " (you)" : ""}</span>
-          <em>{STATUS_LABEL[responders[p.playerId]] ?? responders[p.playerId]}</em>
+        <div key={p.playerId} className={`t3-roster-row is-${responders[p.playerId]}`}>
+          <span className="t3-roster-face" style={{ background: leaderColor(p) }}>{p.nickname.slice(0, 1).toUpperCase()}</span>
+          <span className="t3-roster-name">{p.nickname}{p.playerId === state.you.playerId ? " (you)" : ""}</span>
+          <em>{responders[p.playerId] === "pending" ? "⧗ " : "✓ "}{STATUS_LABEL[responders[p.playerId]] ?? responders[p.playerId]}</em>
         </div>
       ))}
     </aside>
   );
 }
 
-function findHero(state: BaseGameSnapshot, heroId: string | undefined) {
-  if (!heroId) return undefined;
-  for (const player of state.players) {
-    const entry = player.party.find((e) => e.hero.cardId === heroId);
-    if (entry) return entry;
-  }
-  return undefined;
+function Die({ value, tone, tilt }: { value: number; tone: string; tilt: number }) {
+  const pips: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  return (
+    <span className={`t3-die t3-die--${tone}`} style={{ "--tilt": `${tilt}deg` } as CSSProperties} aria-label={`die ${value}`}>
+      {Array.from({ length: 9 }, (_, i) => <i key={i} className={pips[value]?.includes(i) ? "on" : ""} />)}
+    </span>
+  );
 }
 
-function ChainOverlay({ state, send, pending, serverNow, targets }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; targets: BaseTargets }) {
+/** Big seconds number + thin smooth bar, keyed by the server deadline. */
+function Countdown({ deadlineAt, serverNow, totalMs, big }: { deadlineAt: number; serverNow: number; totalMs: number; big?: boolean }) {
+  const [initialRemaining] = useState(() => Math.max(0, deadlineAt - serverNow));
+  const remaining = Math.max(0, deadlineAt - serverNow);
+  const seconds = Math.ceil(remaining / 1000);
+  const from = Math.min(1, initialRemaining / Math.max(1, totalMs));
+  const live = Math.min(1, remaining / Math.max(1, totalMs));
+  return (
+    <div className={`t3-countdown${big ? " is-big" : ""}${seconds <= 5 ? " is-urgent" : ""}`} role="timer" aria-label={`${seconds} seconds left`}>
+      <b>{seconds}</b>
+      <span className="t3-countdown-track">
+        <span className="t3-countdown-fill" style={{ "--from": from, transform: `scaleX(${live})`, animationDuration: `${initialRemaining}ms` } as CSSProperties} />
+      </span>
+    </div>
+  );
+}
+
+function Stat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
+  return (
+    <div className={`t3-stat${tone ? ` t3-stat--${tone}` : ""}`}>
+      <small>{label}</small>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function ReactionStage({ state, send, pending, serverNow, targets }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; targets: BaseTargets }) {
   const chain = state.game.chain!;
   const me = state.you.playerId;
   const settings = state.game.settings;
   const [side, setSide] = useState<"challenger" | "defender">("defender");
   const [hornBonus, setHornBonus] = useState<0 | 1 | -1>(0);
   const [picked, setPicked] = useState<string[]>([]);
+  const [focusCard, setFocusCard] = useState<string | null>(null);
   const needsMe =
     chain.step === "challenge_window" || chain.step === "modifier_window"
       ? chain.responders[me] === "pending"
@@ -244,123 +286,143 @@ function ChainOverlay({ state, send, pending, serverNow, targets }: { state: Bas
   const [collapsed, setCollapsed] = useState(!needsMe);
   const name = (playerId: string) => state.players.find((p) => p.playerId === playerId)?.nickname ?? playerId;
   const totalMs = (chain.step === "challenge_window" || chain.step === "modifier_window" ? settings.reactionSeconds : settings.choiceSeconds) * 1000;
+  const countdown = (big: boolean) => <Countdown key={chain.deadlineAt} deadlineAt={chain.deadlineAt} serverNow={serverNow} totalMs={totalMs} big={big} />;
 
   let headline = "";
-  let sub = "";
+  let kicker = "";
   let tone = "choice";
   let featured: ReactNode = null;
-  let main: ReactNode = null;
+  let center: ReactNode = null;
   let roster: ReactNode = null;
-  let controls: ReactNode = null;
+  let tray: ReactNode = null;
+  let primary: ReactNode = null;
 
   if (chain.step === "challenge_window") {
     const mine = chain.responders[me];
     tone = "challenge";
-    headline = "CHALLENGE?";
-    sub = `${name(chain.actorPlayerId)} plays ${chain.pendingCard.name}`;
-    featured = <CardRenderer card={chain.pendingCard} size="lg" />;
+    headline = `${name(chain.actorPlayerId)} is playing ${chain.pendingCard.name}`;
+    kicker = "CHALLENGE?";
+    featured = <CardRenderer card={chain.pendingCard} size="xl" />;
     roster = <Roster state={state} responders={chain.responders} />;
-    const challengeCards = state.yourHand.filter((c) => c.kind === "challenge");
-    main = <p className="tt-ov-copy">Play a <b>Challenge</b> card to contest this play, or skip. The server rolls both sides.</p>;
-    controls = mine === "pending" && (
-      <div className="tt-react-hand">
-        {challengeCards.map((card) => (
-          <div key={card.cardId} className="tt-react-card">
-            <CardRenderer card={card} size="sm" />
-            <button className="tt-btn tt-btn--danger" disabled={pending} onClick={() => send("REACT_CHALLENGE", { windowId: chain.windowId, cardInstanceId: card.cardId })}>CHALLENGE</button>
+    center = <p className="t3-stage-copy">Play a <b>Challenge</b> card to contest this play — the server rolls both sides.</p>;
+    const cards = state.yourHand.filter((c) => c.kind === "challenge");
+    if (mine === "pending") {
+      tray = cards.map((card) => (
+        <div key={card.cardId} className={`t3-tray-card${focusCard === card.cardId ? " is-up" : ""}`}>
+          <CardRenderer card={card} size="md" onClick={() => setFocusCard(focusCard === card.cardId ? null : card.cardId)} selected={focusCard === card.cardId} />
+          <div className="t3-tray-actions">
+            <button className="t3-btn t3-btn--red" disabled={pending} onClick={() => send("REACT_CHALLENGE", { windowId: chain.windowId, cardInstanceId: card.cardId })}>CHALLENGE</button>
           </div>
-        ))}
-        {challengeCards.length === 0 && <p className="tt-empty">No Challenge card in hand.</p>}
-        <button className="tt-btn tt-btn--skip" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP</button>
-      </div>
-    );
+        </div>
+      ));
+      primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP</button>;
+    }
   } else if (chain.step === "modifier_window") {
     const roll = chain.roll;
     const mine = chain.responders[me];
     const hasHorn = state.players.find((p) => p.playerId === me)?.leaderId === "hts.base.v1.party-leader.the-protecting-horn";
-    tone = roll.kind === "challenge" ? "versus" : "modifier";
-    headline = roll.kind === "challenge" ? "CHALLENGE ROLL" : roll.kind === "attack" ? "ATTACK ROLL" : "HERO ROLL";
-    sub = `${name(roll.rollerPlayerId)} rolled · play a Modifier or skip`;
     roster = <Roster state={state} responders={chain.responders} />;
     const hero = findHero(state, roll.heroInstanceId);
     const monster = roll.monsterInstanceId ? state.game.faceUpMonsters.find((m) => m.cardId === roll.monsterInstanceId) : undefined;
     const monsterData = monster ? cardData(monster.definitionId) : undefined;
-    if (hero) featured = <CardRenderer card={hero.hero} classes={hero.classes} equipped={Boolean(hero.item)} size="lg" />;
-    else if (monster) featured = <CardRenderer card={monster} size="lg" />;
-    const effects = (
-      <ul className="tt-mods">
-        {roll.modifiers.map((m) => <li key={m.cardId}><b className={m.value >= 0 ? "pos" : "neg"}>{signed(m.value)}</b> Modifier by {name(m.playerId)}{m.side ? ` → ${m.side}` : ""}</li>)}
-        {roll.passives.map((p, i) => <li key={`${p.source}-${i}`}><b className={p.value >= 0 ? "pos" : "neg"}>{signed(p.value)}</b> {p.label}{p.side ? ` → ${p.side}` : ""}</li>)}
-        {roll.modifiers.length === 0 && roll.passives.length === 0 && <li className="tt-muted">No modifiers yet</li>}
-      </ul>
+    if (hero) featured = <CardRenderer card={hero.hero} classes={hero.classes} equipped={Boolean(hero.item)} size="xl" />;
+    else if (monster) featured = <CardRenderer card={monster} size="xl" />;
+    const diceSum = (d: number[]) => d[0] + d[1];
+    const chips = (filter?: "challenger" | "defender") => (
+      <div className="t3-modchips">
+        {roll.modifiers.filter((m) => !filter || (m.side ?? "defender") === filter).map((m) => (
+          <span key={m.cardId} className={`t3-modchip ${m.value >= 0 ? "is-pos" : "is-neg"}`}>{name(m.playerId)} {signed(m.value)}</span>
+        ))}
+        {roll.passives.filter((p) => !filter || (p.side ?? "defender") === filter).map((p, i) => (
+          <span key={`${p.source}-${i}`} className={`t3-modchip ${p.value >= 0 ? "is-pos" : "is-neg"}`}>{p.label} {signed(p.value)}</span>
+        ))}
+      </div>
     );
-    main =
-      roll.kind === "challenge" ? (
-        <div className="tt-versus">
-          <div className="tt-side tt-side--challenger">
-            <small>CHALLENGER</small>
-            <b>{name(roll.challengerPlayerId!)}</b>
-            <span className="tt-dice">{roll.challengerDice!.map((d, i) => <Die key={i} value={d} />)}</span>
-            <strong>{roll.challengerTotal}</strong>
-          </div>
-          <span className="tt-vs">VS</span>
-          <div className="tt-side tt-side--defender">
-            <small>DEFENDER</small>
-            <b>{name(roll.rollerPlayerId)}</b>
-            <span className="tt-dice">{roll.dice.map((d, i) => <Die key={i} value={d} />)}</span>
-            <strong>{roll.total}</strong>
-          </div>
-          {effects}
-        </div>
-      ) : (
-        <div className="tt-rollstats">
-          <div className="tt-stat"><small>ROLLED</small><span className="tt-dice">{roll.dice.map((d, i) => <Die key={i} value={d} />)}</span></div>
-          <div className="tt-stat"><small>TOTAL</small><strong>{roll.total}</strong></div>
-          {roll.threshold !== undefined && <div className="tt-stat"><small>REQUIRED</small><strong>{roll.threshold}+</strong></div>}
-          {monsterData?.kind === "monster" && (
-            <div className="tt-stat">
-              <small>SLAY / PENALTY</small>
-              <strong className="tt-stat-pair">
-                <span className="pos">{monsterData.slay.value}{monsterData.slay.op === "gte" ? "+" : "-"}</span>
-                <span className="neg">{monsterData.penaltyRange.value}{monsterData.penaltyRange.op === "gte" ? "+" : "-"}</span>
-              </strong>
+    if (roll.kind === "challenge") {
+      tone = "versus";
+      headline = `Challenged by ${name(roll.challengerPlayerId!)}!`;
+      kicker = "THE DICE WILL DECIDE";
+      const cMod = roll.challengerTotal! - diceSum(roll.challengerDice!);
+      const dMod = roll.total - diceSum(roll.dice);
+      center = (
+        <div className="t3-versus">
+          <div className="t3-side t3-side--a">
+            <h3>{name(roll.rollerPlayerId)}</h3>
+            <div className="t3-stats-row">
+              <Stat label="ROLLED" value={diceSum(roll.dice)} />
+              <Stat label="MODIFIER" value={signed(dMod)} tone={dMod > 0 ? "pos" : dMod < 0 ? "neg" : "zero"} />
+              <Stat label="TOTAL" value={roll.total} />
             </div>
-          )}
-          {effects}
+            {chips("defender")}
+            <div className="t3-dice">{roll.dice.map((d, i) => <Die key={i} value={d} tone="blue" tilt={i ? 14 : -10} />)}</div>
+          </div>
+          <span className="t3-vs">VS</span>
+          <div className="t3-side t3-side--b">
+            <h3>{name(roll.challengerPlayerId!)}</h3>
+            <div className="t3-stats-row">
+              <Stat label="ROLLED" value={diceSum(roll.challengerDice!)} />
+              <Stat label="MODIFIER" value={signed(cMod)} tone={cMod > 0 ? "pos" : cMod < 0 ? "neg" : "zero"} />
+              <Stat label="TOTAL" value={roll.challengerTotal} />
+            </div>
+            {chips("challenger")}
+            <div className="t3-dice">{roll.challengerDice!.map((d, i) => <Die key={i} value={d} tone="green" tilt={i ? -16 : 9} />)}</div>
+          </div>
         </div>
       );
-    const modifierCards = state.yourHand.filter((c) => c.kind === "modifier");
-    controls = mine === "pending" && (
-      <>
-        {(roll.kind === "challenge" || hasHorn) && (
-          <div className="tt-ov-options">
-            {roll.kind === "challenge" && (
-              <div className="tt-seg" role="group" aria-label="Apply modifier to">
-                <span>Apply to</span>
-                {(["defender", "challenger"] as const).map((s) => (
-                  <button key={s} className={side === s ? "is-on" : ""} aria-pressed={side === s} onClick={() => setSide(s)}>{s}</button>
-                ))}
-              </div>
-            )}
-            {hasHorn && (
-              <div className="tt-seg" role="group" aria-label="Protecting Horn bonus">
-                <span>Protecting Horn</span>
-                {([0, 1, -1] as const).map((v) => (
-                  <button key={v} className={hornBonus === v ? "is-on" : ""} aria-pressed={hornBonus === v} onClick={() => setHornBonus(v)}>{v === 0 ? "none" : signed(v)}</button>
-                ))}
-              </div>
+    } else {
+      tone = "roll";
+      const what = hero ? hero.hero.name : monster ? monster.name : "a roll";
+      headline = roll.kind === "attack" ? `${name(roll.rollerPlayerId)} is attacking ${what}` : `${name(roll.rollerPlayerId)} is using ${what}`;
+      kicker = roll.kind === "attack" ? "MONSTER ATTACK" : "HERO ABILITY";
+      const mod = roll.total - diceSum(roll.dice);
+      center = (
+        <div className="t3-rollboard">
+          <div className="t3-stats-row">
+            <Stat label="ROLLED" value={diceSum(roll.dice)} />
+            <Stat label="MODIFIER" value={signed(mod)} tone={mod > 0 ? "pos" : mod < 0 ? "neg" : "zero"} />
+            <Stat label="TOTAL" value={roll.total} />
+            {roll.threshold !== undefined && <Stat label="REQUIRED" value={roll.threshold} tone="req" />}
+            {monsterData?.kind === "monster" && (
+              <Stat label="SLAY · PENALTY" value={<><span className="pos">{rollText(monsterData.slay)}</span> <span className="neg">{rollText(monsterData.penaltyRange)}</span></>} tone="req" />
             )}
           </div>
-        )}
-        <div className="tt-react-hand">
+          {chips()}
+          <div className="t3-dice">{roll.dice.map((d, i) => <Die key={i} value={d} tone="orange" tilt={i ? 12 : -18} />)}</div>
+        </div>
+      );
+    }
+    const modifierCards = state.yourHand.filter((c) => c.kind === "modifier");
+    if (mine === "pending") {
+      tray = (
+        <>
+          {(roll.kind === "challenge" || hasHorn) && (
+            <div className="t3-tray-options">
+              {roll.kind === "challenge" && (
+                <div className="t3-seg" role="group" aria-label="Apply modifier to">
+                  <span>Apply to</span>
+                  {(["defender", "challenger"] as const).map((s) => (
+                    <button key={s} className={side === s ? "is-on" : ""} aria-pressed={side === s} onClick={() => setSide(s)}>{s === "defender" ? name(roll.rollerPlayerId) : name(roll.challengerPlayerId!)}</button>
+                  ))}
+                </div>
+              )}
+              {hasHorn && (
+                <div className="t3-seg" role="group" aria-label="Protecting Horn bonus">
+                  <span>Horn</span>
+                  {([0, 1, -1] as const).map((v) => (
+                    <button key={v} className={hornBonus === v ? "is-on" : ""} aria-pressed={hornBonus === v} onClick={() => setHornBonus(v)}>{v === 0 ? "none" : signed(v)}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {modifierCards.map((card) => (
-            <div key={card.cardId} className="tt-react-card">
-              <CardRenderer card={card} size="sm" />
-              <div className="tt-react-opts">
+            <div key={card.cardId} className={`t3-tray-card${focusCard === card.cardId ? " is-up" : ""}`}>
+              <CardRenderer card={card} size="md" onClick={() => setFocusCard(focusCard === card.cardId ? null : card.cardId)} selected={focusCard === card.cardId} />
+              <div className="t3-tray-actions">
                 {(card.modifierOptions ?? []).map((value) => (
                   <button
                     key={`${card.cardId}${value}`}
-                    className={`tt-btn ${value >= 0 ? "tt-btn--pos" : "tt-btn--neg"}`}
+                    className={`t3-btn ${value >= 0 ? "t3-btn--green" : "t3-btn--red"}`}
                     disabled={pending}
                     aria-label={`${card.name}: ${signed(value)}`}
                     onClick={() =>
@@ -379,142 +441,156 @@ function ChainOverlay({ state, send, pending, serverNow, targets }: { state: Bas
               </div>
             </div>
           ))}
-          {modifierCards.length === 0 && <p className="tt-empty">No Modifier card in hand.</p>}
-          <button className="tt-btn tt-btn--skip" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP</button>
-        </div>
-      </>
-    );
+        </>
+      );
+      primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP{modifierCards.length ? ` (${modifierCards.length})` : ""}</button>;
+    }
   } else if (chain.step === "immediate_roll_choice") {
-    headline = "HERO ENTERED THE PARTY";
-    sub = `${name(chain.actorPlayerId)} · ${chain.hero.name}`;
-    tone = "modifier";
-    featured = <CardRenderer card={chain.hero} size="lg" />;
-    main =
+    tone = "roll";
+    headline = `${chain.hero.name} entered ${name(chain.actorPlayerId)}'s Party`;
+    kicker = "ROLL ITS EFFECT?";
+    featured = <CardRenderer card={chain.hero} size="xl" />;
+    center =
       chain.actorPlayerId === me ? (
-        <div className="tt-ov-copy">
-          <p>Roll its effect now (free) or skip.</p>
-          <p className="tt-muted">If the effect needs targets, minimise this panel and click a player / Hero on the table first.</p>
-          <TargetSummary state={state} targets={targets} />
+        <div className="t3-stage-copy">
+          <p>Roll the effect now (free) or skip.</p>
+          <p className="t3-muted">Effect needs a target? Press <b>TABLE</b>, click the player / Hero, then come back.</p>
+          <p className="t3-chips"><TargetChips state={state} targets={targets} /></p>
         </div>
-      ) : <p className="tt-ov-copy">Waiting for {name(chain.actorPlayerId)}.</p>;
-    controls = chain.actorPlayerId === me && (
-      <div className="tt-ov-actions">
-        <button className="tt-btn tt-btn--go" disabled={pending} onClick={() => send("IMMEDIATE_ROLL", { choice: "roll", targets })}>ROLL</button>
-        <button className="tt-btn tt-btn--skip" disabled={pending} onClick={() => send("IMMEDIATE_ROLL", { choice: "skip" })}>SKIP</button>
-      </div>
-    );
+      ) : <p className="t3-stage-copy">Waiting for {name(chain.actorPlayerId)}…</p>;
+    if (chain.actorPlayerId === me) {
+      primary = (
+        <>
+          <button className="t3-btn t3-btn--ghost" disabled={pending} onClick={() => send("IMMEDIATE_ROLL", { choice: "skip" })}>SKIP</button>
+          <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("IMMEDIATE_ROLL", { choice: "roll", targets })}>ROLL</button>
+        </>
+      );
+    }
   } else {
-    // choice
     const toggle = (id: string) => setPicked((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]));
-    const range = chain.kind !== "confirm" ? ` (${chain.min === chain.max ? chain.max : `${chain.min}–${chain.max}`})` : "";
-    headline = chain.kind === "order_top" ? "ORDER THE CARDS" : chain.kind === "view_hand" ? "LOOK AT HAND" : chain.kind === "confirm" ? "CONFIRM" : "CHOOSE";
-    sub = `${name(chain.playerId)}: ${chain.prompt}${range} · timeout = skip`;
+    const range = chain.kind !== "confirm" ? ` · pick ${chain.min === chain.max ? chain.max : `${chain.min}–${chain.max}`}` : "";
     tone = "choice";
+    headline = `${name(chain.playerId)}: ${chain.prompt}`;
+    kicker = chain.kind === "order_top" ? "ORDER THE CARDS" : chain.kind === "view_hand" ? "LOOK AT HAND" : chain.kind === "confirm" ? "CONFIRM" : "CHOOSE";
     const mineChoice = chain.playerId === me;
-    main = !mineChoice ? (
-      <p className="tt-ov-copy">Waiting for {name(chain.playerId)} to choose…</p>
-    ) : chain.kind === "confirm" ? (
-      <p className="tt-ov-copy">{chain.prompt}</p>
-    ) : chain.options ? (
-      <div className="tt-choice">
-        {chain.kind === "play_card" && <p className="tt-muted">Card targets (if needed): minimise and click a player / Hero on the table. <TargetSummary state={state} targets={targets} /></p>}
-        {chain.kind === "order_top" && (
-          <p className="tt-muted">Click in order — <b>#1 goes on top</b>. {picked.length > 0 && <>Order: {picked.map((id) => chain.options?.find((c) => c.cardId === id)?.name).join(" → ")}</>}</p>
-        )}
-        <div className="tt-choice-grid">
+    center = !mineChoice ? (
+      <p className="t3-stage-copy">Waiting for {name(chain.playerId)} to choose…</p>
+    ) : chain.kind === "confirm" ? null : chain.options ? (
+      <div className="t3-choice">
+        <p className="t3-muted">
+          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hold Ctrl + hover for full text.
+          {chain.kind === "play_card" && <> Targets: <TargetChips state={state} targets={targets} /></>}
+        </p>
+        <div className="t3-choice-row">
           {chain.options.map((card) => {
             const index = picked.indexOf(card.cardId);
             return (
-              <CardRenderer
-                key={card.cardId}
-                card={card}
-                size="md"
-                selected={index >= 0}
-                badge={index >= 0 ? (chain.kind === "order_top" ? `#${index + 1}` : "✓") : undefined}
-                onClick={chain.kind !== "view_hand" ? () => toggle(card.cardId) : undefined}
-              />
+              <div key={card.cardId} className="t3-choice-item">
+                <CardRenderer
+                  card={card}
+                  variant="art"
+                  size="sm"
+                  selected={index >= 0}
+                  badge={index >= 0 ? (chain.kind === "order_top" ? `#${index + 1}` : "✓") : undefined}
+                  onClick={chain.kind !== "view_hand" ? () => toggle(card.cardId) : undefined}
+                />
+                <small>{card.name}</small>
+              </div>
             );
           })}
         </div>
       </div>
     ) : null;
-    controls = mineChoice && (
-      <div className="tt-ov-actions">
-        {chain.kind === "confirm" ? (
-          <>
-            <button className="tt-btn tt-btn--go" disabled={pending} onClick={() => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: [], accept: true })}>YES</button>
-            <button className="tt-btn tt-btn--skip" disabled={pending} onClick={() => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: [], accept: false })}>NO</button>
-          </>
-        ) : chain.options ? (
-          <>
-            <span className="tt-muted">Selected {picked.length}{chain.max ? ` / ${chain.max}` : ""}</span>
-            <button
-              className="tt-btn tt-btn--go"
-              disabled={pending}
-              onClick={() => { send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked, ...(chain.kind === "play_card" && picked.length ? { targets } : {}) }); setPicked([]); }}
-            >
-              {chain.kind === "view_hand" ? "CLOSE" : picked.length === 0 && chain.min === 0 ? "SKIP" : "CONFIRM"}
-            </button>
-          </>
-        ) : null}
-      </div>
-    );
+    if (mineChoice && chain.kind === "confirm") {
+      primary = (
+        <>
+          <button className="t3-btn t3-btn--ghost" disabled={pending} onClick={() => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: [], accept: false })}>NO</button>
+          <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: [], accept: true })}>YES</button>
+        </>
+      );
+    } else if (mineChoice && chain.options) {
+      primary = (
+        <button
+          className="t3-btn t3-btn--continue"
+          disabled={pending}
+          onClick={() => { send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked, ...(chain.kind === "play_card" && picked.length ? { targets } : {}) }); setPicked([]); }}
+        >
+          {chain.kind === "view_hand" ? "CLOSE" : picked.length === 0 && chain.min === 0 ? "SKIP" : `CONFIRM (${picked.length})`}
+        </button>
+      );
+    }
   }
-
-  const timer = <CountdownBar key={chain.deadlineAt} deadlineAt={chain.deadlineAt} serverNow={serverNow} totalMs={totalMs} />;
 
   if (collapsed) {
     return (
-      <div className={`tt-dock tt-dock--${tone}${needsMe ? " needs-me" : ""}`} role="status" aria-live="polite">
-        <b>{headline}</b>
-        <span className="tt-dock-sub">{sub}</span>
-        {timer}
-        <button className="tt-btn" onClick={() => setCollapsed(false)}>{needsMe ? "RESPOND" : "VIEW"}</button>
+      <div className={`t3-pill-dock t3-pill-dock--${tone}${needsMe ? " needs-me" : ""}`} role="status" aria-live="polite">
+        <b>{kicker}</b>
+        <span>{headline}</span>
+        {countdown(false)}
+        <button className="t3-btn" onClick={() => setCollapsed(false)}>{needsMe ? "RESPOND" : "VIEW"}</button>
       </div>
     );
   }
 
   return (
-    <div className={`tt-overlay tt-overlay--${tone}`} role="dialog" aria-modal="false" aria-label={headline}>
-      <div className="tt-ov-panel">
-        <button className="tt-ov-min" onClick={() => setCollapsed(true)} aria-label="Minimise to view the table">▾ TABLE</button>
-        <header className="tt-ov-head" aria-live="polite">
-          <span className="tt-ov-sub">{sub}</span>
-          <strong className="tt-ov-title">{headline}</strong>
-          {timer}
-        </header>
-        <div className={`tt-ov-body${featured ? "" : " no-feature"}${roster ? "" : " no-roster"}`}>
-          {featured && <div className="tt-ov-feature">{featured}</div>}
-          <div className="tt-ov-main">{main}</div>
-          {roster}
-        </div>
-        {controls && <footer className="tt-ov-controls">{controls}</footer>}
-      </div>
+    <div className={`t3-stage t3-stage--${tone}`} role="dialog" aria-label={kicker}>
+      <button className="t3-stage-min" onClick={() => setCollapsed(true)} aria-label="Hide to view the table">◱ TABLE</button>
+      <header className="t3-stage-head" aria-live="polite">
+        <h2>{headline}</h2>
+        <span className="t3-stage-kicker">{kicker}</span>
+        {countdown(true)}
+      </header>
+      {featured && <div className="t3-stage-feature">{featured}</div>}
+      <div className="t3-stage-center">{center}</div>
+      {roster}
+      {tray && <div className="t3-stage-tray">{tray}</div>}
+      {primary && <div className="t3-stage-primary">{primary}</div>}
     </div>
   );
 }
 
-function TargetSummary({ state, targets }: { state: BaseGameSnapshot; targets: BaseTargets }) {
-  const playerName = targets.playerId ? state.players.find((p) => p.playerId === targets.playerId)?.nickname : undefined;
-  const heroes = (targets.heroInstanceIds ?? []).map((id, i) => `T${i + 1} ${findHero(state, id)?.hero.name ?? id}`);
-  if (!playerName && heroes.length === 0) return <span className="tt-target-summary tt-muted">No targets set.</span>;
+/* --------------------------------------------------------------- popups */
+
+function Popup({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [onClose]);
   return (
-    <span className="tt-target-summary">
-      {playerName && <span className="tt-chip tt-chip--target">Player: {playerName}</span>}
-      {heroes.map((h) => <span key={h} className="tt-chip tt-chip--target">{h}</span>)}
-    </span>
+    <div className="t3-popup-back" onClick={onClose}>
+      <section className={`t3-popup${wide ? " is-wide" : ""}`} role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
+        <header><b>{title}</b><button className="t3-icon-btn" onClick={onClose} aria-label="Close">✕</button></header>
+        {children}
+      </section>
+    </div>
   );
+}
+
+type Toast = { seq: number; text: string };
+
+function useLogToasts(log: Game["log"]) {
+  const lastSeq = useRef<number>(log.length ? log[log.length - 1].seq : 0);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  useEffect(() => {
+    const fresh = log.filter((entry) => entry.seq > lastSeq.current);
+    if (!fresh.length) return;
+    lastSeq.current = fresh[fresh.length - 1].seq;
+    setToasts((current) => [...current, ...fresh.map((e) => ({ seq: e.seq, text: e.text }))].slice(-3));
+    const ids = fresh.map((e) => e.seq);
+    const timer = window.setTimeout(() => setToasts((current) => current.filter((t) => !ids.includes(t.seq))), 4500);
+    return () => window.clearTimeout(timer);
+  }, [log]);
+  return [toasts, (seq: number) => setToasts((current) => current.filter((t) => t.seq !== seq))] as const;
 }
 
 /* --------------------------------------------------------------------- hand */
 
-function HandFan({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolean; onPlay: (card: BaseCardView) => void }) {
+function Hand({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolean; onPlay: (card: BaseCardView) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const n = hand.length;
-  const spread = n > 1 ? Math.min(7, 42 / n) : 0;
   return (
-    <div className="tt-hand" aria-label="Your hand" style={{ "--n": n } as CSSProperties}>
-      {n === 0 && <p className="tt-empty">Your hand is empty.</p>}
+    <div className="t3-hand" aria-label="Your hand" style={{ "--n": n } as CSSProperties}>
       {hand.map((card, i) => {
         const offset = i - (n - 1) / 2;
         const playable = card.kind === "hero" || card.kind === "item" || card.kind === "cursed_item" || card.kind === "magic";
@@ -522,17 +598,19 @@ function HandFan({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boo
         return (
           <div
             key={card.cardId}
-            className={`tt-hand-slot${isSel ? " is-selected" : ""}`}
-            style={{ "--rot": `${offset * spread}deg`, "--lift": `${Math.abs(offset) * Math.abs(offset) * 2.2}px`, zIndex: isSel ? 60 : i + 1 } as CSSProperties}
+            className={`t3-hand-card${isSel ? " is-up" : ""}`}
+            style={{ "--rot": `${offset * Math.min(4, 24 / Math.max(1, n))}deg`, zIndex: isSel ? 60 : i + 1 } as CSSProperties}
           >
             <CardRenderer card={card} size="md" selected={isSel} onClick={() => setSelected(isSel ? null : card.cardId)} />
-            <div className="tt-hand-actions">
-              {playable ? (
-                <button className="tt-btn tt-btn--go" disabled={!canPlay} onClick={() => { onPlay(card); setSelected(null); }}>PLAY · 1 AP</button>
-              ) : (
-                <span className="tt-chip">{card.kind === "modifier" ? "Use on a roll" : card.kind === "challenge" ? "Use to challenge" : titleCase(card.kind)}</span>
-              )}
-            </div>
+            {isSel && (
+              <div className="t3-hand-actions">
+                {playable ? (
+                  <button className="t3-btn t3-btn--continue" disabled={!canPlay} onClick={() => { onPlay(card); setSelected(null); }}>PLAY · 1 AP</button>
+                ) : (
+                  <span className="t3-chip">{card.kind === "modifier" ? "Used on a roll" : "Used to challenge"}</span>
+                )}
+              </div>
+            )}
           </div>
         );
       })}
@@ -542,6 +620,17 @@ function HandFan({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boo
 
 /* --------------------------------------------------------------------- room */
 
+/** Seat slots by opponent count (clockwise after you): left edge, top row, right edge. */
+function seatSlots(count: number): string[] {
+  switch (count) {
+    case 1: return ["top-c"];
+    case 2: return ["top-l2", "top-r2"];
+    case 3: return ["top-l", "top-c", "top-r"];
+    case 4: return ["left", "top-l2", "top-r2", "right"];
+    default: return ["left", "top-l", "top-c", "top-r", "right"];
+  }
+}
+
 export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; notice: string; onLobby: () => void }) {
   const game = state.game;
   const me = state.you.playerId;
@@ -549,8 +638,11 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const ap = game.actionPoints ?? 0;
   const free = active && game.chain === null;
   const [targets, setTargets] = useState<BaseTargets>({});
-  const [inspect, setInspect] = useState<CardLike | null>(null);
+  const [hovered, setHovered] = useState<{ card: CardLike; rect: DOMRect | null; pinned: boolean } | null>(null);
+  const [panel, setPanel] = useState<null | "log" | "discard" | "targets" | "help" | "menu">(null);
   const [hideGameOver, setHideGameOver] = useState(false);
+  const held = useModifierKey();
+  const [toasts, dismissToast] = useLogToasts(game.log);
   const mySeat = state.players.find((p) => p.playerId === me);
   const allSelected = game.phase === "leader_selection" && game.selectionPlayerId === null;
   const playing = game.phase === "turn_active" || game.phase === "game_over";
@@ -568,197 +660,270 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
         return { ...t, heroInstanceIds: next.length ? next : undefined };
       }),
   };
+  const inspect: InspectFn = (card, rect, pinned) => setHovered(card ? { card, rect: rect ?? null, pinned: Boolean(pinned) } : null);
 
-  // Seat order follows turn order, starting after you (display only).
+  const canDraw = !pending && free && ap >= 1;
+  const canRedraw = !pending && free && ap >= 3;
+  const canEnd = !pending && free;
+  // Keyboard shortcuts for the same three turn buttons (same guards as the buttons).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (e.ctrlKey || e.metaKey || e.altKey || (el && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))) return;
+      const key = e.key.toLowerCase();
+      if (key === "d" && canDraw) send("DRAW_CARD", {});
+      else if (key === "r" && canRedraw) send("REDRAW_HAND", {});
+      else if (key === "e" && canEnd) send("END_TURN", {});
+      else if (key === "l") setPanel((p) => (p === "log" ? null : "log"));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canDraw, canRedraw, canEnd, send]);
+
+  // Seats clockwise after you (display only).
   const order = game.turnOrder.length ? game.turnOrder : state.players.map((p) => p.playerId);
   const myIndex = order.indexOf(me);
   const rotated = myIndex >= 0 ? [...order.slice(myIndex + 1), ...order.slice(0, myIndex)] : order.filter((id) => id !== me);
   const opponents = rotated.map((id) => state.players.find((p) => p.playerId === id)).filter((p): p is Player => Boolean(p));
   for (const p of state.players) if (p.playerId !== me && !opponents.includes(p)) opponents.push(p);
+  const slots = seatSlots(opponents.length);
+  const railPlayers = order.map((id) => state.players.find((p) => p.playerId === id)).filter((p): p is Player => Boolean(p));
   const currentName = state.players.find((p) => p.playerId === game.currentPlayerId)?.nickname;
   const winner = state.players.find((p) => p.playerId === game.winnerPlayerId);
+  const discardPile = game.discardPile ?? [];
+  const topDiscard = discardPile[discardPile.length - 1];
+
+  const preTable = !playing;
 
   return (
-    <InspectContext.Provider value={setInspect}>
-      <main className="app-shell tt-shell">
-        <header className="review-bar tt-bar">
-          <div>
-            <b>HERE TO SLAY</b>
-            <span>BASE GAME · ROOM {state.roomCode}</span>
-          </div>
-          <div className="tt-bar-status" aria-label="Game status">
-            <span className="tt-chip tt-chip--phase">{game.phase.replaceAll("_", " ").toUpperCase()}</span>
-            {game.phase === "turn_active" && (
-              <>
-                <span className="tt-chip">TURN {game.turnNumber}</span>
-                <span className={`tt-chip${active ? " tt-chip--you" : ""}`}>{active ? "YOUR TURN" : currentName}</span>
-                <span className="tt-ap" aria-label={`${ap} action points`}>
-                  {Array.from({ length: Math.max(3, ap) }, (_, i) => <i key={i} className={i < ap ? "on" : ""} />)}
-                  <small>AP {ap}</small>
-                </span>
-                {game.turnRollBonus ? <span className="tt-chip tt-chip--pos">ROLLS +{game.turnRollBonus}</span> : null}
-              </>
-            )}
-          </div>
-          <button onClick={onLobby}>LOBBY</button>
-        </header>
+    <InspectContext.Provider value={inspect}>
+      <main className={`t3-root${preTable ? " app-shell" : ""}`}>
+        {preTable && (
+          <header className="review-bar">
+            <div><b>HERE TO SLAY</b><span>BASE GAME · ROOM {state.roomCode}</span></div>
+            <button onClick={onLobby}>LOBBY</button>
+          </header>
+        )}
 
         {game.phase === "lobby" && (
-          <section className="tt-stage" aria-label="Lobby">
-            <p className="tt-kicker">SHARE THIS ROOM CODE</p>
-            <strong className="tt-roomcode">{state.roomCode}</strong>
-            <div className="tt-lobby-players">
-              {state.players.map((p) => (
-                <span key={p.playerId} className="tt-lobby-player"><Avatar player={p} /> {p.nickname}{p.isHost ? " · HOST" : ""}</span>
-              ))}
-              {Array.from({ length: Math.max(0, 6 - state.players.length) }, (_, i) => <span key={`empty-${i}`} className="tt-lobby-player is-empty">open seat</span>)}
+          <section className="t3-prestage" aria-label="Lobby">
+            <p className="t3-kicker">SHARE THIS ROOM CODE</p>
+            <strong className="t3-roomcode">{state.roomCode}</strong>
+            <div className="t3-lobby-players">
+              {state.players.map((p) => <span key={p.playerId} className="t3-lobby-player"><span className="t3-roster-face" style={{ background: leaderColor(p) }}>{p.nickname.slice(0, 1).toUpperCase()}</span>{p.nickname}{p.isHost ? " · HOST" : ""}</span>)}
+              {Array.from({ length: Math.max(0, 6 - state.players.length) }, (_, i) => <span key={`e${i}`} className="t3-lobby-player is-empty">open seat</span>)}
             </div>
             <p>Players {state.players.length}/6 · base game needs 2–6.</p>
             {state.you.isHost ? (
-              <button className="tt-btn tt-btn--go tt-btn--big" disabled={pending || state.players.length < 2} onClick={() => send("BEGIN_LEADER_SELECTION", {})}>BEGIN LEADER SELECTION</button>
-            ) : <p className="tt-muted">Waiting for the host to begin.</p>}
+              <button className="t3-btn t3-btn--continue" disabled={pending || state.players.length < 2} onClick={() => send("BEGIN_LEADER_SELECTION", {})}>BEGIN LEADER SELECTION</button>
+            ) : <p className="t3-muted">Waiting for the host to begin.</p>}
           </section>
         )}
 
         {game.phase === "leader_selection" && (
-          <section className="tt-stage" aria-label="Party Leader selection">
-            <p className="tt-kicker">CHOOSE YOUR PARTY LEADER</p>
-            <strong className="tt-stage-title">
-              {game.selectionPlayerId ? (game.selectionPlayerId === me ? "Your pick" : `Picking: ${state.players.find((p) => p.playerId === game.selectionPlayerId)?.nickname}`) : "All Leaders picked."}
-            </strong>
-            <div className="tt-leaders">
+          <section className="t3-prestage" aria-label="Party Leader selection">
+            <p className="t3-kicker">CHOOSE YOUR PARTY LEADER</p>
+            <h2>{game.selectionPlayerId ? (game.selectionPlayerId === me ? "Your pick" : `Picking: ${state.players.find((p) => p.playerId === game.selectionPlayerId)?.nickname}`) : "All Leaders picked."}</h2>
+            <div className="t3-leaders">
               {game.leaderPool.map((id) => {
                 const taken = game.selectedLeaderIds.includes(id);
                 const owner = state.players.find((p) => p.leaderId === id);
-                const canPick = game.selectionPlayerId === me && !taken;
                 return (
-                  <div key={id} className="tt-leader-slot">
-                    <CardRenderer
-                      card={{ definitionId: id, kind: "party_leader", name: leaderDisplayName(id) }}
-                      size="lg"
-                      dimmed={taken}
-                      disabled={pending || taken || game.selectionPlayerId !== me}
-                      badge={taken ? (owner ? owner.nickname : "TAKEN") : undefined}
-                      onClick={game.selectionPlayerId === me ? () => send("SELECT_PARTY_LEADER", { leaderId: id }) : undefined}
-                      ariaLabel={`${leaderDisplayName(id)}${taken ? " (taken)" : ""}`}
-                    />
-                    {canPick && <small className="tt-pick-hint">Click to pick</small>}
-                  </div>
+                  <CardRenderer
+                    key={id}
+                    card={{ definitionId: id, kind: "party_leader", name: leaderDisplayName(id) }}
+                    size="lg"
+                    dimmed={taken}
+                    disabled={pending || taken || game.selectionPlayerId !== me}
+                    badge={taken ? owner?.nickname ?? "TAKEN" : undefined}
+                    onClick={game.selectionPlayerId === me ? () => send("SELECT_PARTY_LEADER", { leaderId: id }) : undefined}
+                    ariaLabel={`${leaderDisplayName(id)}${taken ? " (taken)" : ""}`}
+                  />
                 );
               })}
             </div>
-            {state.you.isHost && allSelected && <button className="tt-btn tt-btn--go tt-btn--big" disabled={pending} onClick={() => send("START_GAME", {})}>START GAME</button>}
+            {state.you.isHost && allSelected && <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("START_GAME", {})}>START GAME</button>}
           </section>
         )}
 
         {playing && (
-          <section className="tt-table" aria-label="Base game table">
-            <div className={`tt-opponents tt-opponents--${opponents.length}`}>
-              {opponents.map((player) => <OpponentSeat key={player.playerId} player={player} game={game} me={me} target={targetApi} />)}
-            </div>
+          <div className="t3-frame">
+            {/* left rail: turn order + tools */}
+            <nav className="t3-rail" aria-label="Players and tools">
+              <div className="t3-rail-players">
+                {railPlayers.map((p) => (
+                  <span key={p.playerId} className={`t3-rail-face${p.playerId === game.currentPlayerId ? " is-active" : ""}${p.playerId === me ? " is-me" : ""}`} style={{ background: leaderColor(p) }} title={`${p.nickname}${p.playerId === game.currentPlayerId ? " — turn" : ""}`}>
+                    {p.nickname.slice(0, 1).toUpperCase()}
+                  </span>
+                ))}
+              </div>
+              <div className="t3-rail-tools">
+                <button className="t3-icon-btn" onClick={() => setPanel("log")} aria-label="Game log (L)" title="Game log (L)">☰<small>LOG</small></button>
+                <button className={`t3-icon-btn${targetApi.enabled ? "" : " is-off"}`} onClick={() => setPanel("targets")} aria-label="Targets" title="Targets">⌖<small>TGT</small></button>
+                <button className="t3-icon-btn" onClick={() => setPanel("help")} aria-label="Controls help" title="Controls">?<small>KEYS</small></button>
+              </div>
+            </nav>
 
-            <div className="tt-center">
-              <div className="tt-piles" aria-label="Piles">
-                <div className="tt-pile"><span className="tt-pile-stack" /><b>{game.mainDeckCount}</b><small>DECK</small></div>
-                <div className="tt-pile tt-pile--discard"><span className="tt-pile-stack" /><b>{game.discardCount}</b><small>DISCARD</small></div>
-                <div className="tt-pile tt-pile--monster"><span className="tt-pile-stack" /><b>{game.monsterDeckCount}</b><small>MONSTERS</small></div>
+            <section className="t3-felt" aria-label="Base game table">
+              <button className="t3-corner t3-corner--menu" onClick={() => setPanel("menu")} aria-label="Menu">≡</button>
+              <div className="t3-corner t3-corner--status" aria-label="Turn status">
+                {chain ? <span className="t3-status-timer">⧗ {Math.max(0, Math.ceil((chain.deadlineAt - serverNow) / 1000))}s</span> : null}
+                <span>T{game.turnNumber}</span>
+                <span className="t3-ap" aria-label={`${ap} action points`}>{Array.from({ length: Math.max(3, ap) }, (_, i) => <i key={i} className={i < ap ? "on" : ""} />)}</span>
               </div>
 
-              <div className="tt-monsters" aria-label="Monsters">
-                <h2>MONSTERS</h2>
-                <div className="tt-monster-row">
+              {opponents.map((player, i) => (
+                <div key={player.playerId} className={`t3-seat t3-seat--${slots[i] ?? "top-c"}`} aria-label={`${player.nickname}'s party`}>
+                  <SeatCluster player={player} game={game} me={me} target={targetApi} />
+                  <PartyTokens player={player} target={targetApi} vertical={slots[i] === "left" || slots[i] === "right"} />
+                </div>
+              ))}
+
+              <div className="t3-center">
+                <div className="t3-deck" aria-label={`Deck ${game.mainDeckCount} cards`} title={`Main deck · ${game.mainDeckCount}`}>
+                  <span className="t3-deck-stack" />
+                  <b>{game.mainDeckCount}</b>
+                  <small>DECK</small>
+                </div>
+                <div className="t3-monsters" aria-label="Monsters">
                   {game.faceUpMonsters.map((monster) => (
-                    <div key={monster.cardId} className="tt-monster">
+                    <div key={monster.cardId} className="t3-monster">
                       <CardRenderer card={monster} size="lg" />
-                      <button className="tt-btn tt-btn--danger" disabled={pending || !free || ap < 2} onClick={() => send("ATTACK_MONSTER", { monsterInstanceId: monster.cardId })}>ATTACK · 2 AP</button>
+                      <button className="t3-btn t3-btn--red t3-attack" disabled={pending || !free || ap < 2} onClick={() => send("ATTACK_MONSTER", { monsterInstanceId: monster.cardId })}>ATTACK · 2 AP</button>
                     </div>
                   ))}
+                  <span className="t3-monster-deck" title="Monster deck">☠ {game.monsterDeckCount}</span>
                 </div>
+                <span className="t3-divider" aria-hidden />
+                <button type="button" className="t3-discard" onClick={() => setPanel("discard")} aria-label={`Discard pile, ${game.discardCount} cards — open`}>
+                  {topDiscard ? <CardRenderer card={topDiscard} size="lg" /> : <span className="t3-discard-empty">DISCARD<br />empty</span>}
+                  <span className="t3-discard-count">{game.discardCount}</span>
+                </button>
               </div>
 
-              <details className="tt-log" open>
-                <summary>LOG</summary>
-                <ol>{game.log.slice(-12).map((entry) => <li key={entry.seq}>{entry.text}</li>)}</ol>
-              </details>
-            </div>
-
-            {mySeat && (
-              <section className={`tt-me${active ? " is-active" : ""}`} aria-label="Your party">
-                <div className="tt-me-head">
-                  <SeatHeader player={mySeat} game={game} me={me} target={targetApi} />
-                  <ClassPips classes={mySeat.partyClasses} />
-                  <SlainRow player={mySeat} />
-                </div>
-                <PartyRow
-                  player={mySeat}
-                  size="md"
-                  target={targetApi}
-                  heroAction={(entry) => {
-                    const used = game.heroRollsUsed.includes(entry.hero.cardId);
-                    return (
-                      <button
-                        className="tt-btn tt-btn--roll"
-                        disabled={pending || !free || ap < 1 || used}
-                        onClick={() => send("USE_HERO_EFFECT", { heroInstanceId: entry.hero.cardId, targets })}
-                      >
-                        {used ? "ROLLED" : "ROLL EFFECT · 1 AP"}
-                      </button>
-                    );
-                  }}
-                />
-              </section>
-            )}
-
-            {targetApi.enabled && (
-              <section className="tt-targets" aria-label="Targets">
-                <b>TARGETS</b>
-                <span className="tt-muted">Click a player or Hero on the table (Hero order = T1, T2).</span>
-                <TargetSummary state={state} targets={targets} />
-                <TargetPicker state={state} value={targets} onChange={setTargets} />
-                <button className="tt-btn" onClick={() => setTargets({})}>CLEAR TARGETS</button>
-              </section>
-            )}
-
-            <div className="tt-dock-bottom">
-              <HandFan hand={state.yourHand} canPlay={!pending && free && ap >= 1} onPlay={(card) => send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets })} />
-              {active && game.phase === "turn_active" ? (
-                <div className="tt-actions" aria-label="Turn actions">
-                  <button className="tt-btn tt-btn--go" disabled={pending || !free || ap < 1} onClick={() => send("DRAW_CARD", {})}>DRAW · 1 AP</button>
-                  <button className="tt-btn" disabled={pending || !free || ap < 3} onClick={() => send("REDRAW_HAND", {})}>REDRAW · 3 AP</button>
-                  {mySeat?.leaderId === "hts.base.v1.party-leader.the-shadow-claw" && (
-                    <button className="tt-btn" disabled={pending || !free || ap < 1 || !targets.playerId} onClick={() => send("LEADER_ACTION", { targetPlayerId: targets.playerId })}>SHADOW CLAW PULL · 1 AP</button>
-                  )}
-                  <button className="tt-btn tt-btn--end" disabled={pending || !free} onClick={() => send("END_TURN", {})}>END TURN</button>
-                </div>
-              ) : (
-                <div className="tt-actions tt-actions--idle">
-                  <span className="tt-muted">{game.phase === "game_over" ? "Game over" : `Waiting for ${currentName ?? "…"}`}</span>
+              {mySeat && (
+                <div className="t3-seat t3-seat--me" aria-label="Your party">
+                  <SeatCluster player={mySeat} game={game} me={me} target={targetApi} />
+                  <PartyTokens
+                    player={mySeat}
+                    target={targetApi}
+                    heroAction={(entry) => {
+                      if (!active || game.phase !== "turn_active") return null;
+                      const used = game.heroRollsUsed.includes(entry.hero.cardId);
+                      return (
+                        <button
+                          className="t3-roll-btn"
+                          disabled={pending || !free || ap < 1 || used}
+                          onClick={() => send("USE_HERO_EFFECT", { heroInstanceId: entry.hero.cardId, targets })}
+                          title={used ? "Already rolled this turn" : "Roll effect · 1 AP"}
+                        >
+                          {used ? "✓" : "🎲 1"}
+                        </button>
+                      );
+                    }}
+                  />
                 </div>
               )}
+
+              {targetApi.enabled && (targets.playerId || targets.heroInstanceIds?.length) ? (
+                <div className="t3-target-bar">
+                  <TargetChips state={state} targets={targets} />
+                  <button className="t3-icon-btn" onClick={() => setTargets({})} aria-label="Clear targets">✕</button>
+                </div>
+              ) : null}
+
+              <Hand hand={state.yourHand} canPlay={!pending && free && ap >= 1} onPlay={(card) => send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets })} />
+
+              <div className="t3-turn-actions" aria-label="Turn actions">
+                {active && game.phase === "turn_active" ? (
+                  <>
+                    {mySeat?.leaderId === "hts.base.v1.party-leader.the-shadow-claw" && (
+                      <button className="t3-act" disabled={pending || !free || ap < 1 || !targets.playerId} onClick={() => send("LEADER_ACTION", { targetPlayerId: targets.playerId })}><kbd>⌖</kbd>PULL</button>
+                    )}
+                    <button className="t3-act" disabled={!canDraw} onClick={() => send("DRAW_CARD", {})}><kbd>D</kbd>DRAW</button>
+                    <button className="t3-act" disabled={!canRedraw} onClick={() => send("REDRAW_HAND", {})}><kbd>R</kbd>REDEAL</button>
+                    <button className="t3-act t3-act--end" disabled={!canEnd} onClick={() => send("END_TURN", {})}><kbd>E</kbd>PASS</button>
+                  </>
+                ) : (
+                  <span className="t3-waiting">{game.phase === "game_over" ? "GAME OVER" : `${currentName ?? "…"}'s turn`}</span>
+                )}
+              </div>
+
+              <p className="t3-hint">Hold <kbd>Ctrl</kbd> + hover a card for full details</p>
+            </section>
+
+            <div className="t3-toasts" aria-live="polite">
+              {toasts.map((t) => (
+                <div key={t.seq} className="t3-toast">
+                  <span>{t.text}</span>
+                  <button className="t3-icon-btn" onClick={() => dismissToast(t.seq)} aria-label="Dismiss">✕</button>
+                </div>
+              ))}
             </div>
-          </section>
+          </div>
         )}
 
-        {chain && <ChainOverlay key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} targets={targets} />}
+        {chain && <ReactionStage key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} targets={targets} />}
+
+        {panel === "log" && (
+          <Popup title={`GAME LOG · ${game.log.length}`} onClose={() => setPanel(null)}>
+            <ol className="t3-log">{game.log.map((entry) => <li key={entry.seq}>{entry.text}</li>)}</ol>
+          </Popup>
+        )}
+        {panel === "discard" && (
+          <Popup title={`DISCARD PILE · ${game.discardCount}`} onClose={() => setPanel(null)} wide>
+            <p className="t3-muted">Newest first. Hold <kbd>Ctrl</kbd> + hover for full card.</p>
+            <div className="t3-discard-list">
+              {[...discardPile].reverse().map((card) => (
+                <div key={card.cardId} className="t3-choice-item">
+                  <CardRenderer card={card} variant="art" size="sm" />
+                  <small>{card.name}</small>
+                </div>
+              ))}
+              {discardPile.length === 0 && <p className="t3-muted">Empty.</p>}
+            </div>
+          </Popup>
+        )}
+        {panel === "targets" && (
+          <Popup title="TARGETS" onClose={() => setPanel(null)}>
+            <p className="t3-muted">Click a player avatar or Hero on the table (Hero order = T1, T2), or pick here. The server checks targets against the card rule.</p>
+            <p className="t3-chips"><TargetChips state={state} targets={targets} /></p>
+            <TargetPicker state={state} value={targets} onChange={setTargets} />
+            <button className="t3-btn" onClick={() => setTargets({})}>CLEAR TARGETS</button>
+          </Popup>
+        )}
+        {panel === "help" && (
+          <Popup title="CONTROLS" onClose={() => setPanel(null)}>
+            <ul className="t3-help">
+              <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + hover — full card (touch: long-press)</li>
+              <li>Click a hand card — lift it, then PLAY</li>
+              <li>Click an avatar / Hero — set target (T1, T2)</li>
+              <li><kbd>D</kbd> draw · <kbd>R</kbd> redeal · <kbd>E</kbd> pass turn · <kbd>L</kbd> log · <kbd>Esc</kbd> close</li>
+            </ul>
+          </Popup>
+        )}
+        {panel === "menu" && (
+          <Popup title={`ROOM ${state.roomCode}`} onClose={() => setPanel(null)}>
+            <p className="t3-muted">{game.phase.replaceAll("_", " ")} · turn {game.turnNumber} · {currentName}</p>
+            <p className="t3-muted">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED. Card art is placeholder."}</p>
+            <button className="t3-btn" onClick={onLobby}>BACK TO LOBBY</button>
+          </Popup>
+        )}
 
         {game.phase === "game_over" && !hideGameOver && (
-          <div className="tt-overlay tt-overlay--win" role="dialog" aria-label="Game over">
-            <div className="tt-ov-panel tt-win">
-              <span className="tt-ov-sub">GAME OVER</span>
-              <strong className="tt-ov-title" role="status">WINNER: {winner?.nickname}</strong>
+          <div className="t3-stage t3-stage--win" role="dialog" aria-label="Game over">
+            <header className="t3-stage-head">
+              <span className="t3-stage-kicker">GAME OVER</span>
+              <h2 className="t3-win-name" role="status">{winner?.nickname} WINS!</h2>
               <p>{game.winReason === "slay_3" ? "Slew 3 Monsters" : "6 classes in Party"}</p>
-              <button className="tt-btn" onClick={() => setHideGameOver(true)}>VIEW TABLE</button>
-            </div>
+              <button className="t3-btn t3-btn--continue" onClick={() => setHideGameOver(true)}>VIEW TABLE</button>
+            </header>
           </div>
         )}
 
-        {inspect && (
-          <div className="tt-inspect" aria-hidden>
-            <CardRenderer card={inspect} size="xl" inspect={false} />
-          </div>
-        )}
-
-        <p className="sr-note" role="status">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED. Card art is placeholder."}</p>
+        <Inspector hovered={hovered} held={held} />
+        {preTable && <p className="sr-note" role="status">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED."}</p>}
+        {!preTable && notice && <p className="t3-notice" role="status">{notice}</p>}
       </main>
     </InspectContext.Provider>
   );

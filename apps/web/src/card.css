@@ -55,7 +55,8 @@
   overflow: hidden;
   border-radius: calc(var(--w) * 0.03);
   background:
-    radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.35), transparent 45%),
+    radial-gradient(circle at var(--art-spot, 30%) 25%, rgb(255 255 255 / 0.35), transparent 45%),
+    repeating-linear-gradient(var(--art-angle, 45deg), rgb(255 255 255 / 0.06) 0 6%, transparent 6% 12%),
     linear-gradient(155deg, color-mix(in srgb, var(--accent, var(--frame)) 55%, #fff), color-mix(in srgb, var(--accent, var(--frame)) 70%, #000));
   box-shadow: inset 0 0 0 calc(var(--w) * 0.012) rgb(0 0 0 / 0.4);
 }
@@ -199,3 +200,19 @@
 .tcard.is-selected { box-shadow: 0 0 0 3px #ffc31d, 0 0 18px rgb(255 195 29 / 0.7); transform: translateY(-6px); }
 .tcard.is-dimmed { opacity: 0.45; filter: grayscale(0.7); }
 .tcard:disabled { cursor: not-allowed; }
+
+/* placeholder monogram (stands in for card art until art assets are cleared) */
+.tcard-mono { position: absolute; right: 6%; bottom: 4%; font: 400 22cqw/1 "Patua One", Georgia, serif; color: rgb(255 255 255 / 0.22); letter-spacing: -0.5cqw; pointer-events: none; }
+.tcard--art .tcard-mono { font-size: 34cqw; right: 8%; bottom: 6%; }
+
+/* art-only table token */
+.tcard--art { border-radius: calc(var(--w) * 0.1); }
+.tcard--art::before { display: none; }
+.tcard--art .tcard-art { border-radius: calc(var(--w) * 0.07); }
+.tcard--art .tcard-art-glyph { width: 46%; height: 46%; color: rgb(255 255 255 / 0.4); }
+.tcard-mini-class, .tcard-mini-item { position: absolute; display: grid; place-items: center; width: 30%; aspect-ratio: 1; border-radius: 50%; z-index: 3; box-shadow: 0 0 0 2px #fff; }
+.tcard-mini-class { left: -2%; top: -2%; background: var(--frame); color: #fff; }
+.tcard-mini-item { right: -2%; bottom: -2%; background: #ffc31d; color: #142336; }
+.tcard-mini-class svg, .tcard-mini-item svg { width: 64%; height: 64%; }
+.tcard--art .tcard-badge { font-size: max(9px, 18cqw); }
+.tcard--art { overflow: visible; }

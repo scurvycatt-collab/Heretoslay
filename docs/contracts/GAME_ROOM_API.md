@@ -133,7 +133,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
-    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount;
+    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice
     winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;
