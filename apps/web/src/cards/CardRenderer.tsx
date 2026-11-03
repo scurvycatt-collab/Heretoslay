@@ -2,6 +2,7 @@ import { useId } from "react";
 import type { CardData, RollCompare } from "@here-to-slay/protocol";
 import spec from "../../../../docs/contracts/CARD_TEMPLATE_SPEC.json";
 import { cardAssets, cardById } from "./catalog";
+import { CARD_FACE_PLACEHOLDER, resolveCardFace } from "./resolveCardFace";
 import "./cards.css";
 
 const rgb = (values: number[]) => `rgb(${values.join(",")})`;
@@ -43,6 +44,8 @@ function Badge({ x, y, size, label, color }: { x: number; y: number; size: numbe
  */
 export function CardRenderer({ card, className = "" }: { card: CardData; className?: string }) {
   const clipId = useId().replaceAll(":", "");
+  const face = resolveCardFace(card.definitionId);
+  if (face !== CARD_FACE_PLACEHOLDER) return <CardFaceImage cardId={card.definitionId} label={card.name} className={className} />;
   const kind = card.kind === "cursed_item" ? "item" : card.kind;
   const layout = spec.layouts[kind];
   const { width, height } = spec.cardSizes[layout.size as "poker" | "tarot"];
@@ -98,5 +101,13 @@ export function CardRenderer({ card, className = "" }: { card: CardData; classNa
 /** Resolve only a definition already revealed by the server snapshot. */
 export function CardById({ definitionId, fallback }: { definitionId: string; fallback?: string }) {
   const card = cardById.get(definitionId);
-  return card ? <CardRenderer card={card} /> : <div className="card-unavailable">{fallback ?? definitionId}<small>Card layout unavailable</small></div>;
+  return card ? <CardRenderer card={card} /> : <CardFaceImage cardId={definitionId} label={fallback ?? definitionId} />;
+}
+
+/** A complete imported face must not receive another frame or rules overlay. */
+export function CardFaceImage({ cardId, label, className = "" }: { cardId: string; label: string; className?: string }) {
+  return <img className={`card-renderer ${className}`} src={resolveCardFace(cardId)} alt={label} data-definition-id={cardId} loading="lazy" onError={(event) => {
+    const image = event.currentTarget;
+    if (image.getAttribute("src") !== CARD_FACE_PLACEHOLDER) image.src = CARD_FACE_PLACEHOLDER;
+  }} />;
 }
