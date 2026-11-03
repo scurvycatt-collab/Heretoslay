@@ -338,7 +338,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -416,7 +416,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -496,7 +496,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -578,7 +578,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -661,7 +661,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -742,7 +742,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -824,7 +824,7 @@
             "J",
             "F"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -906,7 +906,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -992,7 +992,7 @@
             "J",
             "F"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -1078,7 +1078,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -1160,7 +1160,7 @@
             "J",
             "F"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -1242,7 +1242,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -1330,7 +1330,7 @@
             "J",
             "F"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -1420,7 +1420,7 @@
             "S",
             "J"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
@@ -1502,7 +1502,7 @@
             "J",
             "F"
           ],
-          "note": "Leader does not fill a slot in engine by owner decision Q-01; RB text says a class slot can be met by 'a Hero card or the <class> Party Leader card' — see LEAD 'Chờ owner quyết'."
+          "note": "Leader fills a class slot (owner decision lần 2, Q-01 changed; RB: 'a Hero card or the <class> Party Leader card'); settings.leaderFillsClassSlot."
         },
         "slay": {
           "status": "corroborated",
