@@ -161,6 +161,7 @@ function ChainPanel({ state, send, pending, serverNow, targets }: { state: BaseG
       {chain.playerId === me && chain.kind !== "confirm" && chain.options && (
         <>
           {chain.kind === "play_card" && <p>Card targets (if needed): use the target picker below.</p>}
+          {chain.kind === "order_top" && <p>Tick in order — first ticked goes on top. Order: {picked.map((id) => chain.options?.find((c) => c.cardId === id)?.name).join(" → ")}</p>}
           {chain.options.map((card) => (
             <label key={card.cardId}>{chain.kind !== "view_hand" && <input type="checkbox" checked={picked.includes(card.cardId)} onChange={() => toggle(card.cardId)} />} {card.name}</label>
           ))}

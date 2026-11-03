@@ -138,3 +138,11 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 | Q-04 (đổi) | Mask **thay** class của Hero (text thẻ "instead of"), không cộng thêm. | `settings.maskMode = "replace"` (áp dụng cả win 6 class và requirement) |
 | CHOICE-TIMEOUT | Hết giờ lựa chọn → **skip**, không chọn gì, không có hiệu ứng. | `settleDeadlines` |
 | MAY | Mệnh đề "may" → **hỏi người chơi** (choice `confirm`, hết giờ = từ chối). | Arctic Aries, Crowned Serpent, Dracos, Plundering Puma |
+
+## Owner chốt lần 3 (2026-11-03)
+
+| # | Quyết định | Triển khai |
+|---|---|---|
+| BULLSEYE | Người chơi tự xếp thứ tự 2 lá trả lại đỉnh deck. | choice `order_top` |
+| ITEM-CURSED | Cursed Item tính là "Item card" (Malamammoth, Quick Draw, Sly Pickings, Hook). | giữ như đã làm |
+| DESTROY | DESTROY chỉ chọn Hero trong Party người khác (RB glossary), kể cả Pan Chucks / Qi Bear. | giữ như đã làm |

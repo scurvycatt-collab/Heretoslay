@@ -92,6 +92,8 @@ export type ChoiceKind =
   | "destroy_hero"
   /** Bullseye: pick 1 of the top 3 deck cards (private to the chooser). */
   | "take_from_top"
+  /** Bullseye: put the remaining top cards back in the chosen order (ids, top first; private). */
+  | "order_top"
   /** Sharp Fox: look at another player's hand (private); resolve with []. */
   | "view_hand"
   /** Silent Shadow: take 1 card from another player's hand (seen). */
@@ -950,6 +952,8 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       return game.seats.filter((other) => other !== seat).flatMap((other) => other.party.map((hero) => hero.card));
     case "take_from_top":
       return game.mainDeck.slice(0, 3);
+    case "order_top":
+      return game.mainDeck.filter((card) => choice.fromCardIds?.includes(card.cardId));
     case "take_from_hand":
       return [...(seatOf(game, choice.targetPlayerId ?? "")?.hand ?? [])];
     default:
@@ -987,8 +991,21 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
         const index = game.mainDeck.findIndex((card) => card.cardId === id);
         if (index >= 0) seat.hand.push(game.mainDeck.splice(index, 1)[0]);
       }
-      log(game, `${whoName(game, seat.playerId)} lấy 1 lá từ 3 lá trên cùng; 2 lá còn lại trả lại đỉnh deck`);
+      log(game, `${whoName(game, seat.playerId)} lấy 1 lá từ các lá trên cùng của deck`);
+      {
+        // "return the other two to the top of the deck in any order" — owner: the player orders them.
+        const rest = game.mainDeck.slice(0, Math.max(0, 3 - cardIds.length)).map((card) => card.cardId);
+        if (rest.length >= 2) {
+          game.queue.unshift({ op: "choice", playerId: seat.playerId, kind: "order_top", count: rest.length, fromCardIds: rest, prompt: "Xếp thứ tự các lá trả lại đỉnh deck (lá đầu = trên cùng)" });
+        }
+      }
       return;
+    case "order_top": {
+      const picked = cardIds.map((id) => game.mainDeck.find((card) => card.cardId === id)!).filter(Boolean);
+      game.mainDeck = [...picked, ...game.mainDeck.filter((card) => !cardIds.includes(card.cardId))];
+      log(game, `${whoName(game, seat.playerId)} xếp lại ${picked.length} lá trên cùng deck`);
+      return;
+    }
     case "view_hand":
       log(game, `${whoName(game, seat.playerId)} đã xem tay bài của ${whoName(game, choice.targetPlayerId ?? "")}`);
       return;
