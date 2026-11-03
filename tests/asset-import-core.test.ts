@@ -120,3 +120,26 @@ test("draft JSON boundary + resume by SHA-256", () => {
   assert.deepEqual(r.draft.candidates.map((c) => [c.candidateId, c.sourceId, c.reviewed]), [["kept", "src-new", true]]);
   assert.deepEqual(validateDraft(r.draft, "preview", definitions), []);
 });
+
+test("export file names: mapped by card, unmapped by source + order, always unique and safe", async () => {
+  const { exportFileNames, isSafeArchivePath } = await import("../apps/web/src/asset-import/adapters/core.ts");
+  const sources = [{ sourceId: "s1", relativePath: "Base/Hero Fighter Card Sheet.png", sha256: null, width: 10, height: 10 }];
+  const base = { sourceId: "s1", label: "x", previewUrl: null, assetType: "complete_card_front" as const, side: "front" as const, template: "poker" as const, crop: { x: 0, y: 0, width: 1, height: 1 }, rotation: 0 as const, variant: "default", reviewed: true, excluded: false, provenance: { origin: "o", rightsStatus: "FAN_MADE_NON_COMMERCIAL" as const } };
+  const names = exportFileNames([
+    { ...base, candidateId: "a", definitionId: "hts.base.v1.hero.dodgy-dealer" },
+    { ...base, candidateId: "b", definitionId: null },
+    { ...base, candidateId: "c", definitionId: "hts.base.v1.hero.dodgy-dealer", variant: "Kickstarter Alt" },
+    { ...base, candidateId: "d", definitionId: "hts.base.v1.hero.dodgy-dealer", assetType: "artwork" },
+    { ...base, candidateId: "e", definitionId: null },
+  ], sources);
+  assert.deepEqual([...names.values()], [
+    "cards/hts.base.v1.hero.dodgy-dealer.png",
+    "cards/hero-fighter-card-sheet-02.png",
+    "cards/hts.base.v1.hero.dodgy-dealer--kickstarter-alt.png",
+    "cards/hts.base.v1.hero.dodgy-dealer--art.png",
+    "cards/hero-fighter-card-sheet-05.png",
+  ]);
+  assert.ok([...names.values()].every(isSafeArchivePath));
+  const dup = exportFileNames([{ ...base, candidateId: "a", definitionId: "hts.base.v1.hero.x" }, { ...base, candidateId: "b", definitionId: "hts.base.v1.hero.x" }], sources);
+  assert.deepEqual([...dup.values()], ["cards/hts.base.v1.hero.x.png", "cards/hts.base.v1.hero.x-2.png"]);
+});

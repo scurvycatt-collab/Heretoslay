@@ -376,6 +376,34 @@ export function exportFileName(candidateId: string): string {
   return `cards/${candidateId}.png`;
 }
 
+const fileSlug = (text: string) => normalizeKey(text).replace(/[^a-z0-9._-]+/g, "-").replace(/^[^a-z0-9]+|-+$/g, "").slice(0, 60) || "card";
+
+/**
+ * Readable, unique file names for one export, in candidate order:
+ *  - mapped:   cards/<definitionId>[--<variant>][--art].png  (one file per card + variant + type, enforced by the validator)
+ *  - unmapped: cards/<source file stem>-NN.png              (NN = order of the region on its source)
+ * Collisions get "-2", "-3"…; every name passes SAFE_ID / isSafeArchivePath.
+ */
+export function exportFileNames(candidates: readonly ImportCandidate[], sources: readonly AssetSource[]): Map<string, string> {
+  const names = new Map<string, string>();
+  const taken = new Set<string>();
+  const perSource = new Map<string, number>();
+  for (const c of candidates) {
+    const n = (perSource.get(c.sourceId) ?? 0) + 1;
+    perSource.set(c.sourceId, n);
+    const source = sources.find((s) => s.sourceId === c.sourceId);
+    let base = c.definitionId && SAFE_ID.test(c.definitionId)
+      ? `${c.definitionId}${c.variant !== "default" ? `--${fileSlug(c.variant)}` : ""}${c.assetType === "artwork" ? "--art" : ""}`
+      : `${fileSlug(source ? stem(source.relativePath) : c.sourceId)}-${String(n).padStart(2, "0")}`;
+    base = base.slice(0, 90);
+    let name = base; let k = 2;
+    while (taken.has(name)) name = `${base}-${k++}`;
+    taken.add(name);
+    names.set(c.candidateId, exportFileName(name));
+  }
+  return names;
+}
+
 export function buildManifest(
   draft: ImportDraft, mode: ExportMode, assets: ExportedCardAsset[],
 ): CardAssetManifest {

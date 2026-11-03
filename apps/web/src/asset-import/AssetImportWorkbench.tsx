@@ -4,10 +4,10 @@ import { cardById } from "../cards/catalog";
 import { CardRenderer } from "../cards/CardRenderer";
 import { createDemoDraft } from "./fixtures";
 import { TAKEDOWN_CONTACT, validateDraft, type AssetImportAdapter, type ExportMode, type ExportProgress, type ExportResult, type ImportCandidate, type ImportDraft, type QuarterTurn } from "./contract";
-import { parseDraftJson, resumeDraft } from "./adapters/core";
+import { exportFileNames, parseDraftJson, resumeDraft } from "./adapters/core";
 import { CropEditor, type ViewApi } from "./CropEditor";
 import { CardPicker } from "./CardPicker";
-import { ART_LAYOUTS, CARD_SIZE, artLayoutForKind, expandBox, fitAspect, sourceAspect, splitGrid, type ArtLayout, type Box } from "./cropGeometry";
+import { ART_LAYOUTS, CARD_SIZE, artLayoutForKind, coversImage, expandBox, fitAspect, sourceAspect, splitGrid, type ArtLayout, type Box } from "./cropGeometry";
 import "./workbench.css";
 
 const steps = ["Nguồn ảnh", "Cắt & xoay", "Gán thẻ", "Kiểm tra & xuất"];
@@ -29,6 +29,11 @@ function sampleCardFor(layout: ArtLayout): CardData | undefined {
 }
 
 const catalogCards = [...cardById.values()];
+function suggestedKindOf(c: ImportCandidate) {
+  if (c.assetType !== "artwork") return c.template === "tarot" ? "monster" as const : "all" as const;
+  const layout = layoutOf(c);
+  return layout === "hero" ? "all" as const : layout;
+}
 
 /** Asset import workbench (dev route /?asset-import). Importer I/O belongs to the adapter. */
 export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter }) {
@@ -45,7 +50,7 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
   const [previews, setPreviews] = useState<Record<string, PreviewState>>({});
   const [tool, setTool] = useState<"draw" | "pan">("draw");
   const [lockAspect, setLockAspect] = useState(true);
-  const [drawCreatesNew, setDrawCreatesNew] = useState(false);
+  const [drawReplaces, setDrawReplaces] = useState(false);
   const [zoom, setZoom] = useState(0);
   const [grid, setGrid] = useState({ rows: 2, cols: 2, gutterX: 0, gutterY: 0, snap: true });
   const viewApi = useRef<ViewApi | null>(null);
@@ -72,6 +77,9 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
     if (other.candidateId === card.candidateId || other.excluded || !other.definitionId || other.variant !== card.variant || other.assetType !== card.assetType) continue;
     usedBy.set(other.definitionId, [...(usedBy.get(other.definitionId) ?? []), other.label]);
   }
+  const regionLabels: Record<string, string> = {};
+  sheetCandidates.forEach((c, i) => { regionLabels[c.candidateId] = `#${i + 1} ${c.definitionId ? cardById.get(c.definitionId)?.name ?? c.definitionId : c.label.split(" · ").slice(-1)[0]}`; });
+  const mapTo = (definitionId: string | null) => { const kind = definitionId ? cardById.get(definitionId)?.kind : undefined; update({ definitionId, ...(kind ? { template: ["party_leader", "monster"].includes(kind) ? "tarot" as const : "poker" as const } : {}) }); };
   const ratioOff = card && target ? Math.abs(card.crop.width / card.crop.height / sourceAspect(target, card.rotation) - 1) : 0;
   const ratioWarn = ratioOff > 0.03 ? ratioOff : 0;
   const previewFresh = !!card && (demo ? !!card.previewUrl : !!preview?.url && preview.key === renderKey(card) && !preview.loading);
@@ -91,13 +99,34 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
     }));
   }, []);
   const update = (changes: Partial<ImportCandidate>) => { if (card) patch(card.candidateId, changes); };
+  /** The untouched whole-image region an import starts with; the first drawn card replaces it. */
+  const placeholderOf = (sourceId: string) => {
+    const src = draftRef.current.sources.find((x) => x.sourceId === sourceId);
+    const list = draftRef.current.candidates.filter((c) => c.sourceId === sourceId);
+    return src && list.length === 1 && coversImage(list[0].crop, src) && !list[0].definitionId && !list[0].reviewed ? list[0] : undefined;
+  };
+  /** A drag on the sheet: a new card region (inherits type, size and rotation of the selected one). */
+  const addDrawnRegion = (crop: Box) => {
+    if (!card) return;
+    const placeholder = placeholderOf(card.sourceId);
+    const [made] = createRegions(placeholder ?? card, [crop], !!placeholder);
+    if (made) setNotice(`Đã thêm ${made.label}. Gán thẻ ở cột phải, bấm “Lưu thẻ” rồi kéo tiếp để vẽ thẻ khác.`);
+  };
+  /** Marks the selected region done; the next drag on the sheet starts a new card. */
+  const saveRegion = () => {
+    if (!card || !previewFresh) return;
+    update({ reviewed: true });
+    setNotice(`Đã lưu ${card.label}${card.definitionId ? ` → ${cardById.get(card.definitionId)?.name}` : " (chưa gán thẻ)"}. Kéo trên ảnh để vẽ thẻ tiếp theo.`);
+  };
   const newId = (base: string, taken: Set<string>) => { let n = 1; while (taken.has(`${base}-x${n}`)) n++; return `${base}-x${n}`; };
   const createRegions = (template: ImportCandidate, crops: Array<Box & { row?: number; column?: number }>, replaceSelected: boolean) => {
     const taken = new Set(draftRef.current.candidates.map((c) => c.candidateId));
     const base = template.sourceId.replace(/^src-/, "");
-    const made = crops.map((crop, i) => {
+    const siblings = draftRef.current.candidates.filter((c) => c.sourceId === template.sourceId && !(replaceSelected && c.candidateId === template.candidateId));
+    let number = siblings.reduce((max, c) => Math.max(max, Number(/thẻ (\d+)$/.exec(c.label)?.[1] ?? 0)), 0);
+    const made = crops.map((crop) => {
       const candidateId = newId(base, taken); taken.add(candidateId);
-      const where = crop.row ? `r${crop.row} c${crop.column}` : `vùng ${i + 1}`;
+      const where = crop.row ? `r${crop.row} c${crop.column}` : `thẻ ${++number}`;
       return { ...template, candidateId, label: `${template.label.split(" · ")[0]} · ${where}`, crop: { x: crop.x, y: crop.y, width: crop.width, height: crop.height }, previewUrl: null, reviewed: false, excluded: false, definitionId: null };
     });
     setDraft((current) => {
@@ -271,14 +300,21 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
               <button onClick={() => viewApi.current?.actual()} title="1 px nguồn = 1 px màn hình">100%</button>
             </div>
             <label className="ce-toggle" title="Khi vẽ / kéo tay nắm, giữ đúng tỉ lệ của ảnh xuất"><input type="checkbox" checked={lockAspect} onChange={(event) => setLockAspect(event.target.checked)} />Khoá tỉ lệ {target ? `${target.width}:${target.height}` : ""}</label>
-            <label className="ce-toggle"><input type="checkbox" checked={drawCreatesNew} onChange={(event) => setDrawCreatesNew(event.target.checked)} />Vẽ = thêm vùng mới</label>
+            <label className="ce-toggle" title="Bật: kéo trên ảnh sẽ vẽ lại vùng đang chọn thay vì thêm thẻ mới"><input type="checkbox" checked={drawReplaces} onChange={(event) => setDrawReplaces(event.target.checked)} />Vẽ lại vùng đang chọn</label>
           </div>
-          <CropEditor adapter={adapter!} source={source} candidates={sheetCandidates} selectedId={selected} aspect={aspect} disabled={busy} tool={tool} drawCreatesNew={drawCreatesNew}
+          <CropEditor adapter={adapter!} source={source} candidates={sheetCandidates} selectedId={selected} aspect={aspect} disabled={busy} tool={tool} drawCreatesNew={!drawReplaces || !!placeholderOf(source.sourceId)} labels={regionLabels} onCommit={saveRegion}
             onSelect={(id) => { setSelected(id); setNotice(""); }}
             onCrop={(id, crop) => patch(id, { crop })}
-            onCreate={(crop) => createRegions(card, [crop], false)}
+            onCreate={addDrawnRegion}
             onReady={onReady} onZoomChange={setZoom} />
-          <p className="ce-help">Kéo trên ảnh để <b>vẽ vùng</b> (Shift + kéo: vẽ đè lên vùng có sẵn) · kéo trong vùng để <b>dời</b> · kéo 8 ô vuông để <b>đổi cỡ</b> (giữ Alt = bỏ khoá tỉ lệ) · con lăn chuột để <b>zoom</b> · giữ Space hoặc nút giữa để <b>kéo ảnh</b> · mũi tên dời 1 px (Shift 10 px), Alt + mũi tên đổi cỡ.</p>
+          <div className="ce-strip" role="list" aria-label="Các thẻ trên ảnh này">
+            {sheetCandidates.map((c) => <div role="listitem" key={c.candidateId} className={`ce-chip ${c.candidateId === selected ? "selected" : ""} ${c.reviewed ? "done" : ""} ${c.excluded ? "excluded" : ""}`}>
+              <button type="button" onClick={() => { setSelected(c.candidateId); setNotice(""); }} title={c.label}><b>{regionLabels[c.candidateId]}</b><small>{c.excluded ? "đã loại" : c.reviewed ? "✓ đã lưu" : "chưa lưu"}</small></button>
+              {!placeholderOf(c.sourceId) && <button type="button" className="ce-chip-x" aria-label={`Xóa ${c.label}`} onClick={() => { const rest = draft.candidates.filter((x) => x.candidateId !== c.candidateId); setDraft({ ...draft, candidates: rest }); if (c.candidateId === selected) setSelected(rest.find((x) => x.sourceId === c.sourceId)?.candidateId ?? rest[0]?.candidateId ?? ""); }}>×</button>}
+            </div>)}
+            <span className="ce-strip-hint">{placeholderOf(source.sourceId) ? "Kéo trên ảnh để vẽ thẻ đầu tiên." : `${sheetCandidates.length} thẻ trên ảnh này · kéo vùng trống để thêm thẻ`}</span>
+          </div>
+          <p className="ce-help">Kéo trên vùng trống để <b>vẽ thẻ mới</b> (Shift + kéo: vẽ đè lên vùng có sẵn) · bấm một vùng để chọn · Enter = <b>lưu thẻ</b> · kéo trong vùng để <b>dời</b> · kéo 8 ô vuông để <b>đổi cỡ</b> (giữ Alt = bỏ khoá tỉ lệ) · con lăn chuột để <b>zoom</b> · giữ Space hoặc nút giữa để <b>kéo ảnh</b> · mũi tên dời 1 px (Shift 10 px), Alt + mũi tên đổi cỡ.</p>
         </> : <ResultView card={card} url={previewUrl} loading={!!preview?.loading} error={preview?.error} demo={demo} />}
       </section>
 
@@ -311,15 +347,20 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
             <button type="button" onClick={applyGrid}>Chia {grid.rows} × {grid.cols} = {grid.rows * grid.cols} vùng</button>
           </details>}
           <div className="aw-live"><p>Kết quả xuất {preview?.loading ? "· đang cập nhật…" : previewFresh ? "· mới nhất" : ""}</p><ResultView card={card} url={previewUrl} loading={!!preview?.loading} error={preview?.error} demo={demo} compact /></div>
+          {!demo && <details className="aw-grid aw-map" open><summary>Gán thẻ cho vùng này {card.definitionId ? `· ${cardById.get(card.definitionId)?.name}` : "· chưa gán"}</summary>
+            <CardPicker key={card.candidateId} compact cards={catalogCards} value={card.definitionId} usedBy={usedBy} suggestedKind={suggestedKindOf(card)} onChange={mapTo} />
+          </details>}
           <label className="aw-check"><input type="checkbox" checked={card.reviewed} disabled={!previewFresh} onChange={(event) => update({ reviewed: event.target.checked })} />Đã kiểm tra đủ chữ, mép và chiều</label>
-          {!demo && <button type="button" className="aw-primary-soft" disabled={!previewFresh || card.excluded} onClick={reviewAndNext}>✓ Duyệt & sang vùng kế →</button>}
+          {!demo && <div className="aw-save">
+            <button type="button" className="aw-primary-soft" disabled={!previewFresh || card.excluded} onClick={saveRegion} title="Enter">✓ Lưu thẻ & vẽ thẻ tiếp</button>
+            <button type="button" disabled={!previewFresh || card.excluded} onClick={reviewAndNext}>Lưu & sang vùng kế →</button>
+          </div>}
         </>}
 
         {step === 2 && <>
           <div className="aw-field"><span className="aw-field-label">Thẻ trong game</span>
             <CardPicker key={card.candidateId} cards={catalogCards} value={card.definitionId} usedBy={usedBy}
-              suggestedKind={card.assetType === "artwork" ? (layoutOf(card) === "party_leader" ? "party_leader" : layoutOf(card) === "monster" ? "monster" : layoutOf(card) === "hero" ? "all" : layoutOf(card)) : card.template === "tarot" ? "monster" : "all"}
-              onChange={(definitionId) => { const kind = definitionId ? cardById.get(definitionId)?.kind : undefined; update({ definitionId, ...(kind ? { template: ["party_leader", "monster"].includes(kind) ? "tarot" : "poker" } : {}) }); }} />
+              suggestedKind={suggestedKindOf(card)} onChange={mapTo} />
             <p className="aw-hint">Gán vùng ảnh này cho một thẻ có trong game để game biết hiện ảnh cho thẻ nào. Catalog chỉ gồm base: thẻ expansion để “Chưa gán”, đừng gán nhầm vào thẻ base.{card.assetType === "artwork" && " Artwork bắt buộc gán thẻ: khung + chữ được vẽ từ dữ liệu của thẻ đó."}</p>
           </div>
           <div className="aw-field"><span className="aw-field-label">Variant — phiên bản ảnh</span>
@@ -335,7 +376,9 @@ export function AssetImportWorkbench({ adapter }: { adapter?: AssetImportAdapter
           <p>Rights: <b>{card.provenance.rightsStatus}</b> · DMCA: {TAKEDOWN_CONTACT}</p>
         </>}
 
-        {step === 3 && <><label>Chế độ xuất<select value={mode} onChange={(event) => setMode(event.target.value as ExportMode)}><option value="preview">Preview pack — cho phép chưa gán thẻ</option><option value="mapped">Webgame pack — bắt buộc gán thẻ hợp lệ</option></select></label><p>{included.length} vùng · {issues.length} mục cần xử lý</p><ul className="aw-issues">{issues.map((issue, index) => <li key={`${issue.candidateId}-${index}`}><button onClick={() => setSelected(issue.candidateId)}>{issue.candidateId}</button>{issue.message}</li>)}</ul>{!issues.length && <p>Draft đã qua kiểm tra đầu vào. Adapter vẫn kiểm tra lại từng PNG và ZIP đầu ra.</p>}<p className="aw-hint">Nguyên mặt thẻ → PNG đúng khổ thẻ, game hiển thị nguyên ảnh. Artwork → PNG đúng khung tranh, game tự vẽ khung + chữ quanh nó.</p></>}
+        {step === 3 && <><label>Chế độ xuất<select value={mode} onChange={(event) => setMode(event.target.value as ExportMode)}><option value="preview">Preview pack — cho phép chưa gán thẻ</option><option value="mapped">Webgame pack — bắt buộc gán thẻ hợp lệ</option></select></label><p className="aw-hint">{mode === "preview" ? "Preview pack: để xem thử, game KHÔNG dùng ảnh trong pack này (kể cả thẻ đã gán)." : "Webgame pack: game dùng ảnh cho đúng thẻ đã gán. Mọi vùng trong batch phải được gán."}</p>
+          {mode === "mapped" && included.some((c) => !c.definitionId) && <button type="button" onClick={() => setDraft((d) => ({ ...d, candidates: d.candidates.map((c) => c.definitionId ? c : { ...c, excluded: true }) }))}>Loại {included.filter((c) => !c.definitionId).length} vùng chưa gán khỏi batch</button>}
+          <p>{included.length} thẻ sẽ xuất · {issues.length} mục cần xử lý</p><ExportPlan draft={draft} selected={selected} onSelect={setSelected} /><ul className="aw-issues">{issues.map((issue, index) => <li key={`${issue.candidateId}-${index}`}><button onClick={() => setSelected(issue.candidateId)}>{issue.candidateId}</button>{issue.message}</li>)}</ul>{!issues.length && <p>Draft đã qua kiểm tra đầu vào. Adapter vẫn kiểm tra lại từng PNG và ZIP đầu ra.</p>}<p className="aw-hint">Nguyên mặt thẻ → PNG đúng khổ thẻ, game hiển thị nguyên ảnh. Artwork → PNG đúng khung tranh, game tự vẽ khung + chữ quanh nó.</p></>}
         <label className="aw-check"><input type="checkbox" checked={card.excluded} onChange={(event) => update({ excluded: event.target.checked })} />Loại vùng này khỏi batch xuất</label>
       </fieldset>}</aside>
     </div>
@@ -375,4 +418,19 @@ function ResultView({ card, url, loading, error, demo, compact = false }: { card
     <figure><img src={url} alt={`Artwork xuất ${card.label}`} /><figcaption>PNG khung tranh {ART_LAYOUTS[layout].width} × {ART_LAYOUTS[layout].height}</figcaption></figure>
     {sample && <figure className="aw-on-card"><CardRenderer card={sample} artUrl={url} /><figcaption>{mapped ? `Trên thẻ ${mapped.name}` : `Ví dụ trên thẻ ${sample.name} (chưa gán)`}</figcaption></figure>}
   </div>;
+}
+
+/** One row per PNG the export will write: which region, which card, which file. */
+function ExportPlan({ draft, selected, onSelect }: { draft: ImportDraft; selected: string; onSelect(id: string): void }) {
+  const included = draft.candidates.filter((c) => !c.excluded);
+  let names: Map<string, string>;
+  try { names = exportFileNames(included, draft.sources); } catch { names = new Map(); }
+  if (!included.length) return null;
+  return <table className="aw-plan"><thead><tr><th>Vùng</th><th>Thẻ</th><th>File</th></tr></thead><tbody>
+    {included.map((c) => <tr key={c.candidateId} className={c.candidateId === selected ? "selected" : ""} onClick={() => onSelect(c.candidateId)}>
+      <td>{c.label.split(" · ").slice(-1)[0]}{c.reviewed ? " ✓" : ""}</td>
+      <td>{c.definitionId ? cardById.get(c.definitionId)?.name ?? c.definitionId : <i>chưa gán</i>}{c.variant !== "default" ? ` (${c.variant})` : ""}{c.assetType === "artwork" ? " · art" : ""}</td>
+      <td><code>{names.get(c.candidateId)?.replace(/^cards\//, "") ?? "—"}</code></td>
+    </tr>)}
+  </tbody></table>;
 }

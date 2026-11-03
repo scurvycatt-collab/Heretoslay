@@ -9,7 +9,7 @@ import {
   type ExportResult, type ImportCandidate, type ImportDraft, type RejectedFile, ARTWORK_RIGHTS_STATUS,
 } from "../contract";
 import {
-  DEFAULT_LIMITS, FRONT_PADDING, TEMPLATE_SIZE, buildManifest, buildZip, cropInside, exportFileName, isProbablyBlank,
+  DEFAULT_LIMITS, FRONT_PADDING, TEMPLATE_SIZE, buildManifest, buildZip, cropInside, exportFileNames, isProbablyBlank,
   parsePngHeader, proposeCandidates, readZipEntries, readmeText, renderPlan, rotatedSize, sniffImage, toHex,
   type Box, type Limits,
 } from "./core";
@@ -271,6 +271,7 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
         check(signal);
       }
 
+      const fileNames = exportFileNames(included, draft.sources);
       const pngs: Array<{ path: string; data: Uint8Array; candidateId: string }> = [];
       const assets: ExportedCardAsset[] = [];
       for (const [sourceId, list] of bySource) {
@@ -290,7 +291,7 @@ export function createBrowserAdapter(options: BrowserAdapterOptions): AssetImpor
           const ok = decoded.width === size.width && decoded.height === size.height;
           decoded.close();
           if (!ok) throw new Error(`PNG xuất cho ${c.candidateId} không decode lại đúng khổ.`);
-          const relativePath = exportFileName(c.candidateId);
+          const relativePath = fileNames.get(c.candidateId)!;
           pngs.push({ path: relativePath, data, candidateId: c.candidateId });
           assets.push({
             candidateId: c.candidateId, definitionId: c.definitionId, variant: c.variant, inputType: c.assetType,

@@ -10,10 +10,12 @@ type Props = {
   usedBy: ReadonlyMap<string, string[]>;
   /** Kind to pre-filter on (from the crop's card size), user can switch. */
   suggestedKind?: KindKey;
+  /** Shorter list for the crop step's inspector. */
+  compact?: boolean;
 };
 
 /** Searchable card chooser: type to filter (accent-insensitive), ↑/↓ + Enter to pick. */
-export function CardPicker({ cards, value, onChange, usedBy, suggestedKind = "all" }: Props) {
+export function CardPicker({ cards, value, onChange, usedBy, suggestedKind = "all", compact = false }: Props) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindKey>(suggestedKind);
   const [active, setActive] = useState(0);
@@ -34,7 +36,7 @@ export function CardPicker({ cards, value, onChange, usedBy, suggestedKind = "al
     } else if (event.key === "Escape") setQuery("");
   };
 
-  return <div className="cp">
+  return <div className={`cp ${compact ? "cp-compact" : ""}`}>
     <div className="cp-current">
       {selected
         ? <><span><b>{selected.name}</b><small>{KIND_LABEL[selected.kind]}{classOf(selected) ? ` · ${classOf(selected)}` : ""}</small></span><button type="button" onClick={() => onChange(null)}>Bỏ gán</button></>

@@ -22,7 +22,8 @@ Web đọc pack lúc build (`apps/web/src/cards/resolveCardFace.ts`). Thẻ có 
    - Ảnh đã là một thẻ → 1 candidate. Ảnh là sheet nhiều thẻ → adapter đề xuất lưới; **phải chỉnh lại số crop** cho đúng.
 3. **Cắt & xoay** (bước 02):
    - Chọn loại ở cột phải: **Nguyên mặt thẻ** (cắt cả lá, game hiện nguyên ảnh) hoặc **Artwork riêng** (chỉ cắt phần tranh, game tự vẽ khung + chữ — phải gán thẻ ở bước 03).
-   - Trên ảnh: **kéo chuột để vẽ vùng**, kéo trong vùng để dời, kéo 8 ô vuông để đổi cỡ. Con lăn = zoom; Space/nút giữa hoặc công cụ ✥ = kéo ảnh. "Khoá tỉ lệ" giữ đúng tỉ lệ ảnh xuất (giữ Alt khi kéo để bỏ khoá tạm thời). Shift + kéo = vẽ đè lên vùng có sẵn.
+   - Trên ảnh: **kéo trên vùng trống để vẽ một thẻ mới** (lần vẽ đầu tiên thay vùng "cả ảnh" ban đầu). Bấm một vùng để chọn, kéo bên trong để dời, kéo 8 ô vuông để đổi cỡ. Con lăn = zoom; Space/nút giữa hoặc công cụ ✥ = kéo ảnh. "Khoá tỉ lệ" giữ đúng tỉ lệ ảnh xuất (giữ Alt khi kéo để bỏ khoá tạm). Muốn vẽ lại vùng đang chọn thay vì thêm thẻ: tick "Vẽ lại vùng đang chọn" hoặc Shift + kéo.
+   - **Quy trình một sheet nhiều thẻ**: vẽ thẻ → (⇲ Bắt sát mép) → mục **Gán thẻ cho vùng này** gõ tên + Enter → **Enter** trên ảnh (hoặc nút “✓ Lưu thẻ & vẽ thẻ tiếp”) → kéo vùng trống để vẽ thẻ tiếp. Dải thẻ dưới ảnh (#1, #2…) để quay lại sửa hoặc xoá (×) bất kỳ thẻ nào.
    - Trang có nhiều thẻ: vẽ (hoặc giữ) vùng bao cả cụm → mở **Chia vùng thành lưới** → nhập hàng/cột → bấm Chia; để tick "Bắt sát mép" thì mỗi ô tự thu sát mép thẻ, bỏ tiêu đề trang.
    - **⇲ Bắt sát mép** cho một vùng: tìm mép thẻ quanh vùng hiện tại (nền phải tương đối đồng màu).
    - Tinh chỉnh: mũi tên dời 1 px (Shift 10 px), Alt + mũi tên đổi cỡ, hoặc gõ số x/y/rộng/cao. Xoay bằng ⟲ ⟳.
@@ -32,7 +33,10 @@ Web đọc pack lúc build (`apps/web/src/cards/resolveCardFace.ts`). Thẻ có 
    - **Variant** = phiên bản ảnh của cùng một thẻ. Mỗi thẻ chỉ có **một** ảnh `default` — ảnh game hiển thị. Ảnh thứ hai cho cùng thẻ (vd. bản Kickstarter alternate) chọn **Bản khác** và đặt tên riêng; ảnh đó được lưu trong pack nhưng game chưa hiện.
    - **Ghi chú nguồn ảnh**: tự điền theo tên file; sửa nếu muốn ghi rõ bộ thẻ/người vẽ. Dùng để tra và gỡ nhanh khi có yêu cầu bản quyền.
    - Mặt sau (back) hoặc vùng không dùng: tick **Loại khỏi batch**.
-5. **Kiểm tra & xuất**: chọn chế độ (`Preview pack` cho phép ID trống; `Webgame pack` bắt buộc ID hợp lệ, đúng khổ, không trùng). Hết lỗi thì bấm **Xuất PNG + manifest + ZIP**, rồi **Tải ZIP**.
+5. **Kiểm tra & xuất**: bảng "sẽ xuất" liệt kê từng vùng → thẻ → tên file. Mỗi vùng = **một PNG riêng**: thẻ đã gán đặt tên theo thẻ (`hts.base.v1.hero.dodgy-dealer.png`, bản khác thêm `--<variant>`, artwork thêm `--art`); chưa gán đặt theo tên ảnh + số thứ tự (`base-12-02.png`).
+   - **Preview pack**: để xem thử; game **không** dùng ảnh trong pack này.
+   - **Webgame pack**: game dùng ảnh cho đúng thẻ đã gán; mọi vùng phải được gán — bấm **Loại N vùng chưa gán khỏi batch** nếu cần.
+   Hết lỗi thì bấm **Xuất PNG + manifest + ZIP**, rồi **Tải ZIP**.
 6. **Cài vào game**: giải nén ZIP vào `assets/cards/packs/<tên-pack>/` sao cho `manifest.json` và `cards/` nằm ngay trong thư mục đó. **Khởi động lại** `npm run dev:web` (hoặc `npm run build`). Kiểm tra tại `http://localhost:5173/?cards`.
 
 ## Quy tắc quan trọng

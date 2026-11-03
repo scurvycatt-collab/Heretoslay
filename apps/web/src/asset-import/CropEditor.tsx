@@ -17,6 +17,10 @@ type Props = {
   onSelect(candidateId: string): void;
   onCrop(candidateId: string, crop: Box): void;
   onCreate(crop: Box): void;
+  /** Display label per region (e.g. "#2 Dodgy Dealer"). */
+  labels?: Readonly<Record<string, string>>;
+  /** Enter in the viewport: save the selected region. */
+  onCommit?(): void;
   /** Called with a function the parent can use to drive zoom buttons. */
   onReady?(api: ViewApi): void;
   onZoomChange?(zoom: number): void;
@@ -38,7 +42,7 @@ const CURSOR: Record<Handle, string> = { n: "ns-resize", s: "ns-resize", e: "ew-
  * in full-resolution source pixels (pre-rotation); only the picture is scaled.
  */
 export function CropEditor(props: Props) {
-  const { adapter, source, candidates, selectedId, aspect, disabled, tool, drawCreatesNew, onSelect, onCrop, onCreate, onReady, onZoomChange } = props;
+  const { adapter, source, candidates, selectedId, aspect, disabled, tool, drawCreatesNew, onSelect, onCrop, onCreate, onReady, onZoomChange, labels, onCommit } = props;
   const [image, setImage] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [view, setView] = useState<View>({ zoom: 0.1, x: 0, y: 0 });
@@ -166,6 +170,7 @@ export function CropEditor(props: Props) {
     const d: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
     const delta = d[event.key];
     if (!delta) {
+      if (event.key === "Enter") { event.preventDefault(); onCommit?.(); return; }
       if (event.key === "+" || event.key === "=") zoomAt(1.25);
       else if (event.key === "-") zoomAt(0.8);
       else if (event.key === "0") fitBox({ x: 0, y: 0, ...bounds }, 0.03);
@@ -213,7 +218,7 @@ export function CropEditor(props: Props) {
             const s = scr(crop);
             return <g key={c.candidateId} data-region={c.candidateId} className={`ce-region ${c.excluded ? "excluded" : ""} ${c.reviewed ? "reviewed" : ""}`}>
               <rect data-region={c.candidateId} x={s.x} y={s.y} width={s.w} height={s.h} />
-              {s.w > 60 && <text x={s.x + 6} y={s.y + 16}>{shortLabel(c.label)}</text>}
+              {s.w > 40 && <text x={s.x + 6} y={s.y + 16}>{labels?.[c.candidateId] ?? shortLabel(c.label)}</text>}
             </g>;
           })}
           {activeScr && selected && <g className="ce-selected" data-region={live?.id === null ? undefined : selected.candidateId}>
@@ -225,7 +230,7 @@ export function CropEditor(props: Props) {
               const hy = activeScr.y + (h.includes("n") ? 0 : h.includes("s") ? activeScr.h : activeScr.h / 2);
               return <rect key={h} data-handle={h} className="ce-handle" x={hx - 6} y={hy - 6} width={12} height={12} style={{ cursor: CURSOR[h] }} />;
             })}
-            <text className="ce-size" x={activeScr.x} y={Math.max(14, activeScr.y - 8)}>{active!.width} × {active!.height} px · ({active!.x}, {active!.y})</text>
+            <text className="ce-size" x={activeScr.x} y={Math.max(14, activeScr.y - 8)}>{labels?.[selected.candidateId] ? `${labels[selected.candidateId]} · ` : ""}{active!.width} × {active!.height} px · ({active!.x}, {active!.y})</text>
           </g>}
           {drawScr && live && <g className="ce-drawing"><rect x={drawScr.x} y={drawScr.y} width={drawScr.w} height={drawScr.h} /><text x={drawScr.x} y={Math.max(14, drawScr.y - 8)}>Vùng mới · {live.crop.width} × {live.crop.height} px</text></g>}
         </svg>
