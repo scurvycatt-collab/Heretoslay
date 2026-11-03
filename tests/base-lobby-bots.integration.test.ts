@@ -198,7 +198,11 @@ test("Bots: answer reactions at once and play their own turn (paced), then pass 
   const hero = view.yourHand.find((card: any) => card.kind === "hero");
   if (hero) {
     const played = await send(rt, code, a, "PLAY_HAND_CARD", { cardInstanceId: hero.cardId });
-    assert.notEqual(played.snapshot.game.chain?.step, "challenge_window", "bot passed the Challenge window immediately");
+    // Pacing (owner 2026-11-04): the bot must NOT answer at once, only after a readable delay.
+    assert.equal(played.snapshot.game.chain?.step, "challenge_window", "bot waits before answering the Challenge window");
+    rt.clock.now += 3_000;
+    const later = await snap(rt, code, a);
+    assert.notEqual(later.game.chain?.step, "challenge_window", "bot passed the Challenge window after its delay");
   }
   view = await snap(rt, code, a);
   if (view.game.chain?.step === "immediate_roll_choice") await send(rt, code, a, "IMMEDIATE_ROLL", { choice: "skip" });
@@ -206,7 +210,7 @@ test("Bots: answer reactions at once and play their own turn (paced), then pass 
   view = await snap(rt, code, a);
   const botId = view.players.find((p: any) => p.isBot).playerId;
   assert.equal(view.game.currentPlayerId, botId);
-  // Bot acts every ~1.4 s of server time; within a 60 s turn it must hand the turn back.
+  // Bot acts every ~3 s of server time; within a 60 s turn it must hand the turn back.
   for (let i = 0; i < 80 && view.game.currentPlayerId === botId; i += 1) {
     rt.clock.now += 1_500;
     view = await snap(rt, code, a);

@@ -467,3 +467,252 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-center { top: 36%; }
 .t3-center .tcard { --w: clamp(92px, 15cqh, 180px); }
 .t3-hint { display: none; }
+
+/* =====================================================================
+   UI-005 (owner 2026-11-04): bigger table, corner seats, centred Monsters,
+   full-size inspector, big interaction screens, slower animation.
+   Desktop layout rules live inside the media query; motion rules apply everywhere.
+   ===================================================================== */
+.t3-root { --ui: 1.1; }
+
+@media (min-width: 1101px) and (min-height: 641px) {
+  /* ---- +10% everywhere on the table ---- */
+  .t3-felt { --tok: clamp(37px, calc(6cqh * 1.1), 68px); --hex: clamp(22px, calc(3.7cqh * 1.1), 44px); }
+  .t3-nametag { font-size: 13.5px; padding: 2px 10px; }
+  .t3-stats { font-size: 12.5px; }
+  .t3-protect { font-size: 10.5px; }
+  .t3-roll-btn { font-size: 11.5px; padding: 2px 7px; }
+  .t3-corner--menu { width: 42px; height: 38px; font-size: 22px; }
+  .t3-corner--status { font-size: 16px; padding: 6px 14px; }
+  .t3-ap i { width: 13px; height: 13px; }
+  .t3-act { font-size: 19px; padding: 8px 16px; }
+  .t3-act kbd { font-size: 12px; }
+  .t3-turnbar { height: 29px; min-width: 245px; }
+  .t3-turnbar b { font-size: 13px; line-height: 23px; }
+  .t3-toast { font-size: 15.5px; }
+  .t3-toasts { width: min(370px, 60vw); }
+  .t3-hand { --hw: calc(clamp(96px, 17cqh, 170px) * 1.1); max-width: none; }
+  .t3-hand .tcard { --w: var(--hw); }
+  /* tighter overlap as the hand grows, so it stays clear of my seat */
+  .t3-hand-card { margin-left: calc(var(--hw) * (-0.2 - 0.04 * min(max(var(--n) - 5, 0), 5))); }
+  .t3-hand-card:first-child { margin-left: 0; }
+  .t3-hand-actions .t3-btn { font-size: 14.5px; padding: 7px 14px; }
+  .t3-target-bar { bottom: calc(clamp(96px, 17cqh, 170px) * 0.68 + 10px); }
+
+  /* ---- top players → corners ---- */
+  .t3-seat--top-cl, .t3-seat--top-cr { top: 5.5%; }
+  .t3-seat--top-cl { left: 3%; transform: none; }
+  .t3-seat--top-cr { right: 3%; left: auto; transform: none; }
+  .t3-seat--top-cl .t3-party, .t3-seat--top-cr .t3-party, .t3-seat--top-c .t3-party, .t3-seat--top-l .t3-party, .t3-seat--top-r .t3-party, .t3-seat--top-l2 .t3-party, .t3-seat--top-r2 .t3-party {
+    --tok: clamp(33px, calc(4.6cqh * 1.1), 53px); flex-wrap: nowrap; max-width: 30cqw; overflow-x: auto; padding-bottom: 2px;
+  }
+  .t3-seat--top-l { left: 24%; } .t3-seat--top-r { left: 76%; }
+  .t3-seat--left { top: 12%; } .t3-seat--right { top: 12%; }
+
+  /* ---- my seat → next to my hand ---- */
+  .t3-seat--me { left: auto; right: calc(50% + 27cqw); bottom: 3.5%; flex-direction: row-reverse; align-items: flex-end; gap: 16px; }
+  .t3-seat--me .t3-party { max-width: 20cqw; justify-content: flex-end; }
+
+  /* ---- Monsters + Discard: +15%, group centred on the table; Deck sits to the left of it ---- */
+  .t3-center { top: 49%; transform: translate(-50%, -50%); gap: clamp(10px, 1.6cqw, 26px); }
+  .t3-center .tcard { --w: calc(clamp(92px, 15cqh, 180px) * 1.15); }
+  .t3-discard-empty { width: calc(clamp(92px, 15cqh, 180px) * 1.15); }
+  .t3-monsters { gap: clamp(8px, 1.2cqw, 18px); }
+  .t3-deck { position: absolute; right: 100%; top: 50%; margin: 0 clamp(18px, 2.4cqw, 44px) 0 0; transform: translateY(-50%); width: calc(clamp(54px, 8cqh, 92px) * 1.15); }
+  .t3-deck b { font-size: 23px; }
+  .t3-deck small { font-size: 10.5px; }
+  .t3-discard-count { font-size: 14px; min-width: 32px; }
+  .t3-monster-deck { font-size: 13px; top: -26px; }
+}
+
+/* ---- Monster: click → ATTACK slides out from behind the card, below its bottom edge ---- */
+.t3-monster { z-index: 1; }
+.t3-monster .tcard { position: relative; z-index: 2; cursor: pointer; }
+.t3-monster .tcard.is-clickable:hover:not(:disabled) { transform: translateY(-5px); box-shadow: 0 0 0 3px #ffc31d, 0 14px 26px rgb(0 0 0 / 0.4); }
+.t3-monster.is-open .tcard, .t3-monster .tcard.is-selected { transform: none; box-shadow: 0 0 0 4px #ffc31d, 0 0 26px rgb(255 195 29 / 0.65); }
+.t3-attack-drawer {
+  position: absolute; left: 50%; top: 100%; z-index: 1;
+  transform: translate(-50%, -115%);
+  opacity: 0; pointer-events: none;
+  transition: transform 0.55s cubic-bezier(.2, .85, .3, 1.15), opacity 0.35s ease;
+}
+.t3-monster.is-open .t3-attack-drawer { transform: translate(-50%, 10px); opacity: 1; pointer-events: auto; }
+.t3-attack { position: static; opacity: 1 !important; bottom: auto; font-size: 17px; padding: 10px 22px; white-space: nowrap; letter-spacing: 1px; }
+
+/* ---- inspector: full-size card in the middle of the screen (Ctrl + hover) ---- */
+.t3-inspect { position: fixed; inset: 0; z-index: 130; display: grid; place-items: center; background: rgb(6 12 20 / 0.62); backdrop-filter: blur(3px); filter: none; pointer-events: none; animation: t3-fade 0.3s; }
+.t3-inspect .tcard { box-shadow: 0 0 0 6px #07111c, 0 0 0 11px var(--frame, #fff), 0 40px 90px rgb(0 0 0 / 0.65); }
+
+/* ---- leader hover panel: readable ---- */
+.t3-leader-panel { --panel-w: 360px; animation-duration: 0.3s; }
+.t3-leader-stats { font-size: calc(var(--panel-w) * 0.05); padding: calc(var(--panel-w) * 0.035) calc(var(--panel-w) * 0.05); }
+.t3-leader-stats > div { padding: calc(var(--panel-w) * 0.012) 0; }
+.t3-leader-who em { font-size: calc(var(--panel-w) * 0.035); }
+.t3-missing span { width: calc(var(--panel-w) * 0.07); height: calc(var(--panel-w) * 0.07); }
+.t3-missing svg { width: 70%; height: 70%; }
+.t3-stack { animation-duration: 0.3s; }
+.t3-stack-hint { font-size: 14px; bottom: -24px; }
+
+/* ---- interaction screens (Challenge, Modifier, Hero ability, Attack, choices): big and balanced ---- */
+.t3-stage {
+  grid-template-columns: minmax(300px, 30%) minmax(0, 1fr) minmax(300px, 27%);
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-areas: "head head head" "feature center roster" "tray tray tray" "primary primary primary";
+  gap: clamp(14px, 2.4vh, 32px) clamp(24px, 3.4vw, 64px);
+  padding: clamp(28px, 4.5vh, 60px) clamp(28px, 4.5vw, 84px) clamp(24px, 3.5vh, 48px);
+  align-items: center;
+  animation-duration: 0.5s;
+}
+.t3-stage-head { gap: 8px; }
+.t3-stage-head h2 { font-size: clamp(26px, 3.4vw, 56px); letter-spacing: 3px; }
+.t3-stage-kicker { font-size: clamp(18px, 2.1vw, 32px); }
+.t3-stage--challenge .t3-stage-kicker { font-size: clamp(46px, 7vw, 104px); }
+.t3-stage-min { font-size: 15px; padding: 9px 14px; }
+.t3-stage-feature { justify-self: center; }
+.t3-stage-feature .tcard { --w: clamp(230px, min(26vw, 44vh), 500px); box-shadow: 0 0 0 6px #07111c, 0 0 0 11px var(--frame), 0 30px 70px rgb(0 0 0 / 0.55); }
+.t3-stage-center { width: 100%; justify-self: center; }
+.t3-stage-copy { font-size: clamp(21px, 2vw, 32px); line-height: 1.45; }
+.t3-stage .t3-muted { font-size: clamp(16px, 1.4vw, 22px); }
+.t3-stage .t3-roster { align-self: center; justify-self: stretch; padding: 14px 16px; border-width: 5px; }
+.t3-roster-row { gap: 14px; padding: 12px 6px; }
+.t3-roster-face { width: 50px; height: 50px; font-size: 22px; border-radius: 10px; }
+.t3-roster-name { font-size: clamp(17px, 1.5vw, 24px); }
+.t3-roster-row em { font-size: clamp(13px, 1.1vw, 17px); }
+.t3-stage-tray { gap: clamp(16px, 2vw, 34px); align-items: flex-end; padding-top: 52px; }
+.t3-tray-card { transform: translateY(14%); }
+.t3-tray-card .tcard { --w: clamp(140px, min(12.5vw, 21vh), 230px); }
+.t3-tray-actions { top: -56px; gap: 10px; }
+.t3-tray-actions .t3-btn { font-size: clamp(17px, 1.5vw, 24px); padding: 8px 18px; }
+.t3-tray-options { gap: 28px; }
+.t3-seg { font-size: clamp(15px, 1.3vw, 20px); }
+.t3-seg button { padding: 8px 16px; }
+.t3-stage-primary { justify-self: center; gap: 18px; }
+.t3-stage-primary .t3-btn { font-size: clamp(22px, 2vw, 32px); padding: 16px clamp(34px, 4vw, 64px); }
+.t3-stage .t3-btn--ghost { font-size: inherit; }
+.t3-countdown { width: min(560px, 80%); gap: 10px; }
+.t3-countdown b { font-size: clamp(26px, 2.4vw, 38px); }
+.t3-countdown.is-big b { font-size: clamp(64px, min(10vw, 15vh), 150px); }
+.t3-countdown-track { height: 10px; }
+.t3-pill-dock { font-size: 18px; padding: 12px 16px; }
+.t3-pill-dock > span { font-size: 16px; }
+
+/* roll board */
+.t3-rollboard { gap: clamp(18px, 3vh, 36px); }
+.t3-stats-row { gap: clamp(22px, 4vw, 72px); }
+.t3-stat small { font-size: clamp(16px, 1.7vw, 26px); }
+.t3-stat strong { font-size: clamp(54px, 6.4vw, 110px); }
+.t3-stat.is-hidden strong { color: #8d99a6; animation: t3-pulse 0.7s ease-in-out infinite alternate; }
+@keyframes t3-pulse { to { opacity: 0.35; } }
+.t3-modchip { font-size: clamp(17px, 1.7vw, 26px); padding: 5px 14px; }
+.t3-attack-note { font-size: clamp(16px, 1.5vw, 24px); }
+.t3-result-line { font-size: clamp(20px, 2vw, 32px); }
+.t3-versus { gap: clamp(22px, 3vw, 56px); }
+.t3-side h3 { font-size: clamp(24px, 3vw, 46px); }
+.t3-vs { font-size: clamp(60px, 8vw, 120px); }
+.t3-versus .t3-stat strong { font-size: clamp(42px, 5vw, 84px); }
+.t3-versus .t3-stat small { font-size: clamp(14px, 1.4vw, 21px); }
+.t3-winner-banner { font-size: clamp(34px, 5vw, 72px); }
+.t3-outcome { font-size: clamp(72px, min(11vw, 17vh), 160px); animation-duration: 0.8s; }
+.t3-gods { font-size: clamp(34px, 5vw, 72px); }
+.t3-dim { font-size: clamp(22px, 2.8vw, 42px) !important; }
+
+/* dice: bigger, full tumble → land */
+.t3-dice { gap: clamp(30px, 4.5vw, 72px); padding: 26px 12px 10px; }
+.t3-die { width: clamp(76px, 7.4vw, 124px); height: clamp(76px, 7.4vw, 124px); padding: 15%; gap: 5%; border-width: 4px; border-radius: 16%; box-shadow: 0 10px 0 rgb(0 0 0 / 0.4); animation: none; }
+.t3-die i { border-radius: 50%; }
+.t3-die i.on { background: #fff; box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.25); }
+.t3-die.is-rolling { animation: t3-tumble 1.1s ease-in-out infinite; animation-delay: calc(var(--seed, 0) * -97ms); }
+.t3-die.is-landed { animation: t3-land 0.7s cubic-bezier(.2, .9, .3, 1.35); }
+@keyframes t3-tumble {
+  0%   { transform: translate(-80px, -170px) rotate(0deg) scale(1.3); }
+  18%  { transform: translate(40px, 12px) rotate(210deg) scale(1); }
+  32%  { transform: translate(-28px, -90px) rotate(340deg) scale(1.16); }
+  48%  { transform: translate(52px, 14px) rotate(530deg) scale(1); }
+  62%  { transform: translate(-14px, -46px) rotate(660deg) scale(1.08); }
+  78%  { transform: translate(20px, 8px) rotate(770deg) scale(1); }
+  100% { transform: translate(-80px, -170px) rotate(1080deg) scale(1.3); }
+}
+@keyframes t3-land {
+  0%   { transform: translate(24px, -70px) rotate(calc(var(--tilt) + 200deg)) scale(1.25); }
+  55%  { transform: translate(0, 6px) rotate(calc(var(--tilt) - 8deg)) scale(0.94, 1.04); }
+  100% { transform: rotate(var(--tilt)) scale(1); }
+}
+
+/* hero ability / target picking inside the screens */
+.t3-stage .t3-target-step > b { font-size: clamp(16px, 1.5vw, 24px); }
+.t3-stage .t3-target-row { gap: 16px; justify-content: center; }
+.t3-stage .t3-target-opt { width: clamp(130px, 11vw, 190px); padding: 12px 8px; }
+.t3-stage .t3-target-opt .tcard { --w: clamp(86px, 7.5vw, 130px); }
+.t3-stage .t3-target-name { font-size: clamp(14px, 1.2vw, 19px); }
+.t3-stage .t3-target-opt small { font-size: clamp(11px, 0.95vw, 15px); }
+.t3-stage .t3-target-face { width: 84px; height: 84px; font-size: 36px; }
+.t3-stage .t3-target-none { font-size: clamp(16px, 1.5vw, 22px); }
+.t3-stage .t3-choice-row .tcard { --w: clamp(110px, 10vw, 170px); }
+.t3-stage .t3-choice-item small { font-size: 15px; max-width: 170px; }
+
+/* target dialog (play / roll / leader action) */
+.t3-target-panel { width: min(1280px, 94vw); padding: clamp(24px, 3vw, 44px); gap: clamp(28px, 3vw, 56px); border-width: 5px; }
+.t3-target-card .tcard { --w: clamp(220px, 24vw, 380px); }
+.t3-target-body { gap: 22px; }
+.t3-target-body h2 { font-size: clamp(26px, 2.8vw, 44px); }
+.t3-target-step > b { font-size: clamp(15px, 1.4vw, 21px); }
+.t3-target-opt { width: clamp(140px, 12vw, 190px); padding: 12px 8px; }
+.t3-target-opt .tcard { --w: clamp(90px, 8vw, 130px); }
+.t3-target-name { font-size: clamp(14px, 1.2vw, 18px); }
+.t3-target-opt small { font-size: clamp(11px, 0.95vw, 14px); }
+.t3-target-face { width: 84px; height: 84px; font-size: 36px; }
+.t3-target-none { font-size: clamp(17px, 1.6vw, 24px); padding: 16px; }
+.t3-target-actions .t3-btn { font-size: clamp(18px, 1.6vw, 26px); padding: 12px clamp(26px, 3vw, 48px); }
+
+/* popups / piles */
+.t3-popup { width: min(760px, 100%); font-size: 16px; padding: 20px 24px; }
+.t3-popup.is-wide { width: min(1300px, 100%); }
+.t3-log { font-size: 16px; gap: 8px; }
+.t3-help { font-size: 16px; gap: 10px; }
+.t3-pileview h2 { font-size: clamp(30px, 3.6vw, 52px); }
+.t3-pileview-strip .tcard { --w: clamp(172px, 15vw, 240px); }
+.t3-pileview-hint { font-size: 15px; }
+
+/* ---- slower, readable motion (all sizes) ---- */
+.tcard { transition-duration: 0.32s; }
+.t3-hand-card { transition-duration: 0.42s; }
+.t3-hex { transition-duration: 0.7s; }
+.t3-toast { animation-duration: 0.55s; }
+.t3-popup-back, .t3-pileview { animation-duration: 0.35s; }
+.t3-slain-hex.tcard { animation-duration: 1s; }
+.t3-stack-item, .t3-stack-hero { transition-duration: 0.5s; }
+.t3-tray-card { transition-duration: 0.35s; }
+.t3-winner-banner { animation-duration: 0.8s; }
+@media (prefers-reduced-motion: reduce) { .t3-die.is-rolling, .t3-die.is-landed, .t3-stat.is-hidden strong { animation: none; } }
+
+@media (max-width: 1100px), (max-height: 640px) {
+  .t3-stage { grid-template-columns: 1fr; grid-template-areas: "head" "feature" "center" "roster" "tray" "primary"; }
+  .t3-stage-feature .tcard { --w: 190px; }
+  .t3-inspect .tcard { max-width: 92vw; }
+}
+
+/* toasts: bottom-right above the turn buttons, clear of my seat */
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-toasts { left: auto; right: 3.5%; bottom: calc(4% + 170px); align-items: stretch; }
+}
+
+/* ---- tuning after the first visual pass ---- */
+.t3-die { grid-template-rows: repeat(3, 1fr); gap: 6px; }
+.t3-die i { width: 100%; height: 100%; }
+.t3-dice { padding-top: 70px; }
+.t3-modchips { min-height: 44px; align-content: center; }
+@keyframes t3-tumble {
+  0%   { transform: translate(-90px, -100px) rotate(0deg) scale(1.28); }
+  18%  { transform: translate(44px, 10px) rotate(210deg) scale(1); }
+  32%  { transform: translate(-30px, -64px) rotate(340deg) scale(1.14); }
+  48%  { transform: translate(56px, 12px) rotate(530deg) scale(1); }
+  62%  { transform: translate(-16px, -36px) rotate(660deg) scale(1.07); }
+  78%  { transform: translate(22px, 6px) rotate(770deg) scale(1); }
+  100% { transform: translate(-90px, -100px) rotate(1080deg) scale(1.28); }
+}
+.t3-stage { grid-template-rows: auto minmax(min-content, 1fr) auto auto; }
+.t3-stage--roll .t3-stage-center, .t3-stage--versus .t3-stage-center { align-self: start; }
+.t3-countdown.is-big b { font-size: clamp(56px, 11vh, 118px); }
+.t3-stat strong { font-size: clamp(50px, 5.4vw, 96px); }
+.t3-rollboard { gap: clamp(14px, 2.4vh, 30px); }
+.t3-die { --die: clamp(76px, 7.4vw, 124px); width: var(--die); height: var(--die); padding: calc(var(--die) * 0.15); gap: calc(var(--die) * 0.05); }

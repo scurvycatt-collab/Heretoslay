@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "collection": "Base \u00b7 Challenge art (cloned)",
+  "mode": "mapped",
+  "gameplaySupported": false,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "sources": [
+    {
+      "sourceId": "src-ks-preview-03-r1-c2",
+      "relativePath": "assets/cards/kickstarter-preview/png-webgame/fronts/ks-preview-03-r1-c2.png",
+      "sha256": "",
+      "width": 745,
+      "height": 1040
+    }
+  ],
+  "assets": [
+    {
+      "candidateId": "ks-preview-03-r1-c2-art",
+      "definitionId": "hts.base.v1.challenge.challenge",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.challenge.challenge--art.png",
+      "sha256": "78f4023e8f8af15e89a525ca205d4903d54dac804751644b171600908d3f5ef6",
+      "width": 645,
+      "height": 550,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 645,
+        "height": 550
+      },
+      "sourceId": "src-ks-preview-03-r1-c2",
+      "crop": {
+        "x": 50,
+        "y": 215,
+        "width": 645,
+        "height": 550
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Cloned from the Kickstarter preview Challenge art (crossed swords); class silhouette removed so one image serves every identical Challenge copy",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+    }
+  ]
+}

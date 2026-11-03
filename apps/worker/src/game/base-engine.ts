@@ -399,6 +399,40 @@ export function validateTargets(game: EngineState, actorId: string, rule: Target
   }
 }
 
+
+/**
+ * True when at least one legal target set exists for `rule` right now. Used to skip a Hero's
+ * free "roll its effect" offer when it could not be used anyway (owner 2026-11-04: a Hero with
+ * no valid target still enters the Party; its ability is simply skipped).
+ */
+export function hasValidTargets(game: EngineState, actorId: string, rule: TargetRule): boolean {
+  const others = game.seats.filter((seat) => seat.playerId !== actorId);
+  const own = seatOf(game, actorId);
+  const otherHeroes = others.flatMap((seat) => seat.party).length;
+  const ownHeroes = own?.party ?? [];
+  switch (rule) {
+    case "none": return true;
+    case "other_player": return others.length > 0;
+    case "hero_other_party": return otherHeroes >= 1;
+    case "two_heroes_other_party": return otherHeroes >= 2;
+    case "hero_other_party_and_own_hero": return otherHeroes >= 1 && ownHeroes.length >= 1;
+    case "own_hero": return ownHeroes.length >= 1;
+    case "own_hero_with_cursed_item": return ownHeroes.some((entry) => entry.item?.kind === "cursed_item");
+    case "any_hero_with_item": return game.seats.some((seat) => seat.party.some((entry) => entry.item));
+  }
+}
+
+/** Opens the free roll offer for a Hero that just entered, unless its effect has no valid target. */
+function offerHeroRoll(game: EngineState, actorId: string, heroCardId: string, heroDefinitionId: string, deps: EngineDeps): boolean {
+  const rule = cardDataOfKind(heroDefinitionId, "hero")?.target ?? "none";
+  if (!hasValidTargets(game, actorId, rule)) {
+    log(game, `${cardName(heroDefinitionId)}: không có mục tiêu hợp lệ — bỏ qua hiệu ứng`);
+    return false;
+  }
+  game.chain = { step: "immediate_roll_choice", deadlineAt: deps.now() + game.settings.choiceSeconds * 1000, actorId, heroCardId };
+  return true;
+}
+
 // ---------------------------------------------------------------- effects
 
 /**
@@ -672,13 +706,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "offer_immediate_roll": {
       const found = findHero(game, step.heroCardId);
       if (!found || found.seat.playerId !== step.playerId) return false;
-      game.chain = {
-        step: "immediate_roll_choice",
-        deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
-        actorId: step.playerId,
-        heroCardId: step.heroCardId,
-      };
-      return true;
+      return offerHeroRoll(game, step.playerId, step.heroCardId, found.hero.card.definitionId, deps);
     }
     case "draw_to": {
       const seat = seatOf(game, step.playerId);
@@ -1280,12 +1308,7 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     actor.party.push({ card, item: null });
     log(game, `${whoName(game, attempt.actorId)} đưa ${cardName(card.definitionId)} vào Party`);
     // RULE-06: optional immediate roll (free) — skip if the Hero cannot use its effect.
-    game.chain = {
-      step: "immediate_roll_choice",
-      deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
-      actorId: attempt.actorId,
-      heroCardId: card.cardId,
-    };
+    offerHeroRoll(game, attempt.actorId, card.cardId, card.definitionId, deps);
     return;
   }
   if (card.kind === "item" || card.kind === "cursed_item") {
