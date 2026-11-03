@@ -3,6 +3,8 @@
 
 | Task | Owner | State | Evidence / next |
 |---|---|---|---|
+| ROLE-MIGRATE-ASSET | Codex | done / ready for asset ticket | Gemini quản lý; Claude code/kiến trúc; new chat01a19fa0-3f59-7372-b895-99dba0548c71 onlycardrender, GPT6.1Sol/medium; handoff CARD_ASSET_RENDER_RESUME.md +agents/card-render.md. |
+| GH-READ-20261103 | PM | done | main d05242b; local791afb9 behind5commits/9files; [read report](handoff/GITHUB_REVIEW_2026-11-03.md). No pull/tests. |
 | EF-TURN-001 | arch+ui+qa | done | Effect END_TURN, guards/replay; handoffs accepted |
 | EF-UI-001 | ui | done | Modifier kind/delta/target labels; webtypecheck PASS |
 | EF-BROWSER-001 | lead | done | 2-client browser review PASS |
@@ -16,7 +18,7 @@
 | QA-001 | qa | done | tests/base-e2e.integration.test.ts: 2 người thắng 6 class, 3 người thắng 3 slay qua HTTP; nit GAME-001 (END_TURN sai người, STALE replay, stale/replay BEGIN/SELECT/START, reshuffle, privacy reconnect, DRAW rỗng) |
 | GAME-005 | arch-heavy | done | Mọi effect Hero/Magic + skill Monster slain có handler |
 | OWNER-2 | arch | done | Leader thỏa slot class, Mask thay class, timeout choice = skip, \"may\" hỏi người chơi; fix Arctic Aries |
-| DEPL-001 | arch | todo | Cloudflare deploy — blocked on owner account |
+| DEPL-001 | arch | done | Worker + assets phát hành qua service binding; gateway thương hiệu `/herotoslay/` trả UI, health và tạo phòng production thành công (2026-11-03) |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.

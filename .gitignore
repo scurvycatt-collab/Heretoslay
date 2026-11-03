@@ -18,3 +18,8 @@ dist/
 !.env.example
 .sync/
 *.zip
+# Card art imported by tools/import-card-art.ts — rights FAN_MADE_NON_COMMERCIAL (ADR-004)
+assets/imports/
+apps/web/public/assets/cards/*
+!apps/web/public/assets/cards/.gitkeep
+# Card face packs (assets/cards/packs/<name>/) are committed: the web build bundles them for deploy (ADR-004 rights apply)

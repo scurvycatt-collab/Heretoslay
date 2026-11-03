@@ -1,0 +1,93 @@
+.asset-workbench{max-width:1600px;margin:auto;padding:26px 36px 40px;color:#eee9d9;background:#10231e;min-height:100dvh;font:400 14px/1.55 Arial,sans-serif}
+.asset-workbench *{box-sizing:border-box}.asset-workbench button,.asset-workbench input,.asset-workbench select,.asset-workbench textarea{font:inherit;color:inherit;border:1px solid #526959;background:#1c3429;border-radius:6px;padding:9px 11px}.asset-workbench button{cursor:pointer}.asset-workbench button:disabled{opacity:.42;cursor:not-allowed}.asset-workbench :focus-visible{outline:3px solid #dfbd7d;outline-offset:3px}.asset-workbench a{color:#e1bf7b}
+.aw-header{display:flex;gap:20px;align-items:center;border-bottom:1px solid #3c5345;padding-bottom:19px;font-size:11px;letter-spacing:1.5px}.aw-header a{text-decoration:none}.aw-header strong{margin-right:auto}.aw-header strong span{color:#a0b6a6;font-weight:400}.aw-badge{color:#dfbd7d;border:1px solid #9b875e;border-radius:20px;padding:4px 12px;font-size:10px;white-space:nowrap}
+.aw-title{display:flex;justify-content:space-between;gap:30px;align-items:center;padding:26px 0}.aw-eyebrow{color:#dfbd7d;letter-spacing:2.8px;font-size:10px}.aw-title h1{font:400 clamp(30px,3.4vw,49px)/1.12 Georgia,serif;margin:10px 0}.aw-title h1 em{font-weight:400;color:#dfbd7d}.aw-title>p{max-width:390px;color:#a6bdac;line-height:1.8}
+.aw-banner{background:#26372a;border:1px solid #6e704b;border-radius:6px;color:#d9cea5;padding:11px 15px;font-size:12px}.aw-steps{display:grid;grid-template-columns:repeat(4,1fr);margin:23px 0 16px;gap:8px}.aw-steps button{background:transparent;border:0;border-bottom:2px solid #3c5345;border-radius:0;text-align:left;color:#98b09e;padding:12px 8px}.aw-steps button span{color:#7b947f;margin-right:12px;font-size:11px}.aw-steps button[aria-current=step]{border-bottom-color:#dfbd7d;color:#f1dcaf}.aw-steps button[aria-current=step] span{color:#dfbd7d}
+.aw-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:18px 0}.aw-toolbar button{font-size:12px}.aw-toolbar>span{margin-left:auto;font-size:12px;color:#91ac97}
+.aw-layout{display:grid;grid-template-columns:240px minmax(240px,1fr) 320px;gap:16px;align-items:stretch}.aw-panel{min-width:0;border:1px solid #3c5345;border-radius:9px;background:#142c22;padding:18px}.aw-panel h2{font-size:12px;color:#d8c18f;margin:0 0 18px;letter-spacing:.7px}.aw-sources section{padding-bottom:18px;margin-bottom:15px;border-bottom:1px solid #354d3d}.aw-source-name{font-size:12px;margin:0 0 5px;overflow-wrap:anywhere;color:#d5dfd1}.aw-sources small{font-size:10px;color:#91ac97}.aw-candidate{display:flex;flex-direction:column;width:100%;text-align:left;margin-top:12px;gap:4px;font-size:12px!important}.aw-candidate.selected{border-color:#d0ae71;background:#2a402d}.aw-candidate small{color:#adc0ad}
+.aw-canvas{background:#0b1b15}.aw-panel-heading{display:flex;justify-content:space-between;gap:10px;align-items:start}.aw-panel-heading span{font-size:9px;letter-spacing:1px;color:#a6bdac;white-space:nowrap}.aw-preview{min-height:430px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse,#2a4030 0,transparent 70%);padding:12px}.aw-preview img{display:block;max-width:100%;max-height:480px;width:auto;height:auto;border:1px solid #b6a074;border-radius:10px;box-shadow:0 20px 35px #0008}.aw-preview-caption{font-size:11px;color:#a6bdac;text-align:center;min-height:34px;max-width:400px;margin:15px auto}.aw-size{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #3c5345;padding-top:14px}.aw-size>span{font-size:9px;letter-spacing:1.5px;color:#91ac97}.aw-size strong{font-size:14px;color:#d8c18f}.aw-size small{font-size:10px;font-weight:400;color:#91ac97}
+.aw-inspector fieldset{border:0;padding:0;margin:0;min-width:0}.aw-inspector label{display:flex;flex-direction:column;gap:6px;margin-bottom:15px;font-size:11px;color:#bacdbb}.aw-inspector input,.aw-inspector select,.aw-inspector textarea{width:100%;font-size:12px;color:#eee9d9}.aw-inspector small,.aw-inspector p{font-size:11px;line-height:1.65;color:#a7bba9}.aw-inspector>fieldset>button{font-size:12px;margin:10px 0}.aw-crop-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.aw-check{flex-direction:row!important;align-items:start;gap:8px!important;margin:15px 0!important}.aw-check input{width:16px;min-height:16px;margin:0;accent-color:#d5b47a}.aw-hint{border-left:2px solid #b89d6b;padding-left:12px}.aw-inspector dd{font-size:11px;overflow-wrap:anywhere;margin:4px 0 12px;color:#a7bba9}.aw-inspector dt{font-size:10px;color:#d8c18f}.aw-issues{padding:0;list-style:none;max-height:370px;overflow:auto}.aw-issues li{font-size:11px;color:#e4cda5;border-bottom:1px solid #3c5345;padding:9px 0}.aw-issues button{display:block;background:none;border:0;color:#b6c8b5;font-size:10px;padding:0;margin-bottom:3px;text-align:left}
+.aw-footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;margin-top:18px;padding:18px 0;border-top:1px solid #3c5345}.aw-footer b{font-size:12px;font-weight:400}.aw-footer small{display:block;font-size:11px;color:#91ac97;margin-top:5px}.aw-footer>div:last-child{display:flex;gap:10px;align-items:center}.aw-footer button{font-size:12px}.aw-footer .aw-primary{background:#dfbd7d;color:#17271b;border-color:#dfbd7d;font-weight:700}.aw-notice{padding:14px;border:1px solid #6e704b;border-radius:6px;color:#e2cda4;font-size:12px}
+@media(max-width:1100px){.aw-layout{grid-template-columns:190px minmax(200px,1fr) 270px}.asset-workbench{padding:20px}.aw-panel{padding:12px}.aw-preview{min-height:360px}.aw-preview img{max-height:400px}.aw-header strong span{display:none}}
+@media(max-width:800px){.aw-layout{grid-template-columns:1fr 1fr}.aw-sources{grid-column:1/-1;display:flex;gap:15px;overflow:auto;align-items:start}.aw-sources h2{flex:0 0 110px}.aw-sources section{flex:0 0 180px;border-bottom:0;padding:0;margin:0}.aw-title{align-items:start}.aw-title>p{max-width:260px;font-size:12px}.aw-toolbar>span{width:100%;margin:0}.aw-preview{min-height:300px;padding:0}.aw-preview img{max-height:380px}}
+@media(max-width:550px){.asset-workbench{padding:14px}.aw-title{display:block}.aw-title>p{max-width:100%}.aw-header{gap:10px;font-size:9px}.aw-header strong{font-size:9px}.aw-steps{gap:4px}.aw-steps button{font-size:10px;padding:8px 3px}.aw-steps button span{display:block;margin:0}.aw-layout{grid-template-columns:1fr}.aw-sources{grid-column:auto}.aw-canvas{grid-row:2}.aw-preview img{max-height:430px}.aw-inspector{grid-row:3}.aw-footer>div:last-child{flex-wrap:wrap}.aw-preview-caption{min-height:0}}
+/* Adapter wiring (Claude, 2026-11-03): sheet overlay, view tabs, region tools, rejected list, progress */
+.aw-view-tabs{display:flex;gap:6px;margin:0 0 12px}.aw-view-tabs button{font-size:11px;padding:6px 10px}.aw-view-tabs button[aria-selected=true]{border-color:#dfbd7d;color:#f1dcaf;background:#2a402d}
+.aw-sheet{display:flex;flex-direction:column;gap:10px}.aw-sheet-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:11px;color:#a6bdac}.aw-sheet-tools label{display:flex;gap:8px;align-items:center}.aw-sheet-tools input{padding:0}
+.aw-sheet-scroll{max-height:560px;overflow:auto;border:1px solid #3c5345;border-radius:6px;background:#08140f;touch-action:none}.aw-sheet-frame{position:relative;min-width:100%}.aw-sheet-frame img{position:absolute;inset:0;width:100%;height:100%;user-select:none;pointer-events:none}
+.asset-workbench .aw-region{position:absolute;padding:0;border:1px solid #dfbd7dcc;background:#dfbd7d14;border-radius:2px;cursor:pointer;overflow:hidden}.asset-workbench .aw-region span{position:absolute;left:2px;top:1px;font-size:9px;background:#10231ecc;padding:0 3px;border-radius:2px;color:#f1dcaf}
+.asset-workbench .aw-region.reviewed{border-color:#7fd19b}.asset-workbench .aw-region.excluded{border-style:dashed;border-color:#8a8f8a;background:#0009}.asset-workbench .aw-region.selected{border:2px solid #ffd27a;background:#ffd27a22;cursor:move;z-index:2}
+.aw-handle{position:absolute;right:0;bottom:0;width:14px;height:14px;background:#ffd27a;cursor:nwse-resize}
+.aw-region-tools{display:flex;gap:8px;margin-bottom:6px}.aw-region-tools button{font-size:11px;flex:1}
+.aw-rejected ul{list-style:none;padding:0;margin:6px 0 0}.aw-rejected li{display:flex;flex-direction:column;font-size:11px;padding:6px 0;border-bottom:1px solid #354d3d;overflow-wrap:anywhere}.aw-rejected li small{color:#e4cda5}
+.aw-footer progress{display:block;width:240px;margin-top:8px;accent-color:#dfbd7d}
+@media(max-width:800px){.aw-sheet-scroll{max-height:420px}}
+/* Crop editor redesign (Claude, 2026-11-03) */
+.aw-layout-edit{grid-template-columns:220px minmax(420px,1fr) 340px}
+.ce-toolbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 10px;font-size:11px}
+.ce-group{display:flex;align-items:center;gap:4px}.ce-group output{min-width:44px;text-align:center;color:#d8c18f}
+.asset-workbench .ce-group button{font-size:11px;padding:6px 9px}.asset-workbench .ce-group button[aria-checked=true]{border-color:#ffd27a;background:#3a4a2c;color:#ffe2a6}
+.ce-toggle{display:flex;gap:6px;align-items:center;color:#bacdbb}.asset-workbench .ce-toggle input{width:14px;height:14px;padding:0;accent-color:#d5b47a}
+.ce-viewport{position:relative;height:min(72vh,760px);min-height:380px;overflow:hidden;border:1px solid #3c5345;border-radius:8px;background:#060d0a repeating-conic-gradient(#0c1813 0 25%,#08110d 0 50%) 0 0/24px 24px;touch-action:none;user-select:none;outline:none}
+.ce-viewport:focus-visible{box-shadow:0 0 0 3px #dfbd7d}
+.ce-image{position:absolute;left:0;top:0;transform-origin:0 0;image-rendering:auto;pointer-events:none;max-width:none}
+.ce-overlay{position:absolute;inset:0;overflow:visible}
+.ce-dim{fill:#000a;pointer-events:none}
+.ce-region rect{fill:#dfbd7d10;stroke:#dfbd7dcc;stroke-width:1.5;cursor:pointer}.ce-region text{font:11px Arial,sans-serif;fill:#f1dcaf;paint-order:stroke;stroke:#000b;stroke-width:3px;pointer-events:none}
+.ce-region.reviewed rect{stroke:#7fd19b}.ce-region.excluded rect{stroke:#8a8f8a;stroke-dasharray:5 4;fill:#0006}
+.ce-selected>rect:first-child{fill:transparent;stroke:#ffd27a;stroke-width:2;cursor:move}
+.ce-thirds{stroke:#ffd27a66;stroke-width:1;fill:none;pointer-events:none}
+.ce-handle{fill:#ffd27a;stroke:#10231e;stroke-width:2}
+.ce-size,.ce-drawing text{font:600 12px Arial,sans-serif;fill:#ffe2a6;paint-order:stroke;stroke:#000;stroke-width:3px;pointer-events:none}
+.ce-drawing rect{fill:#7fd19b22;stroke:#7fd19b;stroke-width:2;stroke-dasharray:6 4;pointer-events:none}
+.ce-coords{position:absolute;right:8px;bottom:8px;font:11px ui-monospace,monospace;background:#000b;color:#cfe0cf;padding:3px 7px;border-radius:4px;pointer-events:none}
+.ce-msg{position:absolute;inset:0;display:grid;place-items:center;color:#a6bdac}
+.ce-help{font-size:11px;color:#91ac97;margin:10px 0 0;line-height:1.7}.ce-help b{color:#d8c18f;font-weight:600}
+.aw-type{display:grid;gap:8px;margin-bottom:16px}
+.asset-workbench .aw-type button{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 12px;background:#17301f}
+.asset-workbench .aw-type button[aria-checked=true]{border-color:#ffd27a;background:#2e3f26;box-shadow:inset 0 0 0 1px #ffd27a55}
+.aw-type svg{flex:0 0 38px;height:54px}.aw-type b{display:block;font-size:12px;color:#f1dcaf}.aw-type small{display:block;font-size:11px;line-height:1.5;color:#a7bba9}
+.t-ink{fill:#c8c0a8}.t-art{fill:#5c7a8c}.t-frame{fill:#2c3d33;stroke:#6d8573}.t-gen{fill:#6d8573;opacity:.6}.t-cut{fill-opacity:.9;stroke:#ffd27a;stroke-width:2.5;stroke-dasharray:4 3}
+rect.t-cut:not(.t-art){fill:#e7e0cb}
+.aw-rotate{display:flex;align-items:center;gap:8px;margin:0 0 14px;font-size:11px;color:#bacdbb}.aw-rotate span{flex:1}.aw-rotate output{min-width:36px;text-align:center;color:#d8c18f}.asset-workbench .aw-rotate button{padding:4px 12px;font-size:16px}
+.aw-grid{border:1px solid #3c5345;border-radius:6px;padding:8px 10px;margin:8px 0 12px}.aw-grid summary{cursor:pointer;font-size:12px;color:#d8c18f}.aw-grid[open] summary{margin-bottom:8px}
+.aw-live{border-top:1px solid #3c5345;margin-top:12px;padding-top:10px}.aw-live>p{margin:0 0 6px;font-size:11px;color:#d8c18f}
+.aw-preview figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}.aw-preview figcaption{font-size:10px;color:#91ac97;text-align:center}
+.aw-preview.compact{min-height:0;padding:4px;background:none}.aw-preview.compact img{max-height:260px}
+.aw-preview.stale img,.aw-preview.stale svg{opacity:.55;transition:opacity .15s}
+.aw-preview-pair{gap:14px;flex-wrap:wrap;align-items:flex-start}.aw-preview-pair figure{flex:1 1 140px;max-width:48%}
+.aw-preview-pair img,.aw-on-card .card-renderer{max-width:100%;height:auto;max-height:420px}
+.aw-preview.compact.aw-preview-pair img,.aw-preview.compact .aw-on-card .card-renderer{max-height:220px}
+.asset-workbench .aw-primary-soft{width:100%;border-color:#dfbd7d;color:#f1dcaf}
+.aw-notice code{font-size:11px}
+@media(max-width:1100px){.aw-layout-edit{grid-template-columns:1fr 300px}.aw-layout-edit .aw-sources{grid-column:1/-1;display:flex;gap:15px;overflow:auto;align-items:start}.aw-layout-edit .aw-sources section{flex:0 0 200px;border-bottom:0}}
+@media(max-width:800px){.aw-layout-edit{grid-template-columns:1fr}.ce-viewport{height:60vh}}
+.aw-warn{border-left:2px solid #e2a35a;padding:6px 0 6px 10px;margin:8px 0;color:#f0d3a8!important}.asset-workbench .aw-warn button{margin-left:6px;padding:3px 8px;font-size:11px;border-color:#e2a35a}
+/* Card picker + variant (Claude, 2026-11-03) */
+.aw-field{margin-bottom:16px}.aw-field-label{display:block;font-size:11px;color:#bacdbb;margin-bottom:6px}
+.cp{display:flex;flex-direction:column;gap:8px}
+.cp-current{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #526959;border-radius:6px;padding:8px 10px;background:#1c3429}
+.cp-current b{display:block;font-size:13px;color:#f1dcaf}.cp-current small{display:block;font-size:10px;color:#a7bba9;text-transform:capitalize}
+.asset-workbench .cp-current button{font-size:11px;padding:4px 8px}
+.cp-kinds{display:flex;flex-wrap:wrap;gap:4px}.asset-workbench .cp-kinds button{font-size:10px;padding:3px 7px;border-radius:12px}
+.asset-workbench .cp-kinds button[aria-checked=true]{border-color:#ffd27a;background:#3a4a2c;color:#ffe2a6}
+.cp-list{list-style:none;margin:0;padding:0;max-height:260px;overflow:auto;border:1px solid #3c5345;border-radius:6px}
+.cp-list li{padding:7px 10px;cursor:pointer;border-bottom:1px solid #26392d}.cp-list li b{display:block;font-size:12px;font-weight:600;color:#e7e0cb}
+.cp-list li small{font-size:10px;color:#91ac97;text-transform:capitalize}.cp-list li.active{background:#2a402d}.cp-list li.chosen b{color:#ffd27a}.cp-list li.chosen b::after{content:" ✓"}
+.cp-list li.cp-empty{cursor:default;font-size:11px;color:#a7bba9}.cp-count{font-size:10px!important;color:#7f9884!important}
+.aw-variant{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.asset-workbench .aw-variant button{display:flex;flex-direction:column;align-items:flex-start;font-size:12px;padding:7px 9px}
+.aw-variant small{font-size:10px;color:#a7bba9}.asset-workbench .aw-variant button[aria-checked=true]{border-color:#ffd27a;background:#2e3f26}
+/* Multi-card sheets (Claude, 2026-11-03) */
+.ce-strip{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.ce-chip{display:flex;align-items:stretch;border:1px solid #526959;border-radius:6px;background:#1c3429;overflow:hidden}
+.asset-workbench .ce-chip button{border:0;border-radius:0;background:none;padding:5px 9px;font-size:11px;text-align:left}
+.ce-chip button b{display:block;font-weight:600;color:#e7e0cb;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ce-chip button small{font-size:9px;color:#91ac97}
+.ce-chip.selected{border-color:#ffd27a;background:#2e3f26}.ce-chip.done{border-color:#7fd19b}.ce-chip.done small{color:#7fd19b}.ce-chip.excluded{opacity:.5}
+.asset-workbench .ce-chip .ce-chip-x{padding:0 8px;color:#c99;border-left:1px solid #3c5345}
+.ce-strip-hint{font-size:11px;color:#91ac97;margin-left:4px}
+.aw-map summary{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-compact .cp-list{max-height:170px}.cp-compact .cp-current{display:none}
+.aw-save{display:grid;gap:6px}.asset-workbench .aw-save button{width:100%;font-size:12px}
+.aw-plan{width:100%;border-collapse:collapse;font-size:10px;margin:6px 0 12px}.aw-plan th{text-align:left;color:#d8c18f;font-weight:400;border-bottom:1px solid #3c5345;padding:4px}
+.aw-plan td{padding:4px;border-bottom:1px solid #26392d;color:#cfdccd;vertical-align:top;overflow-wrap:anywhere}.aw-plan tr{cursor:pointer}.aw-plan tr.selected td{background:#2a402d}.aw-plan code{font-size:9px;color:#e8d3a6}
