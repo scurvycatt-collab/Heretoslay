@@ -27,6 +27,11 @@ import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/p
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
+import {
+  containRect as coreContain, coverCrop as coreCover, normalizeKey,
+} from "../apps/web/src/asset-import/adapters/core.ts";
+
+export { normalizeKey };
 
 // ---------------------------------------------------------------------------
 // Types
@@ -121,18 +126,6 @@ const LAYOUT_ALIAS: Partial<Record<CardKind, string>> = { cursed_item: "item" };
 // ---------------------------------------------------------------------------
 // Pure helpers (exported for tests)
 // ---------------------------------------------------------------------------
-
-/** "Bad Axe", "bad_axe", "BAD-AXE " -> "bad-axe". Dots are kept (definitionId separators). */
-export function normalizeKey(raw: string): string {
-  return raw
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/['’"]/g, "")
-    .replace(/[^a-z0-9.]+/g, "-")
-    .replace(/-*\.-*/g, ".")
-    .replace(/^[-.]+|[-.]+$/g, "");
-}
 
 /** File stem without extension, normalised. */
 export function fileKey(fileName: string): string {
@@ -247,25 +240,15 @@ export function parseCards(raw: unknown): { setId: string; cards: CardDef[] } {
   return { setId: typeof data.setId === "string" ? data.setId : "unknown", cards };
 }
 
-/**
- * Integer crop rect (in upright source px) that, scaled, exactly covers a w×h box.
- * Deterministic and recordable in the manifest, unlike content-aware gravity.
- */
+/** Shared geometry (adapters/core.ts), mapped to this manifest's {x,y,w,h} shape. */
 export function coverCrop(srcW: number, srcH: number, w: number, h: number, position: Position): Rect {
-  const scale = Math.max(w / srcW, h / srcH);
-  const cw = Math.min(srcW, Math.max(1, Math.round(w / scale)));
-  const ch = Math.min(srcH, Math.max(1, Math.round(h / scale)));
-  const cx = position === "left" ? 0 : position === "right" ? srcW - cw : Math.floor((srcW - cw) / 2);
-  const cy = position === "top" ? 0 : position === "bottom" ? srcH - ch : Math.floor((srcH - ch) / 2);
-  return { x: cx, y: cy, w: cw, h: ch };
+  const b = coreCover(srcW, srcH, w, h, position);
+  return { x: b.x, y: b.y, w: b.width, h: b.height };
 }
 
-/** Centered rect of the whole source fitted inside a w×h box (no crop, no stretch). */
 export function containRect(srcW: number, srcH: number, w: number, h: number): Rect {
-  const scale = Math.min(w / srcW, h / srcH);
-  const rw = Math.max(1, Math.min(w, Math.round(srcW * scale)));
-  const rh = Math.max(1, Math.min(h, Math.round(srcH * scale)));
-  return { x: Math.floor((w - rw) / 2), y: Math.floor((h - rh) / 2), w: rw, h: rh };
+  const b = coreContain(srcW, srcH, w, h);
+  return { x: b.x, y: b.y, w: b.width, h: b.height };
 }
 
 // ---------------------------------------------------------------------------

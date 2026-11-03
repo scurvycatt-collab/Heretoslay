@@ -25,11 +25,15 @@ export interface ImportCandidate {
   excluded: boolean;
   provenance: { origin: string; rightsStatus: "UNVERIFIED" };
 }
+/** A file the adapter could not turn into a source; shown separately, never drops the batch. */
+export interface RejectedFile { relativePath: string; code: string; message: string }
 export interface ImportDraft {
   schema: 1;
   collection: string;
   sources: AssetSource[];
   candidates: ImportCandidate[];
+  /** Delta 2026-11-03 (Claude): per-file inspect errors. Optional; ignored by validateDraft. */
+  rejected?: RejectedFile[];
 }
 export type ExportMode = "preview" | "mapped";
 export interface ImportIssue { candidateId: string; code: string; message: string }
@@ -65,11 +69,16 @@ export interface ExportResult {
   archiveUrl: string;
   files: { candidateId: string; url: string; width: number; height: number; sha256: string }[];
 }
+export interface ExportProgress { done: number; total: number; label: string }
 /** Claude supplies one adapter. URLs are owned by it; dispose revokes object URLs. */
 export interface AssetImportAdapter {
   inspect(files: File[], signal: AbortSignal): Promise<ImportDraft>;
   preview(source: AssetSource, candidate: ImportCandidate, signal: AbortSignal): Promise<string>;
-  export(draft: ImportDraft, mode: ExportMode, signal: AbortSignal): Promise<ExportResult>;
+  /** Delta 2026-11-03 (Claude): optional progress callback. */
+  export(draft: ImportDraft, mode: ExportMode, signal: AbortSignal, onProgress?: (progress: ExportProgress) => void): Promise<ExportResult>;
+  /** Delta 2026-11-03 (Claude): downscaled upright view of the whole source, for the crop overlay. */
+  sourcePreview?(source: AssetSource, signal: AbortSignal): Promise<{ url: string; scale: number }>;
+  /** Releases URLs/caches. The adapter stays usable afterwards (React StrictMode re-mounts). */
   dispose(): void;
 }
 

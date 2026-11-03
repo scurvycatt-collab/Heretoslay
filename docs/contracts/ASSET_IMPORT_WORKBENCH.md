@@ -10,7 +10,7 @@ Ngày 2026-11-03. Owner yêu cầu Codex dựng UI/contract để Claude triển
 
 | Thành phần | Trạng thái |
 |---|---|
-| `apps/web/src/asset-import/{AssetImportWorkbench.tsx,contract.ts,fixtures.ts,workbench.css}`, route `/?asset-import` | Có (Codex, `668a506`). Adapter **chưa nối**. |
+| `apps/web/src/asset-import/{AssetImportWorkbench.tsx,contract.ts,fixtures.ts,workbench.css}`, route `/?asset-import` | Có (Codex, `668a506`). Adapter browser **đã nối** (§0.4). Route chỉ có ở dev build. |
 | `apps/web/src/cards/{CardRenderer,CardGallery,CardPreview}.tsx`, `catalog.ts` (`cardAssets` rỗng, chỉ `artUrl`), route `/?cards` | Có. Resolver chưa phân biệt `artwork`/`complete_face`. |
 | `tools/card-render/asset-import-contract.test.ts` | Có. Đã thêm vào `npm run test:integration` (§0.2-J). |
 | `assets/cards/kickstarter-preview/` (crop nguồn + `png-webgame/` 69 PNG + 2 manifest) | Có trong git. Đây là output tham chiếu của script PowerShell, **không** phải output của adapter. |
@@ -38,13 +38,56 @@ Vấn đề phát hiện khi merge (chưa sửa, cần Codex/owner quyết):
 | J | §1 test ở `tools/card-render/*.test.ts` | `npm run test:integration` chỉ chạy `tests/*.test.ts`. Khi Codex push test contract, hoặc đặt trong `tests/`, hoặc mở rộng glob — nếu không thì `verify` sẽ không chạy nó. |
 | K | §2 "Không tự commit/push/deploy" | Session cloud có hook bắt commit + push lên **nhánh feature** của session; đó không phải merge `main` hay deploy. Vẫn không merge/deploy khi chưa được yêu cầu. |
 
-### 0.3 Kế hoạch nối adapter (contract.ts đã có — việc tiếp theo)
+### 0.3 Kiến trúc đã chọn (D)
 
-1. Tách lõi thuần của `tools/import-card-art.ts` (ghép ID, crop math, limits, validator) ra module không phụ thuộc Node/sharp, import được cả từ CLI và web.
-2. `apps/web/src/asset-import/adapters/browser.ts`: `inspect` (decode thật + hash + phân loại sheet/riêng lẻ, front/back theo duyệt của người dùng, không OCR), `preview` (render đúng canvas output; revoke URL cũ), `export` (PNG + manifest + ZIP; kiểm lại từng PNG; tôn trọng `AbortSignal`, không báo success sau abort), `dispose`.
-3. Nối một instance ổn định vào workbench; load/resume draft = chọn lại folder + đối chiếu hash.
-4. Resolver: phân biệt `complete_face` và `artwork`; fallback placeholder khi thiếu/lỗi ảnh.
-5. Nghiệm thu theo §7 với 5 sheet Kickstarter.
+Adapter chạy hoàn toàn trong browser trên `File` người dùng chọn: không service, không upload, không đọc path bằng chuỗi. Phần lõi thuần `apps/web/src/asset-import/adapters/core.ts` (nhận diện ảnh theo magic bytes, toán crop/contain/cover, grid preset, ZIP, parse/resume draft) được dùng chung với CLI `tools/import-card-art.ts` — một importer, hai cách chạy.
+
+### 0.4 Đã triển khai (Claude, 2026-11-03)
+
+| File | Vai trò |
+|---|---|
+| `adapters/core.ts` | Lõi thuần, test trên Node (`tests/asset-import-core.test.ts`) |
+| `adapters/browser.ts` | `createBrowserAdapter({ definitions })`: `inspect` / `preview` / `sourcePreview` / `export` / `dispose` |
+| `SheetOverlay.tsx` | Overlay vùng cắt trên sheet: kéo để dời, kéo góc để đổi cỡ, phím mũi tên (Shift = 10px, Alt = đổi cỡ), zoom 1–4× |
+| `AssetImportWorkbench.tsx` | Nối adapter; tab Sheet/Ảnh xuất; preview tự động lần đầu; bỏ kết quả preview cũ nếu tham số đổi trong lúc render; thêm/xóa vùng; "Duyệt & sang mặt kế"; mở draft JSON + resume; danh sách file bị từ chối; thanh tiến độ; hủy/thử lại |
+| `main.tsx` | Composition root: một adapter cho cả trang, nạp lazy **chỉ khi dev** |
+
+Hành vi chính:
+- **inspect**: bỏ file ẩn; giới hạn 32 MiB/file, 256 MiB/batch, 40 MP/ảnh (đọc kích thước từ header, trước khi decode); định dạng theo nội dung; SHA-256 byte gốc; decode `imageOrientation: "from-image"` (kích thước upright = `AssetSource.width/height`); file trùng nội dung bị từ chối. Mỗi lỗi vào `draft.rejected`, batch vẫn giữ. Nếu đang hủy giữa chừng thì registry cũ được giữ nguyên.
+- **Đề xuất**: sheet 3600×5400 → grid theo `SHEET_PRESETS` (toạ độ đo từ `extract-kickstarter.ps1`; "tarot" trong đường dẫn → tarot 2×6, ngược lại poker 3×6), xoay 270°. Ô gần như đồng màu bị **đề xuất loại** ("ô trống?"), người dùng bật lại được. Ảnh lẻ đúng tỉ lệ poker/tarot (±4%) → complete front; khác → artwork. Tên chứa "back" → side back + loại. definitionId chỉ điền khi tên file = definitionId đầy đủ; mọi đề xuất `reviewed=false`.
+- **preview**: render đúng canvas xuất (contain, nền `#10161b`); revoke URL cũ theo candidateId.
+- **export**: chạy lại `validateDraft` tại biên; artwork bị chặn với lý do "cần composite — pending v1"; hash lại từng nguồn (đổi file → lỗi); decode mỗi sheet một lần (LRU 2 bitmap); mỗi PNG được đọc lại header + decode lại để kiểm khổ; ZIP (stored) được đọc lại, kiểm CRC + kích thước + SHA-256 từng PNG trước khi báo thành công; kiểm `AbortSignal` giữa các bước, không trả success sau abort.
+- **Gói xuất**: `fronts/<candidateId>.png`, `manifest.json` (`CardAssetManifest`, chỉ nguồn được dùng, path tương đối), `README.txt`.
+
+Delta interface (`contract.ts`, đều optional, tương thích ngược):
+1. `ImportDraft.rejected?: RejectedFile[]`
+2. `AssetImportAdapter.export(..., onProgress?: (p: ExportProgress) => void)`
+3. `AssetImportAdapter.sourcePreview?(source, signal): Promise<{ url; scale }>`
+4. `dispose()` chỉ giải phóng tài nguyên; adapter vẫn dùng tiếp được (React StrictMode mount 2 lần).
+
+Sửa lỗi phát hiện khi QA:
+- Bản build production đóng gói 3 ảnh demo Kickstarter (`fixtures.ts` dùng `new URL(..., import.meta.url)`) → `/?asset-import` giờ chỉ nạp ở dev; `vite build` không còn ảnh hay code workbench.
+- Notice kết quả inspect bị preview tự động xóa → preview không xóa notice.
+
+### 0.5 QA đã chạy
+
+- `npm run typecheck`, `tsc -p tools/tsconfig.json`, `vite build`: sạch. `npm run test:integration`: 49 pass / 0 fail / 1 skip (live).
+- Unit (Node): preset tái tạo **đúng 69/69 crop** của `assets/cards/kickstarter-preview/manifest.json`; `contentRect` khớp `png-webgame/manifest.json`; sniff PNG/JPEG/WebP, từ chối SVG/HTML; ZIP round-trip + Python `zipfile.testzip()`; path traversal; draft JSON từ chối path tuyệt đối/rights khác UNVERIFIED; resume theo hash.
+- E2E Playwright (Chromium) trên **sheet tổng hợp** dựng lại từ 69 crop tham chiếu (5 sheet thật không có trong repo), kèm `.DS_Store`, `notes.txt`, SVG đổi đuôi `.png`, một ảnh back:
+  - inspect 1.5 s: 6 nguồn, 79 vùng, 3 file bị từ chối; tự loại 9 ô trống + 1 back → **69/79**.
+  - Phím/kéo đổi crop đúng (−30 px màn hình ≈ −147 px nguồn), preview bị đánh dấu stale tới khi áp dụng lại.
+  - Duyệt 69/69; mapped mode chặn (69 lỗi definition); hủy giữa lúc xuất → không có kết quả; thử lại → 69 PNG trong ~8 s.
+  - ZIP kiểm độc lập: 71 entry, 45 × 745×1040 + 24 × 827×1417, 69/69 SHA-256 khớp manifest, không path nguy hiểm/tuyệt đối; crop/contentRect/rotation khớp tham chiếu 69/69; pixel lệch trung bình 1.96/255 (tối đa 2.71) so với `png-webgame/` — mức nhiễu JPEG của sheet tổng hợp.
+  - Draft: lưu → reload → mở draft → chọn folder: khớp hash 6/6, giữ trạng thái duyệt; folder khác → 0/6, liệt kê nguồn thiếu.
+  - Mobile 390 px: không tràn ngang; 0 lỗi console.
+
+### 0.6 Chưa làm / giới hạn
+
+- **Chưa chạy trên 5 sheet JPG thật** (chỉ có ở máy owner). Ô sheet 01 r1c1 và cột 1 + r5–6 cột 2 của sheet 02 được loại *vì trống trên sheet tổng hợp*; nếu trên sheet thật chúng không trống (logo, thẻ luật…), workbench sẽ để chúng **được chọn** và người duyệt phải loại tay → kỳ vọng vẫn là 69.
+- **Artwork composite** chưa có (CardRenderer chưa có rasterizer PNG): artwork preview được, xuất bị chặn có lý do.
+- Grid chỉnh từng ô (kéo/phím/số), chưa có chỉnh cả grid một lần; không có preset cho sheet kích thước khác (dùng "Thêm vùng").
+- Resolver `cards/catalog.ts` chưa đọc pack `complete_face` (việc của Codex, phân biệt với pack artwork của CLI).
+- Safari/Firefox chưa kiểm; Chromium thì OK. Chưa kiểm keyboard/screen-reader đầy đủ ngoài overlay (vùng là `<button>` có `aria-label` + phím).
 
 ---
 
