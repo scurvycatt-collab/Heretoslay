@@ -914,6 +914,8 @@ export type {
   BaseChainView,
   BaseGameSettings,
   BaseRollView,
+  BaseRollOutcome,
+  BaseRollResultView,
   BaseTargets,
   BaseTurnCommand,
   BaseTurnCommandKind,

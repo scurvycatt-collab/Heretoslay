@@ -133,7 +133,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
-    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */;
+    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: { id, resolvedAt, outcome: success|fail|slay|penalty|none|challenge_succeeded|challenge_failed, roll, card } — outcome decided by the server, display only */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice
     winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;
@@ -150,3 +150,6 @@ New turn action = protocol union + `validateBaseTurnCommand` + handler in `BASE_
 
 ## Retry sau khi bị từ chối
 Receipt được lưu cho cả command bị từ chối (kể cả `STALE_REVISION`). Client phải dùng `commandId` MỚI sau khi bị từ chối; gửi lại cùng `commandId` sẽ nhận lại đúng kết quả cũ.
+
+
+Challenge rolls: `BaseRollView.attemptCard` carries the Hero/Item/Magic card being challenged (UI-003, additive).

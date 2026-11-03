@@ -188,6 +188,18 @@ export type Step =
   | { op: "each_other_choice"; actorId: string; kind: "discard" | "sacrifice_hero" | "give_card"; count: number; requireClass?: "fighter"; collect?: boolean }
   | { op: "log"; text: string };
 
+export type RollOutcome = "success" | "fail" | "slay" | "penalty" | "none" | "challenge_succeeded" | "challenge_failed";
+
+/** Last resolved roll, kept for the client's result screen (display only). */
+export interface LastRoll {
+  id: string;
+  resolvedAt: number;
+  roll: RollState;
+  outcome: RollOutcome;
+  /** Hero (effect) or challenged card; null for attacks or a Hero that left play. */
+  subject: BaseCard | null;
+}
+
 export interface EngineState extends SetupTable<BaseCard> {
   seats: BaseSeat[];
   discard: BaseCard[];
@@ -206,6 +218,7 @@ export interface EngineState extends SetupTable<BaseCard> {
   names: Record<string, string>;
   /** Card ids collected by `collect` discards for a follow-up step (Beary Wise). */
   collected: string[];
+  lastRoll?: LastRoll | null;
 }
 
 export interface EngineDeps {
@@ -1325,10 +1338,15 @@ export function startAttack(game: EngineState, actorId: string, monsterId: strin
   openModifierWindow(game, { kind: "attack", rollerId: actorId, dice, monsterId, modifiers: [], passives }, deps, hooks);
 }
 
+function rememberRoll(game: EngineState, roll: RollState, outcome: RollOutcome, subject: BaseCard | null, deps: EngineDeps): void {
+  game.lastRoll = { id: deps.newId(), resolvedAt: deps.now(), roll: structuredClone(roll), outcome, subject: subject ? { ...subject } : null };
+}
+
 function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
   const { total, challengerTotal } = rollTotals(roll);
   if (roll.kind === "challenge") {
     // RULE-17: challenger wins ties.
+    rememberRoll(game, roll, (challengerTotal ?? 0) >= total ? "challenge_succeeded" : "challenge_failed", roll.attempt.card, deps);
     if ((challengerTotal ?? 0) >= total) {
       game.discard.push(roll.attempt.card);
       log(game, `Challenge thành công (${challengerTotal} ≥ ${total}): ${cardName(roll.attempt.card.definitionId)} vào discard`);
@@ -1342,6 +1360,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
   if (roll.kind === "hero_effect") {
     const found = findHero(game, roll.heroCardId);
     const success = total >= roll.threshold;
+    rememberRoll(game, roll, success ? "success" : "fail", found?.hero.card ?? null, deps);
     log(game, `Kết quả ${total} ${success ? "≥" : "<"} ${roll.threshold}: ${success ? "thành công" : "thất bại"}`);
     const item = found?.hero.item?.definitionId;
     if (!success) {
@@ -1372,6 +1391,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
   // attack
   const monster = monsterData(roll.monsterId);
   const outcome = classifyAttack(total, monster);
+  rememberRoll(game, roll, outcome, null, deps);
   log(game, `ATTACK ${monster.name}: ${total} → ${outcome === "slay" ? "SLAY" : outcome === "penalty" ? "PENALTY" : "không có gì"}`);
   if (outcome === "slay") {
     const index = game.faceUpMonsters.indexOf(roll.monsterId);

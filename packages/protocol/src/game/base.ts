@@ -187,6 +187,8 @@ export interface BaseGameSnapshot {
     discardCount: number;
     /** Public discard pile, oldest first (last = most recently discarded). */
     discardPile: BaseCardView[];
+    /** Last resolved roll (result screen; display only). Null before the first roll. */
+    lastRoll: BaseRollResultView | null;
     /** Hero instance ids whose effect was already rolled this turn. */
     heroRollsUsed: string[];
     /** Current turn's +N to all rolls of the active player (Wise Shield etc.). */
@@ -228,6 +230,20 @@ export interface BaseRollView {
   heroInstanceId?: string;
   monsterInstanceId?: string;
   threshold?: number;
+  /** Challenge only: the Hero/Item/Magic card being challenged. */
+  attemptCard?: BaseCardView;
+}
+
+/** Outcome as decided by the server; the client never re-derives it. */
+export type BaseRollOutcome = "success" | "fail" | "slay" | "penalty" | "none" | "challenge_succeeded" | "challenge_failed";
+
+export interface BaseRollResultView {
+  id: string;
+  resolvedAt: number;
+  outcome: BaseRollOutcome;
+  roll: BaseRollView;
+  /** Hero / challenged card / attacked Monster, when still known. */
+  card: BaseCardView | null;
 }
 
 export type BaseChainView =

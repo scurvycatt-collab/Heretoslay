@@ -140,6 +140,7 @@ export function initialBaseGameState(): BaseGameState {
     logSeq: 0,
     names: {},
     collected: [],
+    lastRoll: null,
   };
 }
 
@@ -152,6 +153,7 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
   const game = raw as BaseGameState & { schema: number };
   if (game.schema === 2) {
     game.collected ??= [];
+    game.lastRoll ??= null;
     return game;
   }
   const defaults = initialBaseGameState();
@@ -557,7 +559,7 @@ function rollView(roll: RollState): BaseRollView {
     total,
   };
   if (roll.kind === "challenge") {
-    return { ...base, challengerPlayerId: roll.challengerId, challengerDice: [...roll.challengerDice] as [number, number], challengerTotal };
+    return { ...base, challengerPlayerId: roll.challengerId, challengerDice: [...roll.challengerDice] as [number, number], challengerTotal, attemptCard: anyCardView(roll.attempt.card) };
   }
   if (roll.kind === "hero_effect") return { ...base, heroInstanceId: roll.heroCardId, threshold: roll.threshold };
   return { ...base, monsterInstanceId: roll.monsterId };
@@ -667,6 +669,20 @@ export function projectBaseGame(
       faceUpMonsters: game.faceUpMonsters.map(monsterView),
       discardCount: game.discard.length,
       discardPile: game.discard.map(cardView),
+      lastRoll: game.lastRoll
+        ? {
+            id: game.lastRoll.id,
+            resolvedAt: game.lastRoll.resolvedAt,
+            outcome: game.lastRoll.outcome,
+            roll: rollView(game.lastRoll.roll),
+            card:
+              game.lastRoll.roll.kind === "attack"
+                ? monsterView(game.lastRoll.roll.monsterId)
+                : game.lastRoll.subject
+                  ? anyCardView(game.lastRoll.subject)
+                  : null,
+          }
+        : null,
       heroRollsUsed: [...game.heroRollsUsed],
       turnRollBonus: game.turnRollBonus,
       chain: chainView(game, viewerPlayerId),
