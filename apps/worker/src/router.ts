@@ -9,6 +9,7 @@ export interface DurableObjectNamespaceLike {
 
 export interface WorkerEnv {
   ROOMS: DurableObjectNamespaceLike;
+  ASSETS?: { fetch(request: Request): Promise<Response> };
 }
 
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -115,6 +116,10 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
   if (legacyMatch) {
     const roomCode = legacyMatch[1].toUpperCase();
     return roomStub(env, roomCode).fetch(internalRequest(request, roomCode));
+  }
+
+  if ((request.method === "GET" || request.method === "HEAD") && env.ASSETS) {
+    return env.ASSETS.fetch(request);
   }
 
   return apiError("NOT_FOUND", "Route not found", 404);

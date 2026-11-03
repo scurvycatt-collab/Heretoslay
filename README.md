@@ -28,3 +28,14 @@ Yêu cầu Node 24, npm 11. Sau khi cài dependency bằng `npm ci`, chạy `npm
 
 UI có room/reaction demo nhiều client, dùng fixture riêng. Base 2–6 người; expansion chỉ mở tối đa 8 sau khi được triển khai và bật. Batch kế tiếp được đề xuất tại docs/handoff/NEXT_BATCH.md.
 
+## Triển khai
+
+Frontend và Worker được phát hành cùng một revision Cloudflare. Người dùng truy cập qua domain thương hiệu tại `/herotoslay/`; gateway Nau Games chuyển tiếp nội bộ bằng service binding, không công khai endpoint Worker nguồn.
+
+```bash
+npm ci
+npm run verify
+npm run build
+npx wrangler deploy --config apps/worker/wrangler.jsonc
+```
+
