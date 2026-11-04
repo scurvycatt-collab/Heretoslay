@@ -26,6 +26,8 @@
 | DOC-ROOM-LEAVE | Codex | done | Đồng bộ `GAME_ROOM_API.md` với endpoint `/leave`: spectator rời ngay; lobby giải phóng ghế/chuyển host; trong game giữ record, offline/pause để reconnect. Test bảo vệ: `tests/room-lifecycle.integration.test.ts`. |
 | ROOM-CODE-LENGTH | Codex | done | Mã phòng tự chọn nhận 3–24 ký tự chữ/số; mã tự sinh giữ 6 ký tự. UI, API route, deep-link, contract và test được đồng bộ. |
 | UI-LEADER-SKIP | Codex | done | Tăng chữ chức năng Party Leader; bấm thẻ hoặc nút Challenge đều đánh được; Skip hoặc Esc thu popup về bàn; người cuối cùng Skip kết thúc Challenge ngay; khi thắng thì toàn bộ gameplay action bị gỡ. Source, UI direction, test và production đồng bộ. |
+| UI-REACTION-DENSITY | Codex | done | Popup có ≥4 thẻ Challenge/Modifier tự co theo số thẻ + viewport và giữ một hàng để nút Skip luôn nằm trong khung nhìn. Source, UI direction, test và production đồng bộ. |
+| UI-VI-CARD-ART | Codex | done | Gallery tiếng Việt dùng artwork riêng hoặc crop vùng art từ full-face tiếng Anh; giữ nguyên khung/rule tiếng Việt, không còn panel ảnh trống ở nhóm complete-face-only. Test và production đồng bộ. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.

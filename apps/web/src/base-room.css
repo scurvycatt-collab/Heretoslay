@@ -208,6 +208,10 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-stage .t3-muted { color: #aab7c1; }
 .t3-stage .t3-roster { grid-area: roster; align-self: end; }
 .t3-stage-tray { grid-area: tray; display: flex; justify-content: center; align-items: flex-end; flex-wrap: wrap; gap: 14px; }
+.t3-stage-tray.is-dense { flex-wrap: nowrap; min-width: 0; max-width: 100%; }
+.t3-stage-tray.is-dense .t3-tray-card { min-width: 0; }
+.t3-stage-tray.is-dense .t3-tray-card .tcard { --w: clamp(64px, min(10vh, calc((88vw - (var(--tray-count) - 1) * 12px) / var(--tray-count))), 120px); }
+.t3-stage-tray.is-dense .t3-tray-actions .t3-btn { font-size: clamp(11px, 1.5vh, 16px); padding: 0.5vh clamp(6px, 0.8vw, 12px); }
 .t3-stage-primary { grid-area: primary; align-self: end; justify-self: end; display: flex; gap: 10px; }
 .t3-stage-primary .t3-btn { font-size: 20px; padding: 12px 24px; }
 .t3-stage--win { grid-template-areas: "head head head"; grid-template-rows: 1fr; align-items: center; }
@@ -914,6 +918,8 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-stage-tray { padding-top: 5vh; padding-bottom: 1.4vh; gap: clamp(10px, 1.6vw, 28px); }
   .t3-tray-card { transform: none; }
   .t3-tray-card .tcard { --w: clamp(80px, 11.5vh, 140px); }
+  .t3-stage-tray.is-dense { gap: clamp(6px, 1vw, 14px); padding-top: 4.2vh; padding-bottom: 0.6vh; }
+  .t3-stage-tray.is-dense .t3-tray-card .tcard { --w: clamp(60px, min(9.5vh, calc((88vw - (var(--tray-count) - 1) * 14px) / var(--tray-count))), 112px); }
   .t3-tray-actions { top: -4.6vh; gap: 8px; }
   .t3-tray-actions .t3-btn { font-size: clamp(13px, 2vh, 20px); padding: 0.6vh 1.2vh; }
   .t3-tray-options { gap: 2vh; }
