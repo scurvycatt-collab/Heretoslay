@@ -65,16 +65,17 @@ test("Ctrl/Command-click and right-click open the same inspector while 2-second 
   assert.match(room, /INSPECT_DWELL_MS = 2000/);
 });
 
-test("one-way Modifiers play from the card and two-way cards reveal value then target steps", async () => {
+test("one-way Modifiers skip value selection but still choose a Challenge target", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   assert.match(room, /const singleValue = options\.length === 1 \? options\[0\] : undefined/);
-  assert.match(room, /if \(singleValue !== undefined\) play\(singleValue\)/);
+  assert.match(room, /if \(singleValue !== undefined && roll\.kind !== "challenge"\) play\(singleValue\)/);
+  assert.match(room, /setModifierValue\(singleValue\)/);
   assert.match(room, /setFocusCard\(focusCard === card\.cardId \? null : card\.cardId\);\s+setModifierValue\(null\)/);
   assert.match(room, /focusCard === card\.cardId && modifierValue === null && options\.map/);
   assert.match(room, /roll\.kind === "challenge" \? setModifierValue\(value\) : play\(value\)/);
   assert.match(room, /2 · APPLY \{signed\(modifierValue\)\} TO/);
   assert.match(room, /play\(modifierValue, chosenSide\)/);
-  assert.match(room, /ariaLabel=\{singleValue === undefined \? `\$\{card\.name\} — choose modifier value` : `\$\{card\.name\} — play \$\{signed\(singleValue\)\}`\}/);
+  assert.match(room, /choose who receives \$\{signed\(singleValue\)\}/);
 });
 
 test("lobby requires Ready only from non-host players", async () => {

@@ -733,20 +733,24 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
               ...(hornBonus ? { leaderBonus: hornBonus } : {}),
             });
             return (
-            <div key={card.cardId} className={`t3-tray-card${singleValue === undefined && focusCard === card.cardId ? " is-up" : ""}`}>
+            <div key={card.cardId} className={`t3-tray-card${focusCard === card.cardId ? " is-up" : ""}`}>
               <CardRenderer
                 card={card}
                 size="md"
                 disabled={pending}
                 onClick={() => {
-                  if (singleValue !== undefined) play(singleValue);
+                  if (singleValue !== undefined && roll.kind !== "challenge") play(singleValue);
+                  else if (singleValue !== undefined) {
+                    setFocusCard(focusCard === card.cardId ? null : card.cardId);
+                    setModifierValue(singleValue);
+                  }
                   else {
                     setFocusCard(focusCard === card.cardId ? null : card.cardId);
                     setModifierValue(null);
                   }
                 }}
-                selected={singleValue === undefined && focusCard === card.cardId}
-                ariaLabel={singleValue === undefined ? `${card.name} — choose modifier value` : `${card.name} — play ${signed(singleValue)}`}
+                selected={focusCard === card.cardId}
+                ariaLabel={singleValue === undefined ? `${card.name} — choose modifier value` : roll.kind === "challenge" ? `${card.name} — choose who receives ${signed(singleValue)}` : `${card.name} — play ${signed(singleValue)}`}
               />
               <div className="t3-tray-actions">
                 {singleValue === undefined && focusCard === card.cardId && modifierValue === null && <span className="t3-tray-step">1 · CHOOSE + / −</span>}
@@ -761,7 +765,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
                     {signed(value)}
                   </button>
                 ))}
-                {singleValue === undefined && focusCard === card.cardId && modifierValue !== null && roll.kind === "challenge" && (
+                {focusCard === card.cardId && modifierValue !== null && roll.kind === "challenge" && (
                   <div className="t3-seg" role="group" aria-label="Apply modifier to">
                     <span>2 · APPLY {signed(modifierValue)} TO</span>
                     {(["defender", "challenger"] as const).map((chosenSide) => (
