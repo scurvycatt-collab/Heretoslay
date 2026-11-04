@@ -14,11 +14,12 @@ Same routes as the demo slices; mode is chosen at create time and fixed for the 
 | POST | `/api/rooms` | — | `{ "nickname": string, "mode": "base", "roomCode"?: string }` | 201 `{ roomCode, sessionToken, snapshot }` |
 | POST | `/api/rooms/:code/join` | — | `{ "nickname": string }` | 201 `{ roomCode, sessionToken, snapshot }` |
 | POST | `/api/rooms/:code/watch` | — | `{ "nickname": string }` | 201 read-only `{ roomCode, sessionToken, snapshot }` |
+| POST | `/api/rooms/:code/disconnect` | Bearer | — | marks the tab offline without deleting its seat |
 | GET | `/api/rooms/:code/snapshot` | `Bearer <sessionToken>` | — | 200 `{ snapshot }` |
 | POST | `/api/rooms/:code/commands` | `Bearer <sessionToken>` | command (below) | 200 `{ outcome, snapshot }` |
 
 - Room code: exactly 6 letters/digits. Create may request one; omitting it generates 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Path code is case-insensitive.
-- Reconnect/reload keeps `sessionToken` client-side. A different device may reclaim the same seat with room code + nickname only after the old heartbeat is offline for more than 20 seconds; reclaim rotates the token. An online old session returns `SESSION_ACTIVE`.
+- Reconnect/reload keeps `sessionToken` client-side. Closing/leaving the page sends `disconnect`, so another device can reclaim the same seat immediately with room code + nickname; reclaim rotates the token. Unexpected network/power loss falls back to the 3-second heartbeat expiry. An online old session returns `SESSION_ACTIVE`.
 - Spectators are read-only, do not occupy a player seat or presence heartbeat, receive no private hand, and cannot send commands.
 - Public room URLs contain only the room code; player IDs and tokens remain in browser storage. Legacy player-ID URLs are normalized after loading.
 - Create accepts `nickname`, `mode`, and optional `roomCode`; expansion/capacity keys remain unsupported.

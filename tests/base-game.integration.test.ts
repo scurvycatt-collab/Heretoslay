@@ -33,7 +33,6 @@ function runtime() {
   let id = 0;
   let session = 0;
   let ip = 0;
-  let now = 50_000;
   const namespace = {
     idFromName: (name: string) => name,
     get(roomId: unknown) {
@@ -46,7 +45,7 @@ function runtime() {
           blockConcurrencyWhile: async <T>(callback: () => Promise<T>) => callback(),
         };
         room = new RoomDurableObject(context, {
-          now: () => now,
+          now: () => 50_000,
           randomUUID: () => `id-${++id}`,
           sessionToken: () => `base-session-${++session}`,
           shuffle: (values) => [...values],
@@ -79,9 +78,9 @@ function runtime() {
     join: (code: string, nickname: string) =>
       request(`/api/rooms/${code}/join`, { method: "POST", body: { nickname } }),
     snapshot: (code: string, token: string) => request(`/api/rooms/${code}/snapshot`, { token }),
+    disconnect: (code: string, token: string) => request(`/api/rooms/${code}/disconnect`, { method: "POST", token }),
     command: (code: string, token: string, body: Record<string, unknown>) =>
       request(`/api/rooms/${code}/commands`, { method: "POST", token, body }),
-    advance: (milliseconds: number) => { now += milliseconds; },
   };
   return api;
 }
@@ -149,7 +148,7 @@ test("base: create returns a server room code and room+nickname reconnects the s
   const activeDuplicate = await api.join(code, "  guest ");
   assert.equal(activeDuplicate.response.status, 409);
   assert.equal(activeDuplicate.json.error.code, "SESSION_ACTIVE");
-  api.advance(20_001);
+  assert.equal((await api.disconnect(code, guest.json.sessionToken)).response.status, 200);
   const duplicate = await api.join(code, "  guest ");
   assert.equal(duplicate.response.status, 201);
   assert.equal(duplicate.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);

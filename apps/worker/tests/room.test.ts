@@ -140,7 +140,7 @@ function setupCardTotal(state: any): number {
 }
 
 test("create/join sessions isolate hands and room+nickname resumes the same seat with a new token", async () => {
-  const { room, setNow } = harness();
+  const { room } = harness();
   const host = await create(room);
   const guest = await join(room, "Guest");
   assert.equal(guest.response.status, 201);
@@ -148,7 +148,8 @@ test("create/join sessions isolate hands and room+nickname resumes the same seat
   const activeDuplicate = await join(room, "  guest  ");
   assert.equal(activeDuplicate.response.status, 409);
   assert.equal(activeDuplicate.json.error.code, "SESSION_ACTIVE");
-  setNow(1_000 + 20_001);
+  const disconnected = await room.fetch(roomRequest("/api/rooms/ABC234/disconnect", "POST", { token: guest.json.sessionToken }));
+  assert.equal(disconnected.status, 200);
   const duplicate = await join(room, "  guest  ");
   assert.equal(duplicate.response.status, 201);
   assert.equal(duplicate.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);

@@ -176,5 +176,5 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 
 - `View` xem trận trực tiếp bằng tên + mã phòng: spectator không chiếm ghế, không có bài riêng và không gửi command.
 - Tạo phòng cho nhập mã 6 ký tự tùy chọn; bỏ trống thì sinh ngẫu nhiên.
-- Tên + mã phòng khôi phục ghế chỉ khi phiên cũ offline hơn 20 giây; token mới vô hiệu token cũ. Phiên cũ còn online trả `SESSION_ACTIVE`.
+- Tên + mã phòng khôi phục ghế ngay khi phiên cũ offline; đóng/rời trang gửi `disconnect` tức thì, mất mạng đột ngột dùng heartbeat dự phòng 3 giây. Token mới vô hiệu token cũ; phiên cũ còn online trả `SESSION_ACTIVE`.
 - URL công khai chỉ chứa mã phòng, không chứa playerId. Bộ chọn ngôn ngữ chỉ hiện ở trang chủ; `HERE TO SLAY` giữ nguyên; `LEADER` dùng rule chung `THỦ LĨNH`.

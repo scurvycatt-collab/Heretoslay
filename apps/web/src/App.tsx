@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { clearSession, command, createRoom, joinRoom, leaveRoom, loadSession, parseRoute, saveSession, snapshot, watchRoom, type Session } from "./api";
+import { clearSession, command, createRoom, disconnectRoom, joinRoom, leaveRoom, loadSession, parseRoute, saveSession, snapshot, watchRoom, type Session } from "./api";
 import type { EffectDemoSnapshot, SetupDemoSnapshot } from "@here-to-slay/protocol";
 import { BaseRoom } from "./BaseRoom";
 import { LanguageSwitch, useLanguage } from "./i18n";
@@ -257,6 +257,7 @@ const [pending, setPending] = useState(false);
   const connect = async (kind: "create" | "join" | "view") => { setPending(true); setNotice(""); try { accept(kind === "create" ? await createRoom(nickname.trim(), createMode, roomCode.trim() || undefined) : kind === "join" ? await joinRoom(roomCode.trim(), nickname.trim()) : await watchRoom(roomCode.trim(), nickname.trim())); } catch (error) { setNotice(error instanceof Error ? error.message : "Connection failed."); } finally { setPending(false); } };
   useEffect(() => { if (!session || mode !== "room") return;
 const poll = window.setInterval(async () => { try { const next = await snapshot(session.roomCode, session.sessionToken); accept({ ...session, snapshot: next.snapshot, receivedAt: Date.now() }, false); } catch (error) { clearSession(session); setSession(null); setMode("lobby"); setNotice(error instanceof Error ? error.message : "Session is no longer valid. Join a room again."); } }, 1000); return () => window.clearInterval(poll); }, [mode, session]);
+  useEffect(() => { if (!session || mode !== "room") return; const disconnect = () => { void disconnectRoom(session.roomCode, session.sessionToken); }; window.addEventListener("pagehide", disconnect); return () => window.removeEventListener("pagehide", disconnect); }, [mode, session]);
   useEffect(() => { if (mode !== "room") return;
 const tick = window.setInterval(() => setLocalNow(Date.now()), 250); return () => window.clearInterval(tick); }, [mode]);
   if (mode === "preview") return <PreviewApp />;

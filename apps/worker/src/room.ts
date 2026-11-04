@@ -185,6 +185,8 @@ const MAX_SPECTATORS = 20;
 export const ROOM_IDLE_MS = 5 * 60_000;
 /** A human counts as present while their client keeps polling the snapshot at least this often. */
 export const PRESENCE_MS = 20_000;
+/** Reclaim waits only for missed snapshot heartbeats; normal page close sends disconnect immediately. */
+const RECONNECT_OFFLINE_MS = 3_000;
 const RATE_WINDOW_MS = 60_000;
 const SETUP_LEADERS = Array.from({ length: 6 }, (_, index) =>
   `fixture.setup.leader.${index + 1}`,
@@ -404,7 +406,10 @@ function markSeen(state: PersistedRoomState, playerId: string, now: number): voi
 }
 
 function humanPresent(state: PersistedRoomState, now: number): boolean {
-  return state.players.some((player) => !player.isBot && (state.presence?.[player.playerId] ?? 0) > now - PRESENCE_MS);
+  return state.players.some((player) => {
+    const lastSeen = state.presence?.[player.playerId] ?? 0;
+    return !player.isBot && lastSeen > 0 && lastSeen > now - PRESENCE_MS;
+  });
 }
 
 const SHIFTED_KEYS = new Set(["deadlineAt", "turnDeadlineAt", "botNextActAt", "botPaceAt"]);
@@ -926,6 +931,9 @@ export class RoomDurableObject {
       if (request.method === "POST" && url.pathname.endsWith("/leave")) {
         return await this.leaveRoom(request, roomCode);
       }
+      if (request.method === "POST" && url.pathname.endsWith("/disconnect")) {
+        return await this.disconnectRoom(request, roomCode);
+      }
       if (request.method === "GET" && url.pathname.endsWith("/snapshot")) {
         return await this.getSnapshot(request, roomCode);
       }
@@ -1020,7 +1028,8 @@ export class RoomDurableObject {
       enforceRate(state, "join", 30, now);
       const resumed = state.players.find((player) => !player.isBot && player.normalizedNickname === normalized);
       if (resumed) {
-        if ((state.presence?.[resumed.playerId] ?? 0) > now - PRESENCE_MS) {
+        const lastSeen = state.presence?.[resumed.playerId] ?? 0;
+        if (lastSeen > 0 && lastSeen > now - RECONNECT_OFFLINE_MS) {
           throw new ApiFault("SESSION_ACTIVE", "This player is still connected on another device", 409);
         }
         resumed.nickname = nickname;
@@ -1124,6 +1133,26 @@ export class RoomDurableObject {
       await this.rearm(txn, state, now);
       if (had === undefined) await txn.put(ROOM_STATE_KEY, state);
     });
+  }
+
+  /** Mark a tab offline without removing its seat, so another device can reclaim it immediately. */
+  async disconnectRoom(request: Request, roomCode: string): Promise<Response> {
+    const tokenHash = await hashToken(bearerToken(request));
+    const now = this.now();
+    await this.ctx.storage.transaction(async (txn) => {
+      const state = requireState(await txn.get<PersistedRoomState>(ROOM_STATE_KEY));
+      if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
+      const { viewer, spectator } = sessionViewer(state, tokenHash);
+      if (spectator) {
+        state.spectators = (state.spectators ?? []).filter((entry) => entry.playerId !== viewer.playerId);
+      } else {
+        (state.presence ??= {})[viewer.playerId] = 0;
+        syncPause(state, now);
+      }
+      await txn.put(ROOM_STATE_KEY, state);
+      await this.rearm(txn, state, now);
+    });
+    return Response.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   }
 
   /** Leave the room: lobby seats are freed, in-game seats are kept (bots/timers pause once nobody is left). */

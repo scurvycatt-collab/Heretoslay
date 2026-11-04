@@ -46,3 +46,4 @@ export const clearSession = (value?: Session | null) => {
   history.replaceState(null, "", routeUrl(null));
 };
 export const leaveRoom = (roomCode: string, token: string) => request<{ ok: true }>(`/api/rooms/${encodeURIComponent(roomCode)}/leave`, { method: "POST", headers: { authorization: `Bearer ${token}` } }).catch(() => undefined);
+export const disconnectRoom = (roomCode: string, token: string) => fetch(`${publicBase}/api/rooms/${encodeURIComponent(roomCode)}/disconnect`, { method: "POST", headers: { authorization: `Bearer ${token}` }, keepalive: true }).catch(() => undefined);
