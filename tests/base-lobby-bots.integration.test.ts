@@ -112,6 +112,8 @@ test("Lobby: players pick Leaders in the lobby, last picker goes first, host sta
   assert.equal((await send(rt, code, b, "SELECT_PARTY_LEADER", { leaderId: "hts.base.v1.party-leader.the-shadow-claw" })).outcome.code, "ACCEPTED");
   assert.equal((await send(rt, code, a, "START_GAME")).outcome.code, "LEADER_NOT_AVAILABLE");
   assert.equal((await send(rt, code, b, "SELECT_PARTY_LEADER", { leaderId: "hts.base.v1.party-leader.the-divine-arrow" })).outcome.code, "ACCEPTED");
+  assert.equal((await send(rt, code, a, "SET_READY", { ready: true })).outcome.code, "ACCEPTED");
+  assert.equal((await send(rt, code, b, "SET_READY", { ready: true })).outcome.code, "ACCEPTED");
   assert.equal((await send(rt, code, b, "START_GAME")).outcome.code, "FORBIDDEN");
   const started = await send(rt, code, a, "START_GAME");
   assert.equal(started.outcome.code, "ACCEPTED");
@@ -140,6 +142,8 @@ test("Lobby: host adds bots (auto Leader), removes one; non-host and in-game cha
   assert.equal((await send(rt, code, b, "ADD_BOT")).outcome.code, "FORBIDDEN");
   await send(rt, code, b, "SELECT_PARTY_LEADER", { leaderId: "hts.base.v1.party-leader.the-protecting-horn" });
   await send(rt, code, a, "SELECT_PARTY_LEADER", { leaderId: freeLeader(await snap(rt, code, a)) });
+  await send(rt, code, a, "SET_READY", { ready: true });
+  await send(rt, code, b, "SET_READY", { ready: true });
   assert.equal((await send(rt, code, a, "START_GAME")).outcome.code, "ACCEPTED");
   assert.equal((await send(rt, code, a, "ADD_BOT")).outcome.code, "INVALID_PHASE");
 });
@@ -154,6 +158,8 @@ test("Turn timer: 30/60/90 only; expiry ends the turn; spending AP restarts it; 
   assert.equal((await send(rt, code, a, "CONFIGURE_GAME", { turnSeconds: 30 })).outcome.code, "ACCEPTED");
   await send(rt, code, a, "SELECT_PARTY_LEADER", { leaderId: "hts.base.v1.party-leader.the-cloaked-sage" });
   await send(rt, code, b, "SELECT_PARTY_LEADER", { leaderId: "hts.base.v1.party-leader.the-divine-arrow" });
+  await send(rt, code, a, "SET_READY", { ready: true });
+  await send(rt, code, b, "SET_READY", { ready: true });
   const started = await send(rt, code, a, "START_GAME");
   assert.equal(started.snapshot.game.settings.turnSeconds, 30);
   assert.equal(started.snapshot.game.turnDeadlineAt, rt.clock.now + 30_000);
@@ -192,6 +198,7 @@ test("Bots: answer reactions at once and play their own turn (paced), then pass 
   const { code, a } = await hostRoom(rt);
   await send(rt, code, a, "ADD_BOT");
   await send(rt, code, a, "SELECT_PARTY_LEADER", { leaderId: freeLeader(await snap(rt, code, a)) });
+  await send(rt, code, a, "SET_READY", { ready: true });
   const started = await send(rt, code, a, "START_GAME");
   assert.equal(started.outcome.code, "ACCEPTED");
   // The human picked last, so the human moves first. A Hero play is never left waiting on the bot.

@@ -79,6 +79,8 @@ test("Mellow Dee: drawn Hero may be played for free (Challenge window opens, no 
   const dee = t.toParty(t.me, "mellow-dee");
   const peanut = t.toDeckTop("hts.base.v1.hero.peanut");
   t.roll(dee);
+  assert.ok(t.seat(t.me).hand.some((card) => card.cardId === peanut.cardId), "Mellow Dee draws into the actor's hand");
+  assert.ok(!t.seat(t.them).hand.some((card) => card.cardId === peanut.cardId), "the drawn card never enters another hand");
   const c = t.choice();
   assert.equal(c.kind, "play_card");
   assert.equal(c.min, 0);

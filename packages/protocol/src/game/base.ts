@@ -133,10 +133,24 @@ export interface RemoveBotCommand extends BaseCommandBase {
   payload: { playerId: string };
 }
 
+/** Host-only after GAME_OVER: reset game state while preserving the room and its seats. */
+export interface NewGameCommand extends BaseCommandBase {
+  kind: "NEW_GAME";
+  payload: Record<string, never>;
+}
+
+/** Lobby seat confirms its selected Leader; changing Leader clears readiness. */
+export interface SetReadyCommand extends BaseCommandBase {
+  kind: "SET_READY";
+  payload: { ready: boolean };
+}
+
 export type BaseTurnCommand =
   | ConfigureGameCommand
   | AddBotCommand
   | RemoveBotCommand
+  | NewGameCommand
+  | SetReadyCommand
   | PlayHandCardCommand
   | UseHeroEffectCommand
   | AttackMonsterCommand
@@ -172,6 +186,7 @@ export interface BaseGameSnapshot {
     isHost: boolean;
     /** Server-driven seat added by the host in the lobby. */
     isBot: boolean;
+    ready: boolean;
     handCount: number;
     /** Party Leader definitionId (placed in Party per RULE-03), or null. */
     leaderId: string | null;

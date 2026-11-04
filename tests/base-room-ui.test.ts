@@ -75,3 +75,17 @@ test("one-way Modifiers play from the card and two-way cards reveal value then t
   assert.match(room, /play\(modifierValue, chosenSide\)/);
   assert.match(room, /ariaLabel=\{singleValue === undefined \? `\$\{card\.name\} — choose modifier value` : `\$\{card\.name\} — play \$\{signed\(singleValue\)\}`\}/);
 });
+
+test("lobby exposes per-player Ready state and only the host can start after everyone is ready", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(room, /send\("SET_READY", \{ ready: !mine\?\.ready \}\)/);
+  assert.match(room, /const notReady = state\.players\.filter\(\(p\) => !p\.ready\)/);
+  assert.match(room, /notReady\.length === 0/);
+  assert.match(room, /Waiting for.*to get ready/);
+});
+
+test("the host can start a clean game from game over without replacing the room", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(room, /send\("NEW_GAME", \{\}\)/);
+  assert.match(room, /NEW GAME · SAME ROOM/);
+});

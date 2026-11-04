@@ -345,6 +345,8 @@ export interface RoomSliceValidationResult {
 
 const BASE_TURN_KINDS = new Set([
   "CONFIGURE_GAME",
+  "NEW_GAME",
+  "SET_READY",
   "ADD_BOT",
   "REMOVE_BOT",
   "PLAY_HAND_CARD",
@@ -396,6 +398,13 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
     if (!isNonEmptyString(payload[key])) issues.push(`payload.${key} is required`);
   };
   switch (value.kind) {
+    case "SET_READY":
+      if (typeof payload.ready !== "boolean") issues.push("payload.ready must be boolean");
+      for (const key of Object.keys(payload)) if (key !== "ready") issues.push(`payload.${key} is not allowed`);
+      break;
+    case "NEW_GAME":
+      for (const key of Object.keys(payload)) issues.push(`payload.${key} is not allowed`);
+      break;
     case "CONFIGURE_GAME": {
       const allowed = ["turnSeconds", "reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode"];
       if (payload.turnSeconds !== undefined && payload.turnSeconds !== 30 && payload.turnSeconds !== 60 && payload.turnSeconds !== 90) {

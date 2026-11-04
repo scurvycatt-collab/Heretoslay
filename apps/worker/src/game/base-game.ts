@@ -91,6 +91,8 @@ export interface BaseGameState extends EngineState {
   turnModifierBonusSeconds?: number;
   /** Lobby Leader picks in order (last picker goes first, SETUP-05). */
   leaderPickOrder?: string[];
+  /** Lobby confirmations; changing Leader or starting a new game clears the seat. */
+  readyPlayerIds?: string[];
   /** Earliest time the active bot takes its next turn action (pacing). */
   botNextActAt?: number | null;
   /** Earliest time any bot may answer a window / choice (every accepted action pushes it out, so humans can follow). */
@@ -159,6 +161,7 @@ export function initialBaseGameState(): BaseGameState {
     turnTimerKey: null,
     turnModifierBonusSeconds: 0,
     leaderPickOrder: [],
+    readyPlayerIds: [],
     botNextActAt: null,
     botPaceAt: null,
   };
@@ -188,6 +191,7 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
     game.turnTimerKey ??= null;
     game.turnModifierBonusSeconds ??= 0;
     game.leaderPickOrder ??= [];
+    game.readyPlayerIds ??= [];
     game.botNextActAt ??= null;
     game.botPaceAt ??= null;
     game.settings = { ...DEFAULT_SETTINGS, ...game.settings };
@@ -217,6 +221,7 @@ function syncLobbySeats(game: BaseGameState, roster: BaseRoster): void {
   if (game.phase !== "lobby") return;
   const existing = new Map(game.seats.map((seat) => [seat.playerId, seat]));
   game.seats = roster.players.map(({ playerId }) => existing.get(playerId) ?? newSeat(playerId));
+  game.readyPlayerIds = (game.readyPlayerIds ?? []).filter((playerId) => game.seats.some((seat) => seat.playerId === playerId));
 }
 
 // ------------------------------------------------------------- turn cycle
@@ -342,6 +347,7 @@ function lobbySelectLeader(game: BaseGameState, seat: BaseSeat, leaderId: string
   if (game.seats.some((other) => other !== seat && other.leaderId === leaderId)) return "LEADER_TAKEN";
   if (seat.leaderId === leaderId) return "NO_CHANGE";
   seat.leaderId = leaderId;
+  game.readyPlayerIds = (game.readyPlayerIds ?? []).filter((id) => id !== seat.playerId);
   game.leaderPickOrder = [...(game.leaderPickOrder ?? []).filter((id) => id !== seat.playerId), seat.playerId];
   return "ACCEPTED";
 }
@@ -354,6 +360,7 @@ function lobbyStart(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, dep
   if (game.seats.some((candidate) => cardDataOfKind(candidate.leaderId!, "party_leader")?.bannedPlayerCounts.includes(game.seats.length))) {
     return "LEADER_NOT_AVAILABLE";
   }
+  if (game.seats.some((candidate) => !(game.readyPlayerIds ?? []).includes(candidate.playerId))) return "PLAYERS_NOT_READY";
   // SETUP-05 keeps working: the selection order is the lobby pick order, so the last picker goes first.
   const picks = (game.leaderPickOrder ?? []).filter((id) => game.seats.some((candidate) => candidate.playerId === id));
   const order = [...game.seats.map((candidate) => candidate.playerId).filter((id) => !picks.includes(id)), ...picks];
@@ -562,11 +569,40 @@ const configureHandler: Handler = (game, seat, command, roster) => {
   return "ACCEPTED";
 };
 
+const setReadyHandler: Handler = (game, seat, command) => {
+  if (command.kind !== "SET_READY") return "MODE_MISMATCH";
+  if (game.phase !== "lobby") return "INVALID_PHASE";
+  if (command.payload.ready && !seat.leaderId) return "SELECTION_INCOMPLETE";
+  const ready = new Set(game.readyPlayerIds ?? []);
+  const before = ready.has(seat.playerId);
+  if (command.payload.ready) ready.add(seat.playerId);
+  else ready.delete(seat.playerId);
+  if (before === command.payload.ready) return "NO_CHANGE";
+  game.readyPlayerIds = [...ready];
+  return "ACCEPTED";
+};
+
+/** Host starts a clean game lifecycle without replacing the room or player identities. */
+const newGameHandler: Handler = (game, seat, command, roster) => {
+  if (command.kind !== "NEW_GAME") return "MODE_MISMATCH";
+  if (seat.playerId !== roster.hostPlayerId) return "FORBIDDEN";
+  if (game.phase !== "game_over") return "INVALID_PHASE";
+  const settings = { ...game.settings };
+  const fresh = initialBaseGameState();
+  fresh.settings = settings;
+  for (const key of Object.keys(game)) delete (game as unknown as Record<string, unknown>)[key];
+  Object.assign(game, fresh);
+  syncLobbySeats(game, roster);
+  return "ACCEPTED";
+};
+
 /** ADD_BOT / REMOVE_BOT change the room roster, so the Durable Object handles them (see room.ts). */
 const rosterHandler: Handler = () => "MODE_MISMATCH";
 
 export const BASE_TURN_HANDLERS: Readonly<Record<BaseGameCommandKind, Handler>> = {
   CONFIGURE_GAME: configureHandler,
+  NEW_GAME: newGameHandler,
+  SET_READY: setReadyHandler,
   ADD_BOT: rosterHandler,
   REMOVE_BOT: rosterHandler,
   BEGIN_LEADER_SELECTION: setupHandler,
@@ -608,7 +644,7 @@ export function applyBaseCommand(
   syncLobbySeats(game, roster);
   const seat = game.seats.find((candidate) => candidate.playerId === actorPlayerId);
   if (!seat) return "FORBIDDEN";
-  if (game.phase === "game_over") return "GAME_OVER"; // WIN-END
+  if (game.phase === "game_over" && command.kind !== "NEW_GAME") return "GAME_OVER"; // WIN-END
   const code = BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps);
   if (code === "ACCEPTED") {
     // A human action just happened: bots wait before reacting so the player can follow what is going on.
@@ -816,6 +852,7 @@ export function seatBot(game: BaseGameState, roster: BaseRoster, botId: string, 
   const taken = new Set(game.seats.map((candidate) => candidate.leaderId).filter(Boolean));
   const free = deps.shuffle(game.leaderPool.filter((id) => !taken.has(id) && !id.endsWith("the-shadow-claw")));
   if (free[0]) lobbySelectLeader(game, seat, free[0]);
+  if (seat.leaderId) game.readyPlayerIds = [...new Set([...(game.readyPlayerIds ?? []), seat.playerId])];
 }
 
 /** Applies expired deadlines, the turn timer and bot moves (alarm / poll / before a command). Returns true if state changed. */
@@ -955,6 +992,7 @@ export function projectBaseGame(
         joinIndex,
         isHost: player.playerId === roster.hostPlayerId,
         isBot: Boolean(player.isBot),
+        ready: (game.readyPlayerIds ?? []).includes(player.playerId),
         handCount: seat?.hand.length ?? 0,
         leaderId: seat?.leaderId ?? null,
         leaderClass: seat ? leaderClass(seat) : null,

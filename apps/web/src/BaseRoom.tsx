@@ -1028,15 +1028,18 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
   const mine = state.players.find((p) => p.playerId === me);
   const ownerOf = (leaderId: string) => state.players.find((p) => p.leaderId === leaderId);
   const missing = state.players.filter((p) => !p.leaderId);
+  const notReady = state.players.filter((p) => !p.ready);
   const shadowBanned = state.players.length === 2;
   const blockedShadow = shadowBanned && state.players.some((p) => p.leaderId?.endsWith("the-shadow-claw"));
-  const canStart = host && state.players.length >= 2 && missing.length === 0 && !blockedShadow;
+  const canStart = host && state.players.length >= 2 && missing.length === 0 && notReady.length === 0 && !blockedShadow;
   const hint = state.players.length < 2
     ? "Need at least 2 players — invite a friend or add a bot."
     : missing.length
       ? `Waiting for ${missing.map((p) => p.nickname).join(", ")} to pick a Leader.`
       : blockedShadow
         ? "The Shadow Claw cannot be used in a 2-player game."
+        : notReady.length
+          ? `Waiting for ${notReady.map((p) => p.nickname).join(", ")} to get ready.`
         : host ? "Everyone is ready." : "Waiting for the host to start.";
   return (
     <section className="t3-lobby" aria-label="Lobby">
@@ -1075,6 +1078,7 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
                 <small>
                   {p.isHost && <em className="t3-tag">HOST</em>}
                   {p.isBot && <em className="t3-tag t3-tag--bot">BOT</em>}
+                  {p.ready && <em className="t3-tag">READY</em>}
                   {p.leaderId ? leaderDisplayName(p.leaderId) : <i>choosing a Leader…</i>}
                 </small>
               </span>
@@ -1117,6 +1121,7 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
 
       <footer className="t3-lobby-foot">
         <span className="t3-muted">{hint}</span>
+        {!mine?.isBot && <button className="t3-btn" disabled={pending || !mine?.leaderId} onClick={() => send("SET_READY", { ready: !mine?.ready })}>{mine?.ready ? "NOT READY" : "READY"}</button>}
         {host && <button className="t3-btn t3-btn--continue t3-btn--big" disabled={pending || !canStart} onClick={() => send("START_GAME", {})}>START GAME</button>}
       </footer>
     </section>
@@ -1473,6 +1478,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               <span className="t3-stage-kicker">GAME OVER</span>
               <h2 className="t3-win-name" role="status">{winner?.nickname} WINS!</h2>
               <p>{game.winReason === "slay_3" ? "Slew 3 Monsters" : "6 classes in Party"}</p>
+              {state.you.isHost && <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("NEW_GAME", {})}>NEW GAME · SAME ROOM</button>}
               <button className="t3-btn t3-btn--continue" onClick={() => setHideGameOver(true)}>VIEW TABLE</button>
             </header>
           </div>

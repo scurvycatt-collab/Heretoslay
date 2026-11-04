@@ -8,6 +8,7 @@ import type { BaseCard } from "../src/game/base-content.ts";
 import {
   applyBaseCommand,
   initialBaseGameState,
+  projectBaseGame,
   type BaseGameDeps,
   type BaseRoster,
 } from "../src/game/base-game.ts";
@@ -51,6 +52,7 @@ function table(leaders: string[], settings?: Record<string, unknown>) {
 }
 
 const PLUS2 = "hts.base.v1.modifier.modifier-plus-2-minus-2";
+const PLUS1 = "hts.base.v1.modifier.modifier-plus-1-minus-3";
 const PLUS4 = "hts.base.v1.modifier.modifier-plus-4";
 
 function startAttack(t: ReturnType<typeof table>, dice: [number, number]) {
@@ -141,19 +143,22 @@ test("C10: several Modifiers keep the reaction deadline fixed and add five secon
   assert.equal(t.game.turnDeadlineAt, t.clock.now + 70_000, "base 60s + 5s for each accepted Modifier");
 });
 
-test("The Protecting Horn: ±1 alongside a Modifier, listed as a Leader passive", () => {
+test("The Protecting Horn: 6 + Modifier +1 + Horn +1 resolves to 8", () => {
   const t = table(["the-protecting-horn", "the-charismatic-song"]);
   const me = startAttack(t, [3, 3]);
   const them = t.game.turnOrder.find((id) => id !== me)!;
   assert.equal(t.seat(them).leaderId, LEADER("the-protecting-horn"));
-  const mod = t.give(them, PLUS2);
-  assert.equal(t.run(them, "REACT_MODIFIER", { windowId: t.windowId(), cardInstanceId: mod.cardId, value: -2, leaderBonus: -1 }), "ACCEPTED");
+  const mod = t.give(them, PLUS1);
+  assert.equal(t.run(them, "REACT_MODIFIER", { windowId: t.windowId(), cardInstanceId: mod.cardId, value: 1, leaderBonus: 1 }), "ACCEPTED");
   const chain = t.game.chain;
   assert.ok(chain?.step === "modifier_window");
   if (chain?.step === "modifier_window") {
-    assert.equal(chain.roll.passives.at(-1)?.value, -1);
+    assert.equal(chain.roll.passives.at(-1)?.value, 1);
     assert.match(chain.roll.passives.at(-1)!.label, /^passive của Leader: The Protecting Horn/);
   }
+  t.passRest();
+  const view = projectBaseGame(t.game, t.roster, { roomCode: "HORN", revision: 1, serverNow: t.clock.now }, me);
+  assert.equal(view.game.lastRoll?.roll.total, 8);
 });
 
 test("CONFIGURE_GAME: host-only, before START_GAME; reactionSeconds drives the window deadline", () => {

@@ -133,6 +133,33 @@ test("leader selection is sequential and unique; rejections do not mutate", () =
   assert.deepEqual(game, before);
 });
 
+test("lobby requires every player to be ready and host can reset a finished game in the same room", () => {
+  const game = initialBaseGameState();
+  const players = roster(2);
+  const d = deps();
+  assert.equal(applyBaseCommand(game, players, "p1", cmd("SELECT_PARTY_LEADER", { leaderId: game.leaderPool[0] }), d), "ACCEPTED");
+  assert.equal(applyBaseCommand(game, players, "p2", cmd("SELECT_PARTY_LEADER", { leaderId: game.leaderPool[1] }), d), "ACCEPTED");
+  assert.equal(applyBaseCommand(game, players, "p1", cmd("START_GAME"), d), "PLAYERS_NOT_READY");
+  assert.equal(applyBaseCommand(game, players, "p1", cmd("SET_READY", { ready: true }), d), "ACCEPTED");
+  assert.equal(applyBaseCommand(game, players, "p2", cmd("SET_READY", { ready: true }), d), "ACCEPTED");
+  assert.equal(applyBaseCommand(game, players, "p2", cmd("START_GAME"), d), "FORBIDDEN");
+  assert.equal(projectBaseGame(game, players, { roomCode: "KEEP-ME", revision: 1, serverNow: 1 }, "p1").players.every((player) => player.ready), true);
+  assert.equal(applyBaseCommand(game, players, "p1", cmd("START_GAME"), d), "ACCEPTED");
+
+  game.phase = "game_over";
+  game.settings = { ...game.settings, challengeEnabled: false };
+  assert.equal(applyBaseCommand(game, players, "p2", cmd("NEW_GAME"), d), "FORBIDDEN");
+  assert.equal(applyBaseCommand(game, players, "p1", cmd("NEW_GAME"), d), "ACCEPTED");
+  assert.equal(game.phase, "lobby");
+  assert.deepEqual(game.seats.map((seat) => seat.playerId), ["p1", "p2"]);
+  assert.equal(game.seats.every((seat) => seat.leaderId === null && seat.hand.length === 0), true);
+  assert.deepEqual(game.readyPlayerIds, []);
+  assert.equal(game.settings.challengeEnabled, false);
+  const freshView = projectBaseGame(game, players, { roomCode: "KEEP-ME", revision: 2, serverNow: 2 }, "p1");
+  assert.equal(freshView.roomCode, "KEEP-ME");
+  assert.equal(freshView.players.every((player) => !player.ready), true);
+});
+
 test("DRAW costs 1 AP, REDRAW costs 3 AP and discards the hand, END_TURN advances without carry-over", () => {
   const { game, players, d } = startedGame(2);
   // turn order: p2 (last selector), p1
