@@ -172,9 +172,9 @@ test("Q-10: no Hero/Monster dice are rolled until the player sends the roll comm
 });
 
 // ---------------------------------------------------------------- Q-11
-test("Q-11: Leader passive is shown as its own labelled entry and does NOT take the Modifier slot (switch available)", () => {
-  for (const [on, expected] of [[false, "pending"], [true, "played"]] as const) {
-    const t = table(["the-cloaked-sage", "the-divine-arrow"], { leaderPassiveUsesModifierSlot: on });
+test("Q-11/C10: Leader passive is shown as its own labelled entry and never takes a Modifier slot", () => {
+  for (const expected of ["pending"] as const) {
+    const t = table(["the-cloaked-sage", "the-divine-arrow"]);
     const me = t.active(); // Divine Arrow: +1 on attack
     t.hero(me, "bad-axe");
     t.game.faceUpMonsters = [MON("terratuga")];
@@ -188,7 +188,7 @@ test("Q-11: Leader passive is shown as its own labelled entry and does NOT take 
 });
 
 // ---------------------------------------------------------------- choice timeout = skip, may = ask
-test("CHOICE-TIMEOUT: timeout = skip (nothing chosen, nothing happens); MAY: asks, timeout = decline", () => {
+test("CHOICE-TIMEOUT: mandatory penalty falls back (C02); MAY: asks, timeout = decline", () => {
   const t = table(["the-cloaked-sage", "the-charismatic-song"]);
   const me = t.active();
   t.hero(me, "bad-axe");
@@ -202,7 +202,7 @@ test("CHOICE-TIMEOUT: timeout = skip (nothing chosen, nothing happens); MAY: ask
   assert.equal(settleBaseGame(t.game, t.roster, t.deps), false);
   t.clock.now = deadline;
   assert.equal(settleBaseGame(t.game, t.roster, t.deps), true);
-  assert.equal(t.seat(me).party.length, 1, "Hero NOT sacrificed on timeout");
+  assert.equal(t.seat(me).party.length, 0, "C02: mandatory SACRIFICE cannot be dodged by timeout (server fallback)");
   assert.equal(t.game.chain, null);
 
   // "may": Arctic Aries slain → success of a Hero roll asks the player

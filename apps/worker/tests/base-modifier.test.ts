@@ -116,13 +116,27 @@ test("Leader passive: shown separately, does not use the Modifier slot by defaul
   assert.equal(t.run(me, "REACT_MODIFIER", { windowId: t.windowId(), cardInstanceId: mod.cardId, value: 4 }), "ACCEPTED");
 });
 
-test("Q-11 switch on: Leader passive consumes the roller's Modifier slot", () => {
-  const t = table(["the-cloaked-sage", "the-divine-arrow"], { leaderPassiveUsesModifierSlot: true });
+test("C10: one player may play several Modifiers on the same roll; Skip is final; deadline never moves", () => {
+  const t = table(["the-cloaked-sage", "the-divine-arrow"]);
   const me = startAttack(t, [3, 3]);
-  const chain = t.game.chain;
-  assert.ok(chain?.step === "modifier_window" && chain.responders[me] === "played");
-  const mod = t.give(me, PLUS4);
-  assert.equal(t.run(me, "REACT_MODIFIER", { windowId: t.windowId(), cardInstanceId: mod.cardId, value: 4 }), "ALREADY_RESPONDED");
+  const w = t.windowId();
+  const deadline = (t.game.chain as { deadlineAt: number }).deadlineAt;
+  const a = t.give(me, PLUS4);
+  const b = t.give(me, PLUS2);
+  t.clock.now += 5000;
+  assert.equal(t.run(me, "REACT_MODIFIER", { windowId: w, cardInstanceId: a.cardId, value: 4 }), "ACCEPTED");
+  const chain = t.game.chain as { responders: Record<string, string>; deadlineAt: number };
+  assert.equal(chain.responders[me], "pending", "playing does not complete participation");
+  assert.equal(chain.deadlineAt, deadline, "no clock reset");
+  assert.equal(t.run(me, "REACT_MODIFIER", { windowId: w, cardInstanceId: a.cardId, value: 4 }), "CARD_NOT_PLAYABLE", "replay never reuses a card");
+  assert.equal(t.run(me, "REACT_MODIFIER", { windowId: w, cardInstanceId: b.cardId, value: 2 }), "ACCEPTED");
+  assert.equal((t.game.chain as { roll: { modifiers: unknown[] } }).roll.modifiers.length, 2);
+  assert.equal(t.run(me, "REACT_PASS", { windowId: w }), "ACCEPTED");
+  const c = t.give(me, PLUS4);
+  assert.equal(t.run(me, "REACT_MODIFIER", { windowId: w, cardInstanceId: c.cardId, value: 4 }), "ALREADY_RESPONDED", "Skip is final");
+  assert.equal(t.game.chain?.step, "modifier_window", "other player still pending → stays open");
+  t.passRest();
+  assert.notEqual(t.game.chain?.step, "modifier_window", "closes early only when everyone Skipped");
 });
 
 test("The Protecting Horn: ±1 alongside a Modifier, listed as a Leader passive", () => {
@@ -157,8 +171,8 @@ test("CONFIGURE_GAME: host-only, before START_GAME; reactionSeconds drives the w
   assert.equal(lobby.settings.maskMode, "add");
 });
 
-test("Q-11 on: window closes at once when every slot is used; CONFIGURE_GAME with no change → NO_CHANGE", () => {
-  const t = table(["the-fist-of-reason", "the-charismatic-song"], { leaderPassiveUsesModifierSlot: true });
+test("C10: Leader passives never close a window by themselves; CONFIGURE_GAME with no change → NO_CHANGE", () => {
+  const t = table(["the-fist-of-reason", "the-charismatic-song"]);
   assert.equal(t.run("p1", "CONFIGURE_GAME", {}), "INVALID_PHASE");
   const me = t.active(); // p2 (Charismatic Song: +1 hero roll)
   const them = t.game.turnOrder.find((id) => id !== me)!; // p1 (Fist of Reason: +2 challenge)
@@ -174,8 +188,10 @@ test("Q-11 on: window closes at once when every slot is used; CONFIGURE_GAME wit
   t.dice.push([3, 3]);
   assert.equal(t.run(me, "IMMEDIATE_ROLL", { choice: "roll" }), "ACCEPTED");
   const chain = t.game.chain;
-  assert.ok(chain?.step === "modifier_window" && chain.responders[me] === "played" && chain.responders[them] === "pending");
+  assert.ok(chain?.step === "modifier_window" && chain.responders[me] === "pending" && chain.responders[them] === "pending");
   assert.equal(t.run(them, "REACT_PASS", { windowId: t.windowId() }), "ACCEPTED");
+  assert.equal(t.game.chain?.step, "modifier_window", "roller has not Skipped yet");
+  assert.equal(t.run(me, "REACT_PASS", { windowId: t.windowId() }), "ACCEPTED");
   assert.notEqual(t.game.chain?.step, "modifier_window");
 
   const lobby = initialBaseGameState();

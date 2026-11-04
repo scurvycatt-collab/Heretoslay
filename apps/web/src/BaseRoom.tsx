@@ -420,7 +420,7 @@ function PartyTokens({ player, target, heroAction, vertical }: { player: Player;
 const chainKey = (chain: BaseChainView) =>
   chain.step === "choice" ? chain.choiceId : chain.step === "immediate_roll_choice" ? `imm-${chain.deadlineAt}` : chain.windowId;
 
-const STATUS_LABEL: Record<string, string> = { pending: "THINKING", passed: "PASSED", played: "PLAYED" };
+const STATUS_LABEL: Record<string, string> = { pending: "THINKING", passed: "SKIPPED", played: "PLAYED" };
 
 function Roster({ state, responders }: { state: BaseGameSnapshot; responders: Record<string, string> }) {
   return (
@@ -1380,6 +1380,13 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
         )}
 
         {chain && <ReactionStage key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} askTargets={setTargetRequest} />}
+
+        {game.reveals.filter((reveal) => reveal.expiresAt > serverNow).map((reveal) => (
+          <aside key={reveal.revealId} className="t3-reveal" role="status" aria-live="polite">
+            <strong>{state.players.find((p) => p.playerId === reveal.playerId)?.nickname ?? "?"} reveals ({reveal.source})</strong>
+            <CardRenderer card={reveal.card} size="md" />
+          </aside>
+        ))}
 
         {game.lastRoll && game.lastRoll.id !== dismissedRoll && serverNow - game.lastRoll.resolvedAt < RESULT_MS && (
           <ResultStage key={game.lastRoll.id} state={state} result={game.lastRoll} onClose={() => setDismissedRoll(game.lastRoll!.id)} />

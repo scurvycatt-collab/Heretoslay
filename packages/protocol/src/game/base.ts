@@ -207,6 +207,8 @@ export interface BaseGameSnapshot {
     discardPile: BaseCardView[];
     /** Last resolved roll (result screen; display only). Null before the first roll. */
     lastRoll: BaseRollResultView | null;
+    /** C06: bounded public reveals (one explicitly revealed card each; hide after `expiresAt`). */
+    reveals: Array<{ revealId: string; playerId: string; source: string; card: BaseCardView; expiresAt: number }>;
     /** Hero instance ids whose effect was already rolled this turn. */
     heroRollsUsed: string[];
     /** Current turn's +N to all rolls of the active player (Wise Shield etc.). */
@@ -231,7 +233,6 @@ export interface BaseGameSettings {
   /** Q-04 (owner 2026-11-02): "replace" = card text, Mask replaces the Hero's class. */
   maskMode: "add" | "replace";
   /** Q-11: owner default false — Leader passive does not use the player's Modifier slot. */
-  leaderPassiveUsesModifierSlot: boolean;
 }
 
 export interface BaseRollView {
@@ -280,7 +281,7 @@ export type BaseChainView =
       windowId: string;
       deadlineAt: number;
       roll: BaseRollView;
-      responders: Record<string, "pending" | "passed" | "played">;
+      responders: Record<string, "pending" | "passed">;
     }
   | {
       step: "immediate_roll_choice";

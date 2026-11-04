@@ -34,6 +34,11 @@ export interface Attempt {
   actorId: string;
   card: BaseCard;
   targets: BaseTargets;
+  /**
+   * RA-01/C03: steps of the PARENT effect that must run only after this (nested) play fully resolved
+   * (Challenge, effect, cleanup). Serializable; also applied when a Challenge negates the card.
+   */
+  continuation?: Step[];
 }
 
 export interface ModifierEntry {
@@ -110,8 +115,13 @@ export interface ChoiceExtras {
   then?: Step[];
   /** confirm: run if declined (or timed out). */
   otherwise?: Step[];
-  /** play_card: run after a card was picked and played. */
+  /** play_card: run after a card was picked, played and fully resolved (nested play, C03). */
   thenIfPicked?: Step[];
+  /**
+   * C01: required payment. The dependent benefit runs only when the full payment was made;
+   * insufficient cards, timeout or no choice grant nothing (never auto-paid).
+   */
+  thenIfPaid?: Step[];
   /** discard: run these steps once per discarded card (Qi Bear). */
   perCardThen?: Step[];
   /** discard: remember discarded ids in game.collected (Beary Wise). */
@@ -141,7 +151,8 @@ export type Chain =
       windowId: string;
       deadlineAt: number;
       roll: RollState;
-      responders: Record<string, "pending" | "passed" | "played">;
+      /** C10: a Modifier play does not complete a participant; only Skip ("passed") does. */
+      responders: Record<string, "pending" | "passed">;
     }
   | { step: "immediate_roll_choice"; deadlineAt: number; actorId: string; heroCardId: string }
   | { step: "choice"; choice: PendingChoice };
@@ -157,9 +168,11 @@ export type Step =
       /** Steps after the offered card was played (Snowball: DRAW a second card). */
       offerThen?: Step[];
       /** "If at least one of those cards is a <kind> …" (Pan Chucks). */
-      ifAnyKindThen?: { kinds: BaseCardKind[]; steps: Step[] };
+      ifAnyKindThen?: { kinds: BaseCardKind[]; steps: Step[]; revealSource?: string };
       /** Internal: skip slain-Monster draw triggers (none currently). */
       quiet?: boolean;
+      /** C04: compute draw-trigger steps now but run them later (`flush_draw_triggers`). */
+      deferTriggers?: boolean;
     }
   | { op: "offer_immediate_roll"; playerId: string; heroCardId: string }
   | { op: "draw_to"; playerId: string; n: number }
@@ -186,6 +199,13 @@ export type Step =
   | { op: "return_all_items" }
   | { op: "pull_from_class"; toPlayerId: string; heroClass: "thief" }
   | { op: "each_other_choice"; actorId: string; kind: "discard" | "sacrifice_hero" | "give_card"; count: number; requireClass?: "fighter"; collect?: boolean }
+  /** C04: move the pending slain Monster into the Party, then check the win (hooks.afterSlay). */
+  | { op: "award_monster"; playerId: string; monsterId: string }
+  /** C04: release draw triggers deferred by `deferTriggers` (passives run only after award/win check). */
+  | { op: "flush_draw_triggers" }
+  /** C06: publicly reveal one card from the player's hand (only if it is still there). */
+  | { op: "reveal"; playerId: string; cardId: string; source: string }
+  | { op: "refill_monsters"; slot: number }
   | { op: "log"; text: string };
 
 export type RollOutcome = "success" | "fail" | "slay" | "penalty" | "none" | "challenge_succeeded" | "challenge_failed";
@@ -219,6 +239,34 @@ export interface EngineState extends SetupTable<BaseCard> {
   /** Card ids collected by `collect` discards for a follow-up step (Beary Wise). */
   collected: string[];
   lastRoll?: LastRoll | null;
+  /**
+   * C04: a successfully slain Monster held outside the face-up row and the Party while its reward resolves,
+   * so it cannot be attacked again, vanish, or count as owned. Cleared by `award_monster`.
+   */
+  pendingMonster?: { playerId: string; monsterId: string; slot: number } | null;
+  /** C04: draw-trigger steps computed at draw time, waiting for `flush_draw_triggers`. */
+  deferredSteps?: Step[];
+  /** C06: bounded public reveals (selected card only; never the whole hand). */
+  reveals?: RevealEvent[];
+}
+
+/** C06: a card explicitly revealed to everyone (players and spectators). */
+export interface RevealEvent {
+  revealId: string;
+  playerId: string;
+  source: string;
+  card: BaseCard;
+  revealedAt: number;
+  expiresAt: number;
+}
+
+/** C06 lifetime: how long the UI shows a reveal, and how many are retained. */
+export const REVEAL_VISIBLE_MS = 10_000;
+export const REVEAL_KEEP = 5;
+
+export function pruneReveals(game: EngineState, now: number): void {
+  if (!game.reveals) return;
+  game.reveals = game.reveals.filter((reveal) => reveal.expiresAt > now).slice(-REVEAL_KEEP);
 }
 
 export interface EngineDeps {
@@ -329,6 +377,14 @@ function offerPlay(playerId: string, cards: BaseCard[], prompt: string, thenIfPi
  * reveal it and DRAW a second card."
  */
 export function afterDraw(game: EngineState, seat: BaseSeat, drawn: BaseCard[]): void {
+  game.queue.unshift(...drawTriggerSteps(game, seat, drawn)); // right after the draw, before later effect steps
+}
+
+/**
+ * Eligibility is evaluated NOW (at draw time) from the Monsters the seat owns at this moment; the returned
+ * steps may run later (C04 deferral) without granting retroactive eligibility to a Monster awarded since.
+ */
+export function drawTriggerSteps(game: EngineState, seat: BaseSeat, drawn: BaseCard[]): Step[] {
   // Prompts are public: never name the drawn (hidden) card; the chooser sees it in `options`.
   const offers: Step[] = [];
   for (const card of drawn) {
@@ -341,13 +397,13 @@ export function afterDraw(game: EngineState, seat: BaseSeat, drawn: BaseCard[]):
     if (card.kind === "modifier" && slainHas(seat, "rex-major")) {
       offers.push(
         may(seat.playerId, "Rex Major: lộ Modifier vừa rút để DRAW thêm 1 lá?", [
-          { op: "log", text: `${whoName(game, seat.playerId)} lộ ${cardName(card.definitionId)} (Rex Major)` },
+          { op: "reveal", playerId: seat.playerId, cardId: card.cardId, source: "Rex Major" },
           { op: "draw", playerId: seat.playerId, n: 1 },
         ]),
       );
     }
   }
-  game.queue.unshift(...offers); // right after the draw, before later effect steps
+  return offers;
 }
 
 /** Dracos slain skill: "Each time a Hero card in your Party is destroyed, you may DRAW a card." */
@@ -544,6 +600,7 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
           n: 2,
           ifAnyKindThen: {
             kinds: ["challenge"],
+            revealSource: "Pan Chucks",
             steps: [
               may(actorId, "Pan Chucks: lộ Challenge vừa rút để DESTROY 1 Hero?", [
                 { op: "choice", playerId: actorId, kind: "destroy_hero", count: 1, prompt: "Chọn Hero để DESTROY (Pan Chucks)" },
@@ -611,16 +668,16 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       return [{ op: "return_item", heroCardId: h[0], onlyCursed: true, toPlayerId: actorId }];
     case "magic.destructive-spell":
       return [
-        { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Destructive Spell)" },
-        { op: "destroy", heroCardId: h[0], byPlayerId: actorId },
+        { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Destructive Spell)", thenIfPaid: [{ op: "destroy", heroCardId: h[0], byPlayerId: actorId }] },
       ];
     case "magic.entangling-trap":
       return [
-        { op: "choice", playerId: actorId, kind: "discard", count: 2, prompt: "DISCARD 2 lá (Entangling Trap)" },
-        { op: "steal", heroCardId: h[0], toPlayerId: actorId },
+        { op: "choice", playerId: actorId, kind: "discard", count: 2, prompt: "DISCARD 2 lá (Entangling Trap)", thenIfPaid: [{ op: "steal", heroCardId: h[0], toPlayerId: actorId }] },
       ];
     case "magic.forced-exchange": {
       const victim = ownerOf(h[0]);
+      // C11 (owner 2026-11-04): needs an own Hero (target h[1], chosen on play); STEAL first, the own Hero
+      // moves back to the victim only if the STEAL succeeded.
       return [
         { op: "steal", heroCardId: h[0], toPlayerId: actorId },
         { op: "move_hero", heroCardId: h[1], toPlayerId: victim, onlyIfOwns: { heroCardId: h[0], playerId: actorId } },
@@ -652,6 +709,11 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
       return false;
     }
   }
+  // C01: a required payment must be payable in full, otherwise its dependent benefit is not granted.
+  if (step.thenIfPaid && available < step.count) {
+    log(game, `${whoName(game, step.playerId)}: không đủ bài để trả (${step.prompt}) — không nhận được hiệu ứng`);
+    return false;
+  }
   // Q-05 / RULE-20: do as much as possible; nothing available → no effect.
   if (max === 0 && step.kind !== "view_hand") {
     log(game, `${whoName(game, step.playerId)}: không có gì để chọn (${step.prompt}) — bỏ qua`);
@@ -675,7 +737,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "perCardThen", "collect"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -687,6 +749,30 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "log":
       log(game, step.text);
       return false;
+    case "award_monster": // needs hooks → handled in advance()
+      return false;
+    case "flush_draw_triggers": {
+      const deferred = game.deferredSteps ?? [];
+      game.deferredSteps = [];
+      game.queue.unshift(...deferred);
+      return false;
+    }
+    case "refill_monsters":
+      refillFaceUpMonsters(game, step.slot);
+      return false;
+    case "reveal": {
+      const seat = seatOf(game, step.playerId);
+      const card = seat?.hand.find((candidate) => candidate.cardId === step.cardId);
+      if (!seat || !card) return false;
+      const now = deps.now();
+      pruneReveals(game, now);
+      game.reveals = [
+        ...(game.reveals ?? []),
+        { revealId: deps.newId(), playerId: step.playerId, source: step.source, card, revealedAt: now, expiresAt: now + REVEAL_VISIBLE_MS },
+      ].slice(-REVEAL_KEEP);
+      log(game, `${whoName(game, step.playerId)} lộ ${cardName(card.definitionId)} (${step.source})`);
+      return false;
+    }
     case "draw": {
       const seat = seatOf(game, step.playerId);
       if (!seat) return false;
@@ -698,9 +784,21 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         const playable = drawn.filter((card) => step.offerPlayIfKind!.includes(card.kind));
         if (playable.length > 0) follow.push(offerPlay(step.playerId, playable, "Chơi ngay lá vừa rút?", step.offerThen));
       }
-      if (step.ifAnyKindThen && drawn.some((card) => step.ifAnyKindThen!.kinds.includes(card.kind))) follow.push(...step.ifAnyKindThen.steps);
+      const revealed = step.ifAnyKindThen ? drawn.find((card) => step.ifAnyKindThen!.kinds.includes(card.kind)) : undefined;
+      if (step.ifAnyKindThen && revealed) {
+        // C06: accepting the "may reveal" clause publicly reveals exactly the qualifying card.
+        const label = step.ifAnyKindThen.revealSource;
+        follow.push(
+          ...step.ifAnyKindThen.steps.map((inner) =>
+            label && inner.op === "choice" && inner.kind === "confirm" && inner.then
+              ? { ...inner, then: [{ op: "reveal", playerId: step.playerId, cardId: revealed.cardId, source: label } as Step, ...inner.then] }
+              : inner,
+          ),
+        );
+      }
       game.queue.unshift(...follow);
-      afterDraw(game, seat, drawn);
+      if (step.deferTriggers) game.deferredSteps = [...(game.deferredSteps ?? []), ...drawTriggerSteps(game, seat, drawn)];
+      else afterDraw(game, seat, drawn);
       return false;
     }
     case "offer_immediate_roll": {
@@ -901,12 +999,27 @@ function orderFrom(game: EngineState, playerId: string): BaseSeat[] {
   return [...game.seats.slice(start), ...game.seats.slice(0, start)];
 }
 
+/** C04: pending Monster → Party, then the win check. Idempotent (a replayed step finds no pending Monster). Returns true if the game ended. */
+function awardMonster(game: EngineState, step: Extract<Step, { op: "award_monster" }>, hooks: EngineHooks): boolean {
+  const seat = seatOf(game, step.playerId);
+  const pending = game.pendingMonster;
+  if (!seat || !pending || pending.monsterId !== step.monsterId || pending.playerId !== step.playerId) return false;
+  game.pendingMonster = null;
+  seat.slain.push(step.monsterId);
+  log(game, `${whoName(game, step.playerId)} nhận ${cardName(monsterData(step.monsterId).definitionId)} vào Party`);
+  return hooks.afterSlay(game, seat);
+}
+
 /** Drains the effect queue until empty or a choice opens; then auto-ends the turn if AP ≤ 0. */
 export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks): void {
   if (game.phase !== "turn_active") return;
   while (game.chain === null && game.queue.length > 0) {
     const step = game.queue.shift()!;
-    runStep(game, step, deps);
+    if (step.op === "award_monster") {
+      if (awardMonster(game, step, hooks)) return; // C04: win → stop; no passives / refill after GAME_OVER
+    } else {
+      runStep(game, step, deps);
+    }
     if (game.phase !== "turn_active") return;
   }
   if (game.chain === null && game.queue.length === 0 && (game.actionPoints ?? 0) <= 0) {
@@ -952,15 +1065,16 @@ export function resolveChoice(
     if (error) return error;
     seat.hand.splice(seat.hand.indexOf(card), 1);
     game.chain = null;
-    if (choice.thenIfPicked) game.queue.unshift(...choice.thenIfPicked);
     log(game, `${whoName(game, playerId)} chơi ngay ${cardName(card.definitionId)} (không tốn AP)`);
-    openChallengeWindow(game, { actorId: playerId, card, targets: targets ?? {} }, deps, hooks);
+    // C03: the parent's continuation waits for this child play (Challenge → effect → cleanup).
+    openChallengeWindow(game, { actorId: playerId, card, targets: targets ?? {}, ...(choice.thenIfPicked ? { continuation: choice.thenIfPicked } : {}) }, deps, hooks);
     advance(game, deps, hooks);
     return "ACCEPTED";
   }
   if (targets !== undefined) return "INVALID_CHOICE";
   applyChoice(game, choice, seat, cardIds, deps);
   game.chain = null;
+  if (choice.thenIfPaid) game.queue.unshift(...choice.thenIfPaid);
   advance(game, deps, hooks);
   return "ACCEPTED";
 }
@@ -1175,19 +1289,12 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
 }
 
 /**
- * Everyone may play one Modifier or Skip. Q-11 (configurable, default off): if
- * `leaderPassiveUsesModifierSlot`, a player whose Leader passive already applies
- * to this roll has used their one Modifier slot ("played").
+ * C10: every player may play any number of Modifiers on the same roll until they Skip (final) or the
+ * fixed absolute deadline passes. The window closes early only when everyone has Skipped.
+ * (The legacy one-slot option `leaderPassiveUsesModifierSlot` was removed: it conflicted with C10.)
  */
-function modifierResponders(game: EngineState, roll: RollState): Record<string, "pending" | "passed" | "played"> {
-  const result: Record<string, "pending" | "passed" | "played"> = responders(game, null, "pending");
-  if (!game.settings.leaderPassiveUsesModifierSlot) return result;
-  for (const passive of roll.passives) {
-    if (!passive.source.startsWith("hts.base.v1.party-leader.")) continue;
-    const owner = roll.kind === "challenge" && passive.side === "challenger" ? roll.challengerId : roll.rollerId;
-    if (owner in result) result[owner] = "played";
-  }
-  return result;
+function modifierResponders(game: EngineState, _roll: RollState): Record<string, "pending" | "passed"> {
+  return responders<"pending" | "passed">(game, null, "pending");
 }
 
 export function playModifier(
@@ -1201,7 +1308,8 @@ export function playModifier(
   if (!chain || chain.step !== "modifier_window") return "NO_OPEN_WINDOW";
   if (chain.windowId !== payload.windowId) return "STALE_WINDOW";
   if (deps.now() >= chain.deadlineAt) return "WINDOW_CLOSED";
-  if (chain.responders[playerId] !== "pending") return "ALREADY_RESPONDED";
+  if (!(playerId in chain.responders)) return "NOT_ELIGIBLE";
+  if (chain.responders[playerId] !== "pending") return "ALREADY_RESPONDED"; // Skip is final
   const seat = seatOf(game, playerId)!;
   const index = seat.hand.findIndex((card) => card.cardId === payload.cardInstanceId);
   if (index < 0 || seat.hand[index].kind !== "modifier") return "CARD_NOT_PLAYABLE";
@@ -1235,8 +1343,7 @@ export function playModifier(
     }
   }
   log(game, `${whoName(game, playerId)} chơi Modifier ${payload.value > 0 ? "+" : ""}${payload.value}${side ? ` (${side})` : ""}`);
-  chain.responders[playerId] = "played";
-  maybeCloseModifierWindow(game, deps, hooks);
+  // C10: playing a card keeps the player pending (may add more until Skip); the deadline is never extended.
   return "ACCEPTED";
 }
 
@@ -1304,11 +1411,13 @@ export function playTargetError(game: EngineState, seat: BaseSeat, card: BaseCar
 export function resolveAttempt(game: EngineState, attempt: Attempt, deps: EngineDeps, hooks: EngineHooks): void {
   const actor = seatOf(game, attempt.actorId)!;
   const card = attempt.card;
+  const continuation = attempt.continuation ?? [];
   if (card.kind === "hero") {
     actor.party.push({ card, item: null });
     log(game, `${whoName(game, attempt.actorId)} đưa ${cardName(card.definitionId)} vào Party`);
     // RULE-06: optional immediate roll (free) — skip if the Hero cannot use its effect.
     offerHeroRoll(game, attempt.actorId, card.cardId, card.definitionId, deps);
+    game.queue.unshift(...continuation); // runs once the (optional) entry roll chain is done
     return;
   }
   if (card.kind === "item" || card.kind === "cursed_item") {
@@ -1319,10 +1428,12 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     if (!ok) {
       game.discard.push(card);
       log(game, `${cardName(card.definitionId)}: mục tiêu không còn hợp lệ — vào discard`);
+      game.queue.unshift(...continuation);
       return;
     }
     found.hero.item = card;
     log(game, `${whoName(game, attempt.actorId)} gắn ${cardName(card.definitionId)} vào ${cardName(found.hero.card.definitionId)}`);
+    game.queue.unshift(...continuation);
     return;
   }
   if (card.kind === "magic") {
@@ -1337,8 +1448,11 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     if (leaderIs(actor, "the-cloaked-sage")) steps.push({ op: "draw", playerId: attempt.actorId, n: 1 });
     // PC-CB-04: the Magic card stays pending (not reshufflable) until its effect resolved.
     steps.push({ op: "discard_card", card });
-    game.queue.push(...steps);
+    // C03: a nested play resolves before the parent's remaining queue; its continuation comes last.
+    game.queue.unshift(...steps, ...continuation);
+    return;
   }
+  game.queue.unshift(...continuation);
 }
 
 /** Starts a Hero effect roll (paid or immediate). Caller validated eligibility/targets. */
@@ -1373,6 +1487,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     if ((challengerTotal ?? 0) >= total) {
       game.discard.push(roll.attempt.card);
       log(game, `Challenge thành công (${challengerTotal} ≥ ${total}): ${cardName(roll.attempt.card.definitionId)} vào discard`);
+      if (roll.attempt.continuation) game.queue.unshift(...roll.attempt.continuation);
     } else {
       log(game, `Challenge thất bại (${challengerTotal} < ${total})`);
       resolveAttempt(game, roll.attempt, deps, hooks);
@@ -1419,13 +1534,20 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
   if (outcome === "slay") {
     const index = game.faceUpMonsters.indexOf(roll.monsterId);
     if (index >= 0) game.faceUpMonsters.splice(index, 1);
-    roller.slain.push(roll.monsterId);
     if (UNMODELLED_SLAIN.has(monster.definitionId)) {
       log(game, `Kỹ năng của ${monster.name} chưa được hỗ trợ — bỏ qua (no-op)`);
     }
-    if (hooks.afterSlay(game, roller)) return; // WIN-SLAY-T: stop, no refill (Q-03)
-    // DECK-03 refill; Q-09: no refill when the Monster deck is empty.
-    refillFaceUpMonsters(game, index);
+    // C04: printed reward DRAW → award (pending zone until then) → win check → passives → refill.
+    // Draw-trigger eligibility is fixed at draw time; the trigger steps are only released after the award.
+    game.pendingMonster = { playerId: roll.rollerId, monsterId: roll.monsterId, slot: index };
+    const sequence: Step[] = [];
+    if (monster.slayReward) sequence.push({ op: "draw", playerId: roll.rollerId, n: monster.slayReward.draw, deferTriggers: true });
+    sequence.push(
+      { op: "award_monster", playerId: roll.rollerId, monsterId: roll.monsterId },
+      { op: "flush_draw_triggers" },
+      { op: "refill_monsters", slot: index }, // DECK-03; Q-09: no refill when the Monster deck is empty
+    );
+    game.queue.unshift(...sequence);
     return;
   }
   if (outcome === "penalty") {
@@ -1464,6 +1586,13 @@ const UNMODELLED_SLAIN = new Set<string>([]);
 
 // ---------------------------------------------------------------- deadlines
 
+const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card"]);
+
+/** C02: required (min > 0) penalty choice that is not an elective payment gating a benefit (C01). */
+export function isMandatoryChoice(choice: PendingChoice): boolean {
+  return MANDATORY_KINDS.has(choice.kind) && choice.min > 0 && !choice.thenIfPaid;
+}
+
 export function nextDeadline(game: EngineState): number | null {
   const chain = game.chain;
   if (!chain || game.phase !== "turn_active") return null;
@@ -1494,8 +1623,17 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
     } else if (chain.step === "immediate_roll_choice") {
       game.chain = null;
       log(game, "Hết giờ — bỏ qua roll ngay");
+    } else if (isMandatoryChoice(chain.choice)) {
+      // C02: a mandatory penalty/return cannot be dodged by timeout — server fallback over legal cards,
+      // in persisted eligibility order (hand / Party order), same legality as a normal pick.
+      const choice = chain.choice;
+      const seat = seatOf(game, choice.playerId);
+      const ids = eligibleChoiceCards(game, choice).slice(0, choice.min).map((card) => card.cardId);
+      game.chain = null;
+      log(game, `Hết giờ chọn — server tự chọn thay ${whoName(game, choice.playerId)} (${choice.prompt})`);
+      if (seat && ids.length > 0) applyChoice(game, choice, seat, ids, deps);
     } else {
-      // Owner 2026-11-02: timeout = skip (nothing chosen, nothing happens; "may" declined).
+      // Owner 2026-11-02 / C01: optional or gated-payment choice timeout = skip (no payment, no benefit; "may" declined).
       log(game, `Hết giờ chọn — ${whoName(game, chain.choice.playerId)} bỏ qua (${chain.choice.prompt})`);
       game.chain = null;
       if (chain.choice.kind === "confirm" && chain.choice.otherwise) game.queue.unshift(...chain.choice.otherwise);

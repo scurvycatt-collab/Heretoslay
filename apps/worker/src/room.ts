@@ -412,7 +412,7 @@ function humanPresent(state: PersistedRoomState, now: number): boolean {
   });
 }
 
-const SHIFTED_KEYS = new Set(["deadlineAt", "turnDeadlineAt", "botNextActAt", "botPaceAt"]);
+const SHIFTED_KEYS = new Set(["deadlineAt", "turnDeadlineAt", "botNextActAt", "botPaceAt", "expiresAt", "revealedAt"]); // C12 + C06: reveal lifetimes pause too
 function shiftDeadlines(node: unknown, delta: number): void {
   if (Array.isArray(node)) { node.forEach((item) => shiftDeadlines(item, delta)); return; }
   if (node === null || typeof node !== "object") return;

@@ -330,9 +330,9 @@ function playGame(seed: number, nPlayers: number): GameResult {
       }
       if (chain.step === "modifier_window") {
         if (!Object.values(chain.responders).includes("pending")) fail("WINDOW_OPEN_NO_PENDING", "modifier");
-        const per: Record<string, number> = {};
-        for (const m of chain.roll.modifiers) per[m.playerId] = (per[m.playerId] ?? 0) + 1;
-        for (const [pid, n] of Object.entries(per)) if (n > 1) fail("MODIFIER_TWICE", `${pid} played ${n} modifiers in one window`);
+        // C10: several Modifiers per player are allowed; a card id must never appear twice.
+        const cardIds = chain.roll.modifiers.map((m) => m.cardId);
+        if (new Set(cardIds).size !== cardIds.length) fail("MODIFIER_CARD_REUSED", cardIds.join(","));
         const roll = chain.roll;
         for (const d of roll.dice) if (d < 1 || d > 6) fail("DICE_RANGE", `${d}`);
         if (roll.kind === "hero_effect") {
@@ -427,6 +427,10 @@ function playGame(seed: number, nPlayers: number): GameResult {
         if (sc?.step === "choice" && sc.playerId === viewer && ["take_from_top", "view_hand", "take_from_hand", "order_top"].includes(sc.kind)) {
           for (const o of sc.options ?? []) allowed.add(o.cardId);
         }
+        // C06: an explicit public reveal discloses exactly that card; the list stays bounded.
+        const reveals = ((snap.game as Any).reveals ?? []) as Any[];
+        if (reveals.length > 5) fail("REVEALS_UNBOUNDED", `${reveals.length}`);
+        for (const r of reveals) allowed.add(r.card.cardId);
         const forbidden = new Set<string>(deckIds);
         for (const s of g.seats) if (s.playerId !== viewer) for (const c of s.hand) forbidden.add(c.cardId);
         for (const id of idsInSnap) if (forbidden.has(id) && !allowed.has(id)) fail("LEAK_HIDDEN_CARD", `viewer ${viewer} sees ${id} (${zones.get(id)})`);
@@ -561,7 +565,6 @@ function playGame(seed: number, nPlayers: number): GameResult {
       if (rng.chance(0.5)) cfg.choiceSeconds = 10 + rng.int(40);
       if (rng.chance(0.5)) cfg.leaderFillsClassSlot = rng.chance(0.5);
       if (rng.chance(0.5)) cfg.maskMode = rng.pick(["add", "replace"]);
-      if (rng.chance(0.15)) cfg.leaderPassiveUsesModifierSlot = true;
       if (Object.keys(cfg).length) send0("p1", "CONFIGURE_GAME", cfg);
     }
     if (send0("p1", "START_GAME") === "ACCEPTED") fail("START_BEFORE_SELECTION", "");

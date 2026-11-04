@@ -654,6 +654,9 @@
       "penaltyText": "SACRIFICE a Hero card.",
       "text": "Each time you would DESTROY a Hero card, you may STEAL that Hero card instead.",
       "slainEffectId": "monster.corrupted-sabretooth",
+      "slayReward": {
+        "draw": 1
+      },
       "provenance": {
         "requirement": {
           "status": "corroborated",

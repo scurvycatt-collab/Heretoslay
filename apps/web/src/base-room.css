@@ -973,3 +973,5 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-stage-center .t3-stage-copy { font-size: clamp(14px, 2.2vh, 24px); }
 }
 @media (min-width: 1101px) { .t3-stage-tray .t3-tray-options { margin-bottom: 5.4vh; } .t3-stage-tray { padding-top: 0; } }
+/* C06: bounded public reveal (explicitly revealed card only) */
+.t3-reveal { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: grid; gap: 6px; padding: 8px; background: #11161f; border: 4px solid #e0b84c; max-width: 220px; }
