@@ -7,6 +7,7 @@ Source chính: `apps/web/src/i18n.tsx`; catalog Việt build-time: `apps/web/src
 - Tên định danh của thẻ Modifier (ví dụ `Modifier +1/-3`) luôn giữ nguyên; từ `Modifier` chỉ được dịch khi là nhãn loại thẻ hoặc nội dung giao diện.
 - Thuật ngữ game dùng duy nhất `COMMON_VI_TERMS`; chuỗi động và nội dung thẻ đều đi qua `translateVi`. Không tạo glossary riêng trong từng component.
 - Thuật ngữ chuẩn: `Skip` = `Bỏ qua`; `Party` = `Bàn chơi`; riêng `Party Leader` = `Thủ lĩnh`.
+- Trạng thái lượt chuẩn: `Your Turn` = `Lượt của bạn`.
 - Ở chế độ VI, renderer dựng lại mặt thẻ bằng text Việt thay vì dùng ảnh mặt thẻ có chữ Anh đóng cứng.
 - Lobby dùng một state loại trừ `create | join | view`, mỗi thời điểm chỉ render một nội dung.
 

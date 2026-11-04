@@ -22,6 +22,7 @@ export const COMMON_VI_TERMS = [
   [/\bATTACK\b/gi, "TẤN CÔNG"], [/\bROLL\b/gi, "ĐỔ XÚC XẮC"], [/\bPLAY\b/gi, "CHƠI"],
   [/\bSKIP\b/gi, "BỎ QUA"], [/\bPASS\b/gi, "NHƯỜNG LƯỢT"], [/\bHERO\b/gi, "ANH HÙNG"],
   [/\bMAGIC\b/gi, "PHÉP THUẬT"], [/\bMONSTER\b/gi, "QUÁI VẬT"], [/\bITEM\b/gi, "VẬT PHẨM"],
+  [/\bYOUR TURN\b/gi, "LƯỢT CỦA BẠN"],
   [/\bROOM\b/gi, "PHÒNG"], [/\bTURN\b/gi, "LƯỢT"], [/\bWAITING\b/gi, "ĐANG CHỜ"],
   [/\bPARTY\b/gi, "BÀN CHƠI"],
   [/\bCOMPLETED\b/gi, "HOÀN TẤT"], [/\bACTIVE\b/gi, "ĐANG HOẠT ĐỘNG"],
