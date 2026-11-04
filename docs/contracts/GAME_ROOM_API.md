@@ -171,7 +171,8 @@ Challenge rolls: `BaseRollView.attemptCard` carries the Hero/Item/Magic card bei
 | `START_GAME` | `{}` | host, `lobby` | Starts directly from the lobby when 2–6 seats all hold a Leader (`SELECTION_INCOMPLETE`, `LEADER_NOT_AVAILABLE` for Shadow Claw at 2 players). Lobby pick order = selection order, so SETUP-05 (last picker goes first) is unchanged. The old `BEGIN_LEADER_SELECTION` flow still works. |
 | `CONFIGURE_GAME` | `+ turnSeconds: 30 \| 60 \| 90` | host, before start | Turn timer (default 60). |
 
-Turn timer: `game.turnDeadlineAt` (snapshot) = end of the current turn. Restarts when AP changes (any AP spend), is
+Turn timer: `game.turnDeadlineAt` (snapshot) = end of the current turn. Each accepted Modifier adds 5 seconds to the
+current turn (cumulative, reset on the next turn) without changing the reaction-window deadline. It restarts when AP changes (any AP spend), is
 suspended (`null`) while a chain/queue resolves and restarts when it closes; expiry with nothing pending ends the turn
 (log "Hết giờ lượt"). The Durable Object alarm includes this deadline. Bots answer windows/choices at once and take one
 turn action about every 1.4 s of server time (attack if requirement met → play Hero → equip Item → roll Hero → draw →

@@ -116,9 +116,9 @@ test("Leader passive: shown separately, does not use the Modifier slot by defaul
   assert.equal(t.run(me, "REACT_MODIFIER", { windowId: t.windowId(), cardInstanceId: mod.cardId, value: 4 }), "ACCEPTED");
 });
 
-test("C10: one player may play several Modifiers on the same roll; Skip is final; deadline never moves", () => {
+test("C10: several Modifiers keep the reaction deadline fixed and add five seconds each to the turn", () => {
   const t = table(["the-cloaked-sage", "the-divine-arrow"]);
-  const me = startAttack(t, [3, 3]);
+  const me = startAttack(t, [1, 1]);
   const w = t.windowId();
   const deadline = (t.game.chain as { deadlineAt: number }).deadlineAt;
   const a = t.give(me, PLUS4);
@@ -130,6 +130,7 @@ test("C10: one player may play several Modifiers on the same roll; Skip is final
   assert.equal(chain.deadlineAt, deadline, "no clock reset");
   assert.equal(t.run(me, "REACT_MODIFIER", { windowId: w, cardInstanceId: a.cardId, value: 4 }), "CARD_NOT_PLAYABLE", "replay never reuses a card");
   assert.equal(t.run(me, "REACT_MODIFIER", { windowId: w, cardInstanceId: b.cardId, value: 2 }), "ACCEPTED");
+  assert.equal(t.game.turnModifierBonusSeconds, 10);
   assert.equal((t.game.chain as { roll: { modifiers: unknown[] } }).roll.modifiers.length, 2);
   assert.equal(t.run(me, "REACT_PASS", { windowId: w }), "ACCEPTED");
   const c = t.give(me, PLUS4);
@@ -137,6 +138,7 @@ test("C10: one player may play several Modifiers on the same roll; Skip is final
   assert.equal(t.game.chain?.step, "modifier_window", "other player still pending → stays open");
   t.passRest();
   assert.notEqual(t.game.chain?.step, "modifier_window", "closes early only when everyone Skipped");
+  assert.equal(t.game.turnDeadlineAt, t.clock.now + 70_000, "base 60s + 5s for each accepted Modifier");
 });
 
 test("The Protecting Horn: ±1 alongside a Modifier, listed as a Leader passive", () => {

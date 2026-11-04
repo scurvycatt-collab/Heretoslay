@@ -87,6 +87,8 @@ export interface BaseGameState extends EngineState {
   turnDeadlineAt?: number | null;
   /** `${turnId}:${actionPoints}:${busy}` — the deadline restarts whenever it changes. */
   turnTimerKey?: string | null;
+  /** Five seconds for every accepted Modifier played during the current turn. */
+  turnModifierBonusSeconds?: number;
   /** Lobby Leader picks in order (last picker goes first, SETUP-05). */
   leaderPickOrder?: string[];
   /** Earliest time the active bot takes its next turn action (pacing). */
@@ -155,6 +157,7 @@ export function initialBaseGameState(): BaseGameState {
     reveals: [],
     turnDeadlineAt: null,
     turnTimerKey: null,
+    turnModifierBonusSeconds: 0,
     leaderPickOrder: [],
     botNextActAt: null,
     botPaceAt: null,
@@ -183,6 +186,7 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
     game.reveals ??= [];
     game.turnDeadlineAt ??= null;
     game.turnTimerKey ??= null;
+    game.turnModifierBonusSeconds ??= 0;
     game.leaderPickOrder ??= [];
     game.botNextActAt ??= null;
     game.botPaceAt ??= null;
@@ -234,6 +238,7 @@ function setupContext(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, d
 /** Per-turn resets. "Until your next turn" protections end when that player's turn starts. */
 function onTurnStart(game: BaseGameState): void {
   game.botNextActAt = null;
+  game.turnModifierBonusSeconds = 0;
   game.heroRollsUsed = [];
   game.turnRollBonus = 0;
   game.noChallengeThisTurn = false;
@@ -314,6 +319,7 @@ export function checkSlayWin(game: BaseGameState, seat: BaseSeat): boolean {
 const HOOKS: EngineHooks = {
   autoEndTurn: (game, deps) => endTurn(game as BaseGameState, deps),
   afterSlay: (game, seat) => checkSlayWin(game as BaseGameState, seat),
+  afterModifierPlayed: (game) => { (game as BaseGameState).turnModifierBonusSeconds = ((game as BaseGameState).turnModifierBonusSeconds ?? 0) + 5; },
 };
 
 function spendAp(game: BaseGameState, cost: number): void {
@@ -616,9 +622,9 @@ export function applyBaseCommand(
 // ------------------------------------------------------------- turn timer
 
 /**
- * Turn countdown (owner 2026-11-03): `settings.turnSeconds` per turn; every AP
- * spend restarts it; while a chain/queue resolves the countdown is suspended and
- * restarts once it closes. Returns true when the stored timer changed.
+ * Turn countdown: `settings.turnSeconds` plus five seconds per accepted Modifier
+ * in this turn; every AP spend restarts it; while a chain/queue resolves the
+ * countdown is suspended and restarts once it closes.
  */
 function updateTurnTimer(game: BaseGameState, now: number): boolean {
   if (game.phase !== "turn_active") {
@@ -628,10 +634,11 @@ function updateTurnTimer(game: BaseGameState, now: number): boolean {
     return changed;
   }
   const busy = isBusy(game);
-  const key = `${game.turnId}:${game.actionPoints}:${busy ? 1 : 0}`;
+  const bonus = game.turnModifierBonusSeconds ?? 0;
+  const key = `${game.turnId}:${game.actionPoints}:${busy ? 1 : 0}:${bonus}`;
   if (key === game.turnTimerKey) return false;
   game.turnTimerKey = key;
-  game.turnDeadlineAt = busy ? null : now + (game.settings.turnSeconds ?? DEFAULT_SETTINGS.turnSeconds) * 1000;
+  game.turnDeadlineAt = busy ? null : now + ((game.settings.turnSeconds ?? DEFAULT_SETTINGS.turnSeconds) + bonus) * 1000;
   return true;
 }
 

@@ -162,6 +162,7 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 | LOBBY-LEADER | Chọn Party Leader ngay trong sảnh chờ; host bấm START GAME khi mọi ghế đã có Leader. | `SELECT_PARTY_LEADER` / `START_GAME` ở phase `lobby` (base-game.ts) |
 | LOBBY-BOT | Host thêm bot ở sảnh chờ; bot tự chọn Leader. | `ADD_BOT` / `REMOVE_BOT` (room.ts), bot driver trong `settleBaseGame` |
 | TURN-TIMER | Mỗi lượt có đếm ngược 30/60/90 s (chọn ở sảnh). Dùng AP reset đồng hồ; hết giờ tự kết thúc lượt. | `settings.turnSeconds`, `game.turnDeadlineAt`; tạm dừng khi đang resolve chain, chạy lại từ đầu khi chain đóng (owner xác nhận) |
+| TURN-MODIFIER-BONUS | Mỗi Modifier hợp lệ được chơi cộng 5 giây cho lượt hiện tại; cộng dồn và reset khi sang lượt. | Server cộng vào ngân sách `game.turnDeadlineAt`; không gia hạn deadline của reaction window. |
 | ROLL-TARGET | Hero/Magic/Item cần mục tiêu: hỏi mục tiêu ngay lúc chơi/roll (chỉ liệt kê lựa chọn hợp lệ), không còn bị từ chối âm thầm `INVALID_TARGET`. | UI `TargetDialog` / `TargetOptions`; server vẫn validate (Q-08) |
 | BOT-AUTO | Bot tự xử lý hết: tự Skip cửa sổ phản ứng, tự roll, tự chọn khi có lựa chọn, tự chơi lượt. | bot driver (base-game.ts `runBots`) |
 | BOT-RESULT | Màn kết quả roll của bot hiển thị như của người chơi (tự ẩn ~5 s hoặc CONTINUE). | `ResultStage` không phân biệt bot |

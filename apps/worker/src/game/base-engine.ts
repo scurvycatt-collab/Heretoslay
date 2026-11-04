@@ -282,6 +282,8 @@ export interface EngineHooks {
   autoEndTurn: (game: EngineState, deps: EngineDeps) => void;
   /** Called right after a Monster is slain (WIN-SLAY-T). Returns true if the game ended. */
   afterSlay: (game: EngineState, seat: BaseSeat) => boolean;
+  /** Called after a valid Modifier card is consumed. */
+  afterModifierPlayed?: (game: EngineState) => void;
 }
 
 // ---------------------------------------------------------------- helpers
@@ -1322,6 +1324,7 @@ export function playModifier(
   game.discard.push(card);
   const side = payload.side;
   roll.modifiers.push({ playerId, cardId: card.cardId, value: payload.value, ...(side ? { side } : {}) });
+  hooks.afterModifierPlayed?.(game);
   if (payload.leaderBonus !== undefined) {
     roll.passives.push({
       source: "hts.base.v1.party-leader.the-protecting-horn",
