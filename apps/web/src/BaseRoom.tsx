@@ -645,6 +645,13 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
         ? chain.actorPlayerId === me
         : chain.playerId === me;
   const [collapsed, setCollapsed] = useState(!needsMe);
+  useEffect(() => {
+    const returnToTable = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCollapsed(true);
+    };
+    window.addEventListener("keydown", returnToTable);
+    return () => window.removeEventListener("keydown", returnToTable);
+  }, []);
   const name = (playerId: string) => state.players.find((p) => p.playerId === playerId)?.nickname ?? playerId;
   const totalMs = (chain.step === "challenge_window" || chain.step === "modifier_window" ? settings.reactionSeconds : settings.choiceSeconds) * 1000;
   const countdown = (big: boolean) => <Countdown key={chain.deadlineAt} deadlineAt={chain.deadlineAt} serverNow={serverNow} totalMs={totalMs} big={big} />;
@@ -668,14 +675,20 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     const cards = state.yourHand.filter((c) => c.kind === "challenge");
     if (mine === "pending") {
       tray = cards.map((card) => (
-        <div key={card.cardId} className={`t3-tray-card${focusCard === card.cardId ? " is-up" : ""}`}>
-          <CardRenderer card={card} size="md" onClick={() => setFocusCard(focusCard === card.cardId ? null : card.cardId)} selected={focusCard === card.cardId} />
+        <div key={card.cardId} className="t3-tray-card">
+          <CardRenderer
+            card={card}
+            size="md"
+            disabled={pending}
+            onClick={() => send("REACT_CHALLENGE", { windowId: chain.windowId, cardInstanceId: card.cardId })}
+            ariaLabel={`${card.name} — play Challenge`}
+          />
           <div className="t3-tray-actions">
             <button className="t3-btn t3-btn--red" disabled={pending} onClick={() => send("REACT_CHALLENGE", { windowId: chain.windowId, cardInstanceId: card.cardId })}>CHALLENGE</button>
           </div>
         </div>
       ));
-      primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP</button>;
+      primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => { setCollapsed(true); send("REACT_PASS", { windowId: chain.windowId }); }}>SKIP</button>;
     }
   } else if (chain.step === "modifier_window") {
     const roll = chain.roll;
@@ -1104,7 +1117,8 @@ function seatSlots(count: number): string[] {
 export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; notice: string; onLobby: () => void }) {
   const game = state.game;
   const me = state.you.playerId;
-  const active = game.currentPlayerId === me;
+  const gameActive = game.phase === "turn_active";
+  const active = gameActive && game.currentPlayerId === me;
   const ap = game.actionPoints ?? 0;
   const free = active && game.chain === null;
   const [targets, setTargets] = useState<BaseTargets>({});
@@ -1117,6 +1131,11 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const stackTimer = useRef<number | null>(null);
   const [dismissedRoll, setDismissedRoll] = useState<string | null>(null);
   const [attackFor, setAttackFor] = useState<string | null>(null);
+  useEffect(() => {
+    if (game.phase !== "game_over") return;
+    setTargetRequest(null);
+    setAttackFor(null);
+  }, [game.phase]);
   // Click anywhere else (or Esc) folds the ATTACK button back behind its Monster.
   useEffect(() => {
     if (!attackFor) return;
@@ -1290,7 +1309,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                             ⚔ ATTACK · 2 AP
                           </button>
                         </div>
-                        <CardRenderer card={monster} size="lg" selected={open} onClick={() => setAttackFor(attackFor === monster.cardId ? null : monster.cardId)} ariaLabel={`${monster.name} — click to attack`} />
+                        <CardRenderer card={monster} size="lg" selected={open} onClick={gameActive ? () => setAttackFor(attackFor === monster.cardId ? null : monster.cardId) : undefined} ariaLabel={`${monster.name}${gameActive ? " — click to attack" : ""}`} />
                       </div>
                     );
                   })}

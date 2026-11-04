@@ -141,6 +141,7 @@
 }
 .tcard--hero .tcard-desc, .tcard--magic .tcard-desc { text-align: left; justify-content: flex-start; }
 .tcard--tarot .tcard-desc { font-size: calc(5cqw * var(--desc-scale, 1)); }
+.tcard--party_leader .tcard-desc { font-size: calc(5.8cqw * var(--desc-scale, 1)); }
 .tcard-desc--missing { opacity: 0.6; font-style: italic; }
 
 /* modifier amounts */

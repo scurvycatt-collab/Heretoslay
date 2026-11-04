@@ -351,6 +351,22 @@ test("CHALLENGE-SKIP: card actor is excluded; only opponents must answer", () =>
   assert.equal(t.game.chain?.step, "immediate_roll_choice");
 });
 
+test("CHALLENGE-SKIP: all opponents passing closes the window immediately", () => {
+  const t = table(["the-cloaked-sage", "the-charismatic-song", "the-fist-of-reason"], { reactionSeconds: 120 });
+  const actor = t.active();
+  const opponents = t.others();
+  const hero = t.give(actor, HERO("peanut"));
+  assert.equal(t.run(actor, "PLAY_HAND_CARD", { cardInstanceId: hero.cardId }), "ACCEPTED");
+  const challenge = t.game.chain!;
+  assert.equal(challenge.step, "challenge_window");
+  if (challenge.step !== "challenge_window") return;
+  assert.equal(t.run(opponents[0], "REACT_PASS", { windowId: challenge.windowId }), "ACCEPTED");
+  assert.equal(t.game.chain?.step, "challenge_window", "one pending opponent keeps the window open");
+  assert.equal(t.run(opponents[1], "REACT_PASS", { windowId: challenge.windowId }), "ACCEPTED");
+  assert.equal(t.game.chain?.step, "immediate_roll_choice", "the final Skip advances without waiting for the deadline");
+  assert.ok(t.clock.now < challenge.deadlineAt);
+});
+
 test("CHOICE-TIMER: reactions use 20s while choices and immediate rolls use 30s", () => {
   const t = table(["the-cloaked-sage", "the-charismatic-song"], { reactionSeconds: 20, choiceSeconds: 30 });
   const actor = t.active();
