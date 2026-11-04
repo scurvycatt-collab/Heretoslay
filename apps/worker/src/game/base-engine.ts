@@ -170,6 +170,8 @@ export type Step =
       ifAnyKindThen?: { kinds: BaseCardKind[]; steps: Step[] };
       /** Internal: skip slain-Monster draw triggers (none currently). */
       quiet?: boolean;
+      /** C04: compute draw-trigger steps now but run them later (`flush_draw_triggers`). */
+      deferTriggers?: boolean;
     }
   | { op: "offer_immediate_roll"; playerId: string; heroCardId: string }
   | { op: "draw_to"; playerId: string; n: number }
@@ -196,6 +198,11 @@ export type Step =
   | { op: "return_all_items" }
   | { op: "pull_from_class"; toPlayerId: string; heroClass: "thief" }
   | { op: "each_other_choice"; actorId: string; kind: "discard" | "sacrifice_hero" | "give_card"; count: number; requireClass?: "fighter"; collect?: boolean }
+  /** C04: move the pending slain Monster into the Party, then check the win (hooks.afterSlay). */
+  | { op: "award_monster"; playerId: string; monsterId: string }
+  /** C04: release draw triggers deferred by `deferTriggers` (passives run only after award/win check). */
+  | { op: "flush_draw_triggers" }
+  | { op: "refill_monsters"; slot: number }
   | { op: "log"; text: string };
 
 export type RollOutcome = "success" | "fail" | "slay" | "penalty" | "none" | "challenge_succeeded" | "challenge_failed";
@@ -229,6 +236,13 @@ export interface EngineState extends SetupTable<BaseCard> {
   /** Card ids collected by `collect` discards for a follow-up step (Beary Wise). */
   collected: string[];
   lastRoll?: LastRoll | null;
+  /**
+   * C04: a successfully slain Monster held outside the face-up row and the Party while its reward resolves,
+   * so it cannot be attacked again, vanish, or count as owned. Cleared by `award_monster`.
+   */
+  pendingMonster?: { playerId: string; monsterId: string; slot: number } | null;
+  /** C04: draw-trigger steps computed at draw time, waiting for `flush_draw_triggers`. */
+  deferredSteps?: Step[];
 }
 
 export interface EngineDeps {
@@ -339,6 +353,14 @@ function offerPlay(playerId: string, cards: BaseCard[], prompt: string, thenIfPi
  * reveal it and DRAW a second card."
  */
 export function afterDraw(game: EngineState, seat: BaseSeat, drawn: BaseCard[]): void {
+  game.queue.unshift(...drawTriggerSteps(game, seat, drawn)); // right after the draw, before later effect steps
+}
+
+/**
+ * Eligibility is evaluated NOW (at draw time) from the Monsters the seat owns at this moment; the returned
+ * steps may run later (C04 deferral) without granting retroactive eligibility to a Monster awarded since.
+ */
+export function drawTriggerSteps(game: EngineState, seat: BaseSeat, drawn: BaseCard[]): Step[] {
   // Prompts are public: never name the drawn (hidden) card; the chooser sees it in `options`.
   const offers: Step[] = [];
   for (const card of drawn) {
@@ -357,7 +379,7 @@ export function afterDraw(game: EngineState, seat: BaseSeat, drawn: BaseCard[]):
       );
     }
   }
-  game.queue.unshift(...offers); // right after the draw, before later effect steps
+  return offers;
 }
 
 /** Dracos slain skill: "Each time a Hero card in your Party is destroyed, you may DRAW a card." */
@@ -702,6 +724,17 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "log":
       log(game, step.text);
       return false;
+    case "award_monster": // needs hooks → handled in advance()
+      return false;
+    case "flush_draw_triggers": {
+      const deferred = game.deferredSteps ?? [];
+      game.deferredSteps = [];
+      game.queue.unshift(...deferred);
+      return false;
+    }
+    case "refill_monsters":
+      refillFaceUpMonsters(game, step.slot);
+      return false;
     case "draw": {
       const seat = seatOf(game, step.playerId);
       if (!seat) return false;
@@ -715,7 +748,8 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       }
       if (step.ifAnyKindThen && drawn.some((card) => step.ifAnyKindThen!.kinds.includes(card.kind))) follow.push(...step.ifAnyKindThen.steps);
       game.queue.unshift(...follow);
-      afterDraw(game, seat, drawn);
+      if (step.deferTriggers) game.deferredSteps = [...(game.deferredSteps ?? []), ...drawTriggerSteps(game, seat, drawn)];
+      else afterDraw(game, seat, drawn);
       return false;
     }
     case "offer_immediate_roll": {
@@ -916,12 +950,27 @@ function orderFrom(game: EngineState, playerId: string): BaseSeat[] {
   return [...game.seats.slice(start), ...game.seats.slice(0, start)];
 }
 
+/** C04: pending Monster → Party, then the win check. Idempotent (a replayed step finds no pending Monster). Returns true if the game ended. */
+function awardMonster(game: EngineState, step: Extract<Step, { op: "award_monster" }>, hooks: EngineHooks): boolean {
+  const seat = seatOf(game, step.playerId);
+  const pending = game.pendingMonster;
+  if (!seat || !pending || pending.monsterId !== step.monsterId || pending.playerId !== step.playerId) return false;
+  game.pendingMonster = null;
+  seat.slain.push(step.monsterId);
+  log(game, `${whoName(game, step.playerId)} nhận ${cardName(monsterData(step.monsterId).definitionId)} vào Party`);
+  return hooks.afterSlay(game, seat);
+}
+
 /** Drains the effect queue until empty or a choice opens; then auto-ends the turn if AP ≤ 0. */
 export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks): void {
   if (game.phase !== "turn_active") return;
   while (game.chain === null && game.queue.length > 0) {
     const step = game.queue.shift()!;
-    runStep(game, step, deps);
+    if (step.op === "award_monster") {
+      if (awardMonster(game, step, hooks)) return; // C04: win → stop; no passives / refill after GAME_OVER
+    } else {
+      runStep(game, step, deps);
+    }
     if (game.phase !== "turn_active") return;
   }
   if (game.chain === null && game.queue.length === 0 && (game.actionPoints ?? 0) <= 0) {
@@ -1443,13 +1492,20 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
   if (outcome === "slay") {
     const index = game.faceUpMonsters.indexOf(roll.monsterId);
     if (index >= 0) game.faceUpMonsters.splice(index, 1);
-    roller.slain.push(roll.monsterId);
     if (UNMODELLED_SLAIN.has(monster.definitionId)) {
       log(game, `Kỹ năng của ${monster.name} chưa được hỗ trợ — bỏ qua (no-op)`);
     }
-    if (hooks.afterSlay(game, roller)) return; // WIN-SLAY-T: stop, no refill (Q-03)
-    // DECK-03 refill; Q-09: no refill when the Monster deck is empty.
-    refillFaceUpMonsters(game, index);
+    // C04: printed reward DRAW → award (pending zone until then) → win check → passives → refill.
+    // Draw-trigger eligibility is fixed at draw time; the trigger steps are only released after the award.
+    game.pendingMonster = { playerId: roll.rollerId, monsterId: roll.monsterId, slot: index };
+    const sequence: Step[] = [];
+    if (monster.slayReward) sequence.push({ op: "draw", playerId: roll.rollerId, n: monster.slayReward.draw, deferTriggers: true });
+    sequence.push(
+      { op: "award_monster", playerId: roll.rollerId, monsterId: roll.monsterId },
+      { op: "flush_draw_triggers" },
+      { op: "refill_monsters", slot: index }, // DECK-03; Q-09: no refill when the Monster deck is empty
+    );
+    game.queue.unshift(...sequence);
     return;
   }
   if (outcome === "penalty") {

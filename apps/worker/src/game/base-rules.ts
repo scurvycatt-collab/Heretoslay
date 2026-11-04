@@ -151,7 +151,10 @@ export function rollPassives(
   }
   if (kind === "challenge_challenger") {
     if (leaderIs(seat, "the-fist-of-reason")) add("hts.base.v1.party-leader.the-fist-of-reason", "passive của Leader: The Fist of Reason", 2);
-    if (slainHas(seat, "titan-wyvern")) add("hts.base.v1.monster.titan-wyvern", "Titan Wyvern (đã slay)", 1);
+  }
+  // C05: Titan Wyvern benefits its holder on BOTH Challenge sides (never an opponent's roll).
+  if ((kind === "challenge_challenger" || kind === "challenge_defender") && slainHas(seat, "titan-wyvern")) {
+    add("hts.base.v1.monster.titan-wyvern", "Titan Wyvern (đã slay)", 1);
   }
   return out;
 }

@@ -81,6 +81,11 @@ export interface MonsterCardData extends CardCommon {
   penaltyText: string;
   /** Passive granted while the Monster is slain in your Party. */
   slainEffectId: string | null;
+  /**
+   * RA-02/C04: printed immediate reward of a successful SLAY, resolved before the Monster is awarded
+   * (separate from the persistent slain skill). Absent = no reward; never assume one.
+   */
+  slayReward?: { draw: number };
 }
 
 export interface ItemCardData extends CardCommon {

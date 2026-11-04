@@ -202,6 +202,7 @@ function validateMonster(card: MonsterCardData): string[] {
   const errors: string[] = [];
   const where = card.definitionId;
   if (!Array.isArray(card.requirement) || card.requirement.length === 0) errors.push(`${where}: requirement`);
+  if (card.slayReward !== undefined && !(isInt(card.slayReward.draw) && card.slayReward.draw >= 1 && card.slayReward.draw <= 5)) errors.push(`${where}: slayReward`);
   for (const slot of card.requirement ?? []) {
     if (slot.kind === "class" ? !HERO_CLASSES.includes(slot.heroClass) : slot.kind !== "any") {
       errors.push(`${where}: requirement slot`);
