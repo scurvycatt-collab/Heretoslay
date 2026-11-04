@@ -497,8 +497,8 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-toasts { width: min(370px, 60vw); }
   .t3-hand { --hw: calc(clamp(96px, 17cqh, 170px) * 1.1); max-width: none; }
   .t3-hand .tcard { --w: var(--hw); }
-  /* tighter overlap as the hand grows, so it stays clear of my seat */
-  .t3-hand-card { margin-left: calc(var(--hw) * (-0.2 - 0.04 * min(max(var(--n) - 5, 0), 5))); }
+  /* Keep tightening beyond ten cards so a large hand stays clear of the deployed Party. */
+  .t3-hand-card { margin-left: calc(var(--hw) * var(--hand-shift)); }
   .t3-hand-card:first-child { margin-left: 0; }
   .t3-hand-actions .t3-btn { font-size: 14.5px; padding: 7px 14px; }
   .t3-target-bar { bottom: calc(clamp(96px, 17cqh, 170px) * 0.68 + 10px); }

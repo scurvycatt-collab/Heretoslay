@@ -968,8 +968,9 @@ function DiscardView({ pile, count, onClose }: { pile: BaseCardView[]; count: nu
 function Hand({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolean; onPlay: (card: BaseCardView) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const n = hand.length;
+  const handShift = -Math.min(0.78, 0.2 + Math.max(0, n - 5) * 0.055);
   return (
-    <div className="t3-hand" aria-label="Your hand" style={{ "--n": n } as CSSProperties}>
+    <div className="t3-hand" aria-label="Your hand" style={{ "--n": n, "--hand-shift": handShift } as CSSProperties}>
       {hand.map((card, i) => {
         const offset = i - (n - 1) / 2;
         const playable = card.kind === "hero" || card.kind === "item" || card.kind === "cursed_item" || card.kind === "magic";

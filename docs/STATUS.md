@@ -28,6 +28,7 @@
 | UI-LEADER-SKIP | Codex | done | Tăng chữ chức năng Party Leader; bấm thẻ hoặc nút Challenge đều đánh được; Skip hoặc Esc thu popup về bàn; người cuối cùng Skip kết thúc Challenge ngay; khi thắng thì toàn bộ gameplay action bị gỡ. Source, UI direction, test và production đồng bộ. |
 | UI-REACTION-DENSITY | Codex | done | Popup có ≥4 thẻ Challenge/Modifier tự co theo số thẻ + viewport và giữ một hàng để nút Skip luôn nằm trong khung nhìn. Source, UI direction, test và production đồng bộ. |
 | UI-VI-CARD-ART | Codex | done | Gallery tiếng Việt dùng artwork riêng hoặc crop vùng art từ full-face tiếng Anh; giữ nguyên khung/rule tiếng Việt, không còn panel ảnh trống ở nhóm complete-face-only. Test và production đồng bộ. |
+| UI-HAND-DENSITY | Codex | done | Tay bài desktop tiếp tục tăng độ chồng khi vượt 10 thẻ (tối đa 78%), giữ vùng Party/Hero đã triển khai không bị tay bài che. Source, UI direction và test đồng bộ. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.
