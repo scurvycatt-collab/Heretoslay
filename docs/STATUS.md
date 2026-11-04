@@ -21,7 +21,7 @@
 | DEPL-001 | arch | done | Worker + assets phát hành qua service binding; gateway thương hiệu `/herotoslay/` trả UI, health và tạo phòng production thành công (2026-11-03) |
 | UI-005 | ui+arch | done | UI +10% (Monster/Discard +15%), seat góc/gần hand, màn tương tác phóng to, Ctrl-hover inspector, Monster click → nút Attack slide, Leader panel lớn, art Challenge (pack 04-base-challenge), animation chậm + xúc xắc; bot pacing (BOT_STEP_MS 3200 / BOT_REACT_MS 2600 / BOT_RESULT_HOLD_MS 9000), hero không mục tiêu tự bỏ qua ability. typecheck PASS, integ 82 pass/1 skip; main 7c0b291 |
 | DEPL-002 | owner | done | Deploy UI-005 lên https://game.nauagency.asia/herotoslay/ — deploy được rồi (2026-11-04) |
-| UI-009 | Codex | ready to deploy | Gộp lobby thành một box Tạo/Vào/Xem; EN mặc định + VI toàn ứng dụng, glossary chung và rules text thẻ Việt. Target i18n tests 3/3, web typecheck/build PASS. Full verify còn 8 lỗi backend baseline không thuộc thay đổi; xem `docs/ui/LOCALIZATION.md`. |
+| UI-009 | Codex | done | Gộp lobby thành một box Tạo/Vào/Xem; EN mặc định + VI toàn ứng dụng, glossary chung và rules text thẻ Việt. I18n 3/3, web typecheck/build, Worker dry-run PASS; production bundle + health xác minh 200. Full verify còn 8 lỗi backend baseline không thuộc thay đổi; xem `docs/ui/LOCALIZATION.md`. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.
