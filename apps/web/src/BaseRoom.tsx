@@ -634,10 +634,10 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
   const chain = state.game.chain!;
   const me = state.you.playerId;
   const settings = state.game.settings;
-  const [side, setSide] = useState<"challenger" | "defender">("defender");
   const [hornBonus, setHornBonus] = useState<0 | 1 | -1>(0);
   const [picked, setPicked] = useState<string[]>([]);
   const [focusCard, setFocusCard] = useState<string | null>(null);
+  const [modifierValue, setModifierValue] = useState<number | null>(null);
   const phase = useRevealPhase();
   const needsMe =
     chain.step === "challenge_window" || chain.step === "modifier_window"
@@ -709,34 +709,24 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
       trayCardCount = modifierCards.length;
       tray = (
         <>
-          {(roll.kind === "challenge" || hasHorn) && (
+          {hasHorn && (
             <div className="t3-tray-options">
-              {roll.kind === "challenge" && (
-                <div className="t3-seg" role="group" aria-label="Apply modifier to">
-                  <span>Apply to</span>
-                  {(["defender", "challenger"] as const).map((s) => (
-                    <button key={s} className={side === s ? "is-on" : ""} aria-pressed={side === s} onClick={() => setSide(s)}>{s === "defender" ? name(roll.rollerPlayerId) : name(roll.challengerPlayerId!)}</button>
-                  ))}
-                </div>
-              )}
-              {hasHorn && (
-                <div className="t3-seg" role="group" aria-label="Protecting Horn bonus">
-                  <span>Horn</span>
-                  {([0, 1, -1] as const).map((v) => (
-                    <button key={v} className={hornBonus === v ? "is-on" : ""} aria-pressed={hornBonus === v} onClick={() => setHornBonus(v)}>{v === 0 ? "none" : signed(v)}</button>
-                  ))}
-                </div>
-              )}
+              <div className="t3-seg" role="group" aria-label="Protecting Horn bonus">
+                <span>Horn</span>
+                {([0, 1, -1] as const).map((v) => (
+                  <button key={v} className={hornBonus === v ? "is-on" : ""} aria-pressed={hornBonus === v} onClick={() => setHornBonus(v)}>{v === 0 ? "none" : signed(v)}</button>
+                ))}
+              </div>
             </div>
           )}
           {modifierCards.map((card) => {
             const options = card.modifierOptions ?? [];
             const singleValue = options.length === 1 ? options[0] : undefined;
-            const play = (value: number) => send("REACT_MODIFIER", {
+            const play = (value: number, chosenSide: "challenger" | "defender" = "defender") => send("REACT_MODIFIER", {
               windowId: chain.windowId,
               cardInstanceId: card.cardId,
               value,
-              ...(roll.kind === "challenge" ? { side } : {}),
+              ...(roll.kind === "challenge" ? { side: chosenSide } : {}),
               ...(hornBonus ? { leaderBonus: hornBonus } : {}),
             });
             return (
@@ -745,22 +735,39 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
                 card={card}
                 size="md"
                 disabled={pending}
-                onClick={() => singleValue === undefined ? setFocusCard(focusCard === card.cardId ? null : card.cardId) : play(singleValue)}
+                onClick={() => {
+                  if (singleValue !== undefined) play(singleValue);
+                  else {
+                    setFocusCard(focusCard === card.cardId ? null : card.cardId);
+                    setModifierValue(null);
+                  }
+                }}
                 selected={singleValue === undefined && focusCard === card.cardId}
                 ariaLabel={singleValue === undefined ? `${card.name} — choose modifier value` : `${card.name} — play ${signed(singleValue)}`}
               />
               <div className="t3-tray-actions">
-                {singleValue === undefined && options.map((value) => (
+                {singleValue === undefined && focusCard === card.cardId && modifierValue === null && <span className="t3-tray-step">1 · CHOOSE + / −</span>}
+                {singleValue === undefined && focusCard === card.cardId && modifierValue === null && options.map((value) => (
                   <button
                     key={`${card.cardId}${value}`}
                     className={`t3-btn ${value >= 0 ? "t3-btn--green" : "t3-btn--red"}`}
                     disabled={pending}
                     aria-label={`${card.name}: ${signed(value)}`}
-                    onClick={() => play(value)}
+                    onClick={() => roll.kind === "challenge" ? setModifierValue(value) : play(value)}
                   >
                     {signed(value)}
                   </button>
                 ))}
+                {singleValue === undefined && focusCard === card.cardId && modifierValue !== null && roll.kind === "challenge" && (
+                  <div className="t3-seg" role="group" aria-label="Apply modifier to">
+                    <span>2 · APPLY {signed(modifierValue)} TO</span>
+                    {(["defender", "challenger"] as const).map((chosenSide) => (
+                      <button key={chosenSide} onClick={() => play(modifierValue, chosenSide)}>
+                        {chosenSide === "defender" ? name(roll.rollerPlayerId) : name(roll.challengerPlayerId!)}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             );

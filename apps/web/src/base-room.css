@@ -272,6 +272,7 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-tray-card:hover, .t3-tray-card.is-up { transform: translateY(0); }
 .t3-tray-card .tcard { --w: clamp(96px, min(10vw, 15vh), 150px); }
 .t3-tray-actions { position: absolute; top: -40px; display: flex; gap: 6px; }
+.t3-tray-step { align-self: center; color: #f4f7f8; font-size: 12px; font-weight: 800; white-space: nowrap; }
 .t3-tray-options { flex-basis: 100%; display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; }
 .t3-seg { display: inline-flex; align-items: center; font-size: 12px; }
 .t3-seg > span { margin-right: 8px; color: #c3cbd2; }

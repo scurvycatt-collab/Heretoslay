@@ -64,11 +64,14 @@ test("right-click opens the same full-card inspector as a 2-second hover", async
   assert.doesNotMatch(room, /useModifierKey|e\.key === "Control"/);
 });
 
-test("one-way Modifiers play from the card while two-way cards still ask for a value", async () => {
+test("one-way Modifiers play from the card and two-way cards reveal value then target steps", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   assert.match(room, /const singleValue = options\.length === 1 \? options\[0\] : undefined/);
-  assert.match(room, /onClick=\{\(\) => singleValue === undefined \?/);
-  assert.match(room, /: play\(singleValue\)\}/);
-  assert.match(room, /\{singleValue === undefined && options\.map\(\(value\) =>/);
+  assert.match(room, /if \(singleValue !== undefined\) play\(singleValue\)/);
+  assert.match(room, /setFocusCard\(focusCard === card\.cardId \? null : card\.cardId\);\s+setModifierValue\(null\)/);
+  assert.match(room, /focusCard === card\.cardId && modifierValue === null && options\.map/);
+  assert.match(room, /roll\.kind === "challenge" \? setModifierValue\(value\) : play\(value\)/);
+  assert.match(room, /2 · APPLY \{signed\(modifierValue\)\} TO/);
+  assert.match(room, /play\(modifierValue, chosenSide\)/);
   assert.match(room, /ariaLabel=\{singleValue === undefined \? `\$\{card\.name\} — choose modifier value` : `\$\{card\.name\} — play \$\{signed\(singleValue\)\}`\}/);
 });
