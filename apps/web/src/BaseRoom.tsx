@@ -1121,7 +1121,7 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
 
       <footer className="t3-lobby-foot">
         <span className="t3-muted">{hint}</span>
-        {!mine?.isBot && !mine?.isHost && <button className="t3-btn" disabled={pending || !mine?.leaderId} onClick={() => send("SET_READY", { ready: !mine?.ready })}>{mine?.ready ? "NOT READY" : "READY"}</button>}
+        {!mine?.isBot && !mine?.isHost && <button className="t3-btn t3-btn--continue t3-btn--big" disabled={pending || !mine?.leaderId} onClick={() => send("SET_READY", { ready: !mine?.ready })}>{mine?.ready ? "NOT READY" : "READY"}</button>}
         {host && <button className="t3-btn t3-btn--continue t3-btn--big" disabled={pending || !canStart} onClick={() => send("START_GAME", {})}>START GAME</button>}
       </footer>
     </section>

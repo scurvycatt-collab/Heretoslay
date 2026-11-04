@@ -82,6 +82,7 @@ test("lobby requires Ready only from non-host players", async () => {
   assert.match(room, /send\("SET_READY", \{ ready: !mine\?\.ready \}\)/);
   assert.match(room, /const notReady = state\.players\.filter\(\(p\) => !p\.isHost && !p\.ready\)/);
   assert.match(room, /!mine\?\.isBot && !mine\?\.isHost && <button/);
+  assert.match(room, /!mine\?\.isHost && <button className="t3-btn t3-btn--continue t3-btn--big"/);
   assert.match(room, /onClick=\{\(\) => send\("SET_READY", \{ ready: !mine\?\.ready \}\)\}/);
   assert.match(room, /notReady\.length === 0/);
   assert.match(room, /Waiting for.*to get ready/);
