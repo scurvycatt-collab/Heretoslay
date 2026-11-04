@@ -23,6 +23,7 @@ export const COMMON_VI_TERMS = [
   [/\bSKIP\b/gi, "BỎ QUA"], [/\bPASS\b/gi, "NHƯỜNG LƯỢT"], [/\bHERO\b/gi, "ANH HÙNG"],
   [/\bMAGIC\b/gi, "PHÉP THUẬT"], [/\bMONSTER\b/gi, "QUÁI VẬT"], [/\bITEM\b/gi, "VẬT PHẨM"],
   [/\bROOM\b/gi, "PHÒNG"], [/\bTURN\b/gi, "LƯỢT"], [/\bWAITING\b/gi, "ĐANG CHỜ"],
+  [/\bPARTY\b/gi, "BÀN CHƠI"],
   [/\bCOMPLETED\b/gi, "HOÀN TẤT"], [/\bACTIVE\b/gi, "ĐANG HOẠT ĐỘNG"],
   [/\bPLAYERS?\b/gi, "NGƯỜI CHƠI"], [/\bCARDS?\b/gi, "LÁ BÀI"],
 ] as const satisfies readonly (readonly [RegExp, string])[];
@@ -49,6 +50,8 @@ function normalizeVietnamese(value: string): string {
 }
 
 export function translateVi(value: string): string {
+  // Modifier face names are identifiers (for example "Modifier +1/-3"), not UI terminology.
+  if (/^Modifier (?:\+\d+(?:\/-\d+)?|-\d+)$/i.test(value.trim())) return value;
   if (criticalVi[value]) return criticalVi[value];
   const direct = (viCatalog as Record<string, string>)[value];
   if (direct) return normalizeVietnamese(direct);

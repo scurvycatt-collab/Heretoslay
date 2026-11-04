@@ -18,6 +18,12 @@ test("English/Vietnamese locale is global and persistent while its switch is lob
   assert.match(i18n, /COMMON_VI_TERMS/);
   for (const term of ["DRAW", "DISCARD", "STEAL", "DESTROY", "CHALLENGE", "LEADER"]) assert.match(i18n, new RegExp(`\\\\b${term}\\\\b`));
   assert.match(i18n, /\[\/\\bLEADER\\b\/gi, "THỦ LĨNH"\]/);
+  assert.match(i18n, /\[\/\\bSKIP\\b\/gi, "BỎ QUA"\]/);
+  assert.match(i18n, /\[\/\\bPARTY\\b\/gi, "BÀN CHƠI"\]/);
+  const vi = JSON.parse(await readFile(new URL("../apps/web/src/i18n.vi.json", import.meta.url), "utf8"));
+  assert.equal(vi.SKIP, "BỎ QUA");
+  assert.equal(vi["YOU · PARTY"], "BẠN · BÀN CHƠI");
+  assert.match(i18n, /\^Modifier \(\?:\\\+\\d\+\(\?:\\\/\-\\d\+\)\?\|\-\\d\+\)\$\/i/);
 });
 
 test("Vietnamese catalog covers every base-card rule and monster penalty", async () => {
