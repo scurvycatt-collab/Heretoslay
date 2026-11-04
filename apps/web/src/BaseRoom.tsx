@@ -321,13 +321,12 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
     <>
       <span className="t3-avatar-face" style={{ background: leaderColor(player) }}>
         <Glyph name={(player.leaderClass as HeroClass) ?? "leader"} className="t3-avatar-glyph" />
-        <b>{player.nickname.slice(0, 1).toUpperCase()}</b>
       </span>
       {targeted && <span className="t3-reticle" aria-hidden />}
     </>
   );
   return (
-    <div className={`t3-cluster${isActive ? " is-active" : ""}`}>
+    <div className={`t3-cluster${isActive ? " is-active" : ""}`} title={`${player.nickname} · ✋ ${player.handCount} cards in hand · ◆ ${player.partyClasses.length}/6 classes · ☠ ${player.slainMonsters.length}/3 Monsters`}>
       <span className={`t3-nametag${isActive ? " is-active" : ""}`}>{player.isBot ? "🤖 " : ""}{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
       {player.leaderId && (
         <span className="t3-seat-leader t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
@@ -529,7 +528,7 @@ function rollParts(state: BaseGameSnapshot, roll: BaseRollView, result?: BaseRol
         <span key={m.cardId} className={`t3-modchip ${m.value >= 0 ? "is-pos" : "is-neg"}`}>{name(m.playerId)} {signed(m.value)}</span>
       ))}
       {roll.passives.filter((p) => !filter || (p.side ?? "defender") === filter).map((p, i) => (
-        <span key={`${p.source}-${i}`} className={`t3-modchip ${p.value >= 0 ? "is-pos" : "is-neg"}`}>{p.label} {signed(p.value)}</span>
+        <span key={`${p.source}-${i}`} className={`t3-modchip ${p.value >= 0 ? "is-pos" : "is-neg"}`}>{leaderPassiveLabel(p.label)} {signed(p.value)}</span>
       ))}
     </div>
   );
@@ -666,7 +665,6 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     kicker = "CHALLENGE?";
     featured = <CardRenderer card={chain.pendingCard} size="xl" />;
     roster = <Roster state={state} responders={chain.responders} />;
-    center = <p className="t3-stage-copy">Play a <b>Challenge</b> card to contest this play — the server rolls both sides.</p>;
     const cards = state.yourHand.filter((c) => c.kind === "challenge");
     if (mine === "pending") {
       tray = cards.map((card) => (
@@ -886,6 +884,27 @@ type Toast = { seq: number; text: string };
 const TOAST_MS = 5000;
 
 /** Only the most recent action is shown (next to the LOG button); it fades away after TOAST_MS. */
+/** "passive của Leader: The Charismatic Song" -> "Leader: The Charismatic Song" (the chip stays on one short line). */
+function leaderPassiveLabel(label: string): string {
+  return label.replace(/^\s*passive\s+(?:của|of)\s+/i, "");
+}
+
+/** True for ~1.8 s each time the turn passes to me (not on a mid-turn reload). */
+function useYourTurn(currentPlayerId: string | null, me: string): boolean {
+  const [show, setShow] = useState(false);
+  const prev = useRef(currentPlayerId);
+  useEffect(() => {
+    const was = prev.current;
+    prev.current = currentPlayerId;
+    if (currentPlayerId !== me) { setShow(false); return; }
+    if (was === me) return;
+    setShow(true);
+    const timer = window.setTimeout(() => setShow(false), 1800);
+    return () => window.clearTimeout(timer);
+  }, [currentPlayerId, me]);
+  return show;
+}
+
 function useLogToasts(log: Game["log"]) {
   const lastSeq = useRef<number>(log.length ? log[log.length - 1].seq : 0);
   const timer = useRef<number | undefined>(undefined);
@@ -1118,6 +1137,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   };
   const held = useModifierKey();
   const [toasts, dismissToast] = useLogToasts(game.log);
+  const yourTurn = useYourTurn(game.phase === "turn_active" ? game.currentPlayerId : null, me);
   const mySeat = state.players.find((p) => p.playerId === me);
   const allSelected = game.phase === "leader_selection" && game.selectionPlayerId === null;
   const playing = game.phase === "turn_active" || game.phase === "game_over";
@@ -1347,6 +1367,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               <p className="t3-hint">Hold <kbd>Ctrl</kbd> + hover a card for full details</p>
             </section>
 
+            {yourTurn && <div className="t3-yourturn" role="status" aria-live="assertive"><b>YOUR TURN</b></div>}
             <div className="t3-toasts" aria-live="polite">
               {toasts.map((t) => (
                 <div key={t.seq} className="t3-toast">
