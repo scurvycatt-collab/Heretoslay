@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { clearSession, command, createRoom, joinRoom, leaveRoom, loadSession, parseRoute, saveSession, snapshot, type Session } from "./api";
 import type { EffectDemoSnapshot, SetupDemoSnapshot } from "@here-to-slay/protocol";
 import { BaseRoom } from "./BaseRoom";
+import { useLanguage } from "./i18n";
 
 type Scene = "table" | "modifier" | "challenge" | "versus";
 type View = "lobby" | "preview";
 type CloseReason = "all-completed" | "deadline" | null;
 type Player = { id: string; name: string; hasModifier: boolean; hasChallenge: boolean; isActor: boolean; status: "waiting" | "completed" };
+const lobbyCopy = {
+  en: { create: "CREATE", join: "JOIN", view: "VIEW", intro: "Nickname and room code only. No account. Base rooms support 2–6 players.", createRoom: "CREATE ROOM", joinRoom: "JOIN ROOM", viewGame: "VIEW GAME", nickname: "Nickname", mode: "Mode", roomCode: "Room code", baseMode: "Base game (2–6 players)", reactionDemo: "Reaction demo", setupDemo: "Setup demo · synthetic", effectDemo: "Effect demo · synthetic two cards", viewDescription: "Explore the table and interaction design without creating or joining a live room.", openView: "OPEN GAME VIEW", expansion: "+ Expansion → max 8 (not supported)", cards: "BROWSE BASE CARD COLLECTION →" },
+  vi: { create: "TẠO", join: "VÀO", view: "XEM", intro: "Chỉ cần biệt danh và mã phòng, không cần tài khoản. Phòng cơ bản hỗ trợ 2–6 người chơi.", createRoom: "TẠO PHÒNG", joinRoom: "VÀO PHÒNG", viewGame: "XEM BÀN CHƠI", nickname: "Biệt danh", mode: "Chế độ", roomCode: "Mã phòng", baseMode: "Bản cơ bản (2–6 người)", reactionDemo: "Thử phản ứng", setupDemo: "Thử thiết lập · mô phỏng", effectDemo: "Thử hiệu ứng · hai lá mô phỏng", viewDescription: "Khám phá bàn chơi và thiết kế tương tác mà không cần tạo hoặc tham gia phòng trực tiếp.", openView: "MỞ CHẾ ĐỘ XEM", expansion: "+ Bản mở rộng → tối đa 8 (chưa hỗ trợ)", cards: "XEM BỘ LÁ CƠ BẢN →" },
+} as const;
 
 const createPlayers = (): Player[] => [
   { id: "p1", name: "You", hasModifier: true, hasChallenge: false, isActor: false, status: "waiting" },
@@ -65,6 +70,7 @@ function EffectRoom({ state, pending, send, serverNow }: { state: EffectDemoSnap
 function PreviewApp() {
   const [scene, setScene] = useState<Scene>("table");
   const [view, setView] = useState<View>("preview");
+  const [lobbyAction, setLobbyAction] = useState<"create" | "join" | "view">("create");
   const [capacity, setCapacity] = useState("4");
   const [nickname, setNickname] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -105,20 +111,28 @@ const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value -
 <h1 id="lobby-title">HERE TO SLAY</h1>
 <p>Choose a nickname, then create or join a room when the server contract is available. No account is required. Base rooms support 2–6 players; expansion support is not implemented.</p>
 <div className="lobby-grid">
-<form className="lobby-card" onSubmit={(event) => { event.preventDefault(); setLobbyNotice("Create room is waiting for the server API contract; nothing was created."); }}>
+<section className="lobby-card">
+<div className="lobby-actions" role="tablist" aria-label="Room action">
+<button type="button" role="tab" aria-selected={lobbyAction === "create"} className={lobbyAction === "create" ? "is-active" : ""} onClick={() => setLobbyAction("create")}>CREATE</button>
+<button type="button" role="tab" aria-selected={lobbyAction === "join"} className={lobbyAction === "join" ? "is-active" : ""} onClick={() => setLobbyAction("join")}>JOIN</button>
+<button type="button" role="tab" aria-selected={lobbyAction === "view"} className={lobbyAction === "view" ? "is-active" : ""} onClick={() => setLobbyAction("view")}>VIEW</button>
+</div>
+{lobbyAction === "create" && <form onSubmit={(event) => { event.preventDefault(); setLobbyNotice("Create room is waiting for the server API contract; nothing was created."); }}>
 <h2>CREATE ROOM</h2>
 <label>Nickname<input required value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="Display name" maxLength={24}/>
 </label>
 <button type="submit" disabled={!nickname.trim()}>CREATE (UNAVAILABLE)</button>
-</form>
-<form className="lobby-card" onSubmit={(event) => { event.preventDefault(); setLobbyNotice("Join room is waiting for the server API contract; no session was sent."); }}>
+</form>}
+{lobbyAction === "join" && <form onSubmit={(event) => { event.preventDefault(); setLobbyNotice("Join room is waiting for the server API contract; no session was sent."); }}>
 <h2>JOIN ROOM</h2>
 <label>Nickname<input required value={nickname} onChange={(event) => setNickname(event.target.value)} placeholder="Display name" maxLength={24}/>
 </label>
 <label>Room code<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} placeholder="e.g. ABCD" maxLength={12}/>
 </label>
 <button type="submit" disabled={!nickname.trim() || !roomCode.trim()}>JOIN (UNAVAILABLE)</button>
-</form>
+</form>}
+{lobbyAction === "view" && <div className="lobby-view" role="tabpanel"><h2>VIEW GAME</h2><p>Explore the approved table design without joining a live room.</p><button type="button" onClick={() => setView("preview")}>OPEN GAME VIEW</button></div>}
+</section>
 </div>
 <button className="expansion" disabled>+ Expansion → max 8 (not supported)</button>
 <p className="lobby-notice" role="status">{lobbyNotice}</p>
@@ -226,7 +240,10 @@ const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value -
 }
 
 export function App() {
+  const { language } = useLanguage();
   const [mode, setMode] = useState<"lobby" | "room" | "preview">(() => loadSession() ? "room" : "lobby");
+  const [lobbyAction, setLobbyAction] = useState<"create" | "join" | "view">(() => parseRoute().roomCode ? "join" : "create");
+  const copy = lobbyCopy[language];
   const [nickname, setNickname] = useState("");
 const [roomCode, setRoomCode] = useState(() => parseRoute().roomCode ?? "");
   const [createMode, setCreateMode] = useState<"base" | "reaction_demo" | "setup_demo" | "effect_demo">("base");
@@ -305,30 +322,41 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 </main>; }
   return <main className="lobby-shell">
 <section className="lobby-panel">
-<span className="lobby-kicker">BASE GAME</span>
+<div className="lobby-topline"><span className="lobby-kicker">BASE GAME</span></div>
 <h1>HERE TO SLAY</h1>
-<p>Nickname and room code only. No account. Base rooms support 2–6 players.</p>
+<p>{copy.intro}</p>
 <div className="lobby-grid">
-<form className="lobby-card" onSubmit={(event) => { event.preventDefault(); void connect("create"); }}>
-<h2>CREATE ROOM</h2>
-<label>Nickname<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
-</label>
-<label>Mode<select value={createMode} onChange={(event) => setCreateMode(event.target.value as "base" | "reaction_demo" | "setup_demo" | "effect_demo")}><option value="base">Base game (2–6 players)</option><option value="reaction_demo">Reaction demo</option><option value="setup_demo">Setup demo · synthetic</option><option value="effect_demo">Effect demo · synthetic two cards</option></select></label>
-<button disabled={pending || !nickname.trim()}>CREATE ROOM</button>
-</form>
-<form className="lobby-card" onSubmit={(event) => { event.preventDefault(); void connect("join"); }}>
-<h2>JOIN ROOM</h2>
-<label>Nickname<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
-</label>
-<label>Room code<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} maxLength={12}/>
-</label>
-<button disabled={pending || !nickname.trim() || !roomCode.trim()}>JOIN ROOM</button>
-</form>
+<section className="lobby-card">
+<div className="lobby-actions" role="tablist" aria-label={language === "vi" ? "Thao tác phòng" : "Room action"}>
+<button type="button" role="tab" aria-selected={lobbyAction === "create"} className={lobbyAction === "create" ? "is-active" : ""} onClick={() => setLobbyAction("create")}>{copy.create}</button>
+<button type="button" role="tab" aria-selected={lobbyAction === "join"} className={lobbyAction === "join" ? "is-active" : ""} onClick={() => setLobbyAction("join")}>{copy.join}</button>
+<button type="button" role="tab" aria-selected={lobbyAction === "view"} className={lobbyAction === "view" ? "is-active" : ""} onClick={() => setLobbyAction("view")}>{copy.view}</button>
 </div>
-<button className="expansion" disabled>+ Expansion → max 8 (not supported)</button>
+{lobbyAction === "create" && <form onSubmit={(event) => { event.preventDefault(); void connect("create"); }}>
+<h2>{copy.createRoom}</h2>
+<label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
+</label>
+<label>{copy.mode}<select value={createMode} onChange={(event) => setCreateMode(event.target.value as "base" | "reaction_demo" | "setup_demo" | "effect_demo")}><option value="base">{copy.baseMode}</option><option value="reaction_demo">{copy.reactionDemo}</option><option value="setup_demo">{copy.setupDemo}</option><option value="effect_demo">{copy.effectDemo}</option></select></label>
+<button disabled={pending || !nickname.trim()}>{copy.createRoom}</button>
+</form>}
+{lobbyAction === "join" && <form onSubmit={(event) => { event.preventDefault(); void connect("join"); }}>
+<h2>{copy.joinRoom}</h2>
+<label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
+</label>
+<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} maxLength={12}/>
+</label>
+<button disabled={pending || !nickname.trim() || !roomCode.trim()}>{copy.joinRoom}</button>
+</form>}
+{lobbyAction === "view" && <div className="lobby-view" role="tabpanel">
+<h2>{copy.viewGame}</h2>
+<p>{copy.viewDescription}</p>
+<button type="button" onClick={() => setMode("preview")}>{copy.openView}</button>
+</div>}
+</section>
+</div>
+<button className="expansion" disabled>{copy.expansion}</button>
 <p className="lobby-notice" role="status">{notice}</p>
-<button className="lobby-preview" onClick={() => setMode("preview")}>OPEN APPROVED DESIGN PREVIEW (LOCAL MOCK)</button>
-<a className="base-collection-link" href={`${import.meta.env.BASE_URL}?cards`}>BROWSE BASE CARD COLLECTION →</a>
+<a className="base-collection-link" href={`${import.meta.env.BASE_URL}?cards`}>{copy.cards}</a>
 </section>
 </main>;
 }

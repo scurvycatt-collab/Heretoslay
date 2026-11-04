@@ -11,6 +11,7 @@ import {
   cssPx, descriptionLineTops, fitDescription, roundedRect,
 } from "./cardLayout";
 import "./cards.css";
+import { translateVi, useLanguage } from "../i18n";
 // Class / item symbols from the reference Card Maker (Unstable Games designs; see icons/README.md, ADR-004).
 import bardIcon from "./icons/bard.png";
 import fighterIcon from "./icons/fighter.png";
@@ -114,15 +115,18 @@ function Art({ id, href, x, y, w, h, top = 0, bottom = 0 }: { id: string; href?:
  * 102 px class symbol. Imported complete faces win; imported artwork fills the art window.
  */
 export function CardRenderer({ card, className = "", artUrl }: { card: CardData; className?: string; /** Workbench preview: draw this art instead of any imported face/art. */ artUrl?: string }) {
+  const { language } = useLanguage();
   useFontsReady();
   const uid = useId().replaceAll(":", "");
-  const face = artUrl ? CARD_FACE_PLACEHOLDER : resolveCardFace(card.definitionId);
+  const face = artUrl || language === "vi" ? CARD_FACE_PLACEHOLDER : resolveCardFace(card.definitionId);
   if (face !== CARD_FACE_PLACEHOLDER) return <CardFaceImage cardId={card.definitionId} label={card.name} className={className} />;
   const art = artUrl ?? resolveCardArt(card.definitionId) ?? cardAssets[card.definitionId]?.artUrl;
   const tarot = card.kind === "monster" || card.kind === "party_leader";
   const width = tarot ? 827 : 745, height = tarot ? 1417 : 1040;
-  const text = card.text ?? "Text unavailable";
-  const label = card.kind === "party_leader" ? `Party Leader: ${titleCase(card.heroClass)}` : card.kind === "hero" ? `Hero: ${titleCase(card.heroClass)}` : card.kind === "cursed_item" ? "Cursed Item" : titleCase(card.kind);
+  const sourceText = card.text ?? "Text unavailable";
+  const text = language === "vi" ? translateVi(sourceText) : sourceText;
+  const sourceLabel = card.kind === "party_leader" ? `Party Leader: ${titleCase(card.heroClass)}` : card.kind === "hero" ? `Hero: ${titleCase(card.heroClass)}` : card.kind === "cursed_item" ? "Cursed Item" : titleCase(card.kind);
+  const label = language === "vi" ? translateVi(sourceLabel) : sourceLabel;
 
   let body: ReactNode;
   switch (card.kind) {
@@ -200,9 +204,9 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
         })}
         {/* Pill colour by meaning (red = penalty, green = slay); the numbers come from data (Dracos is inverted). */}
         <Pill x={87} y={1002} fill={C.bad} label={rollLabel(card.penaltyRange)} />
-        <Label x={187} y={1023} size={SIZE.description} family={FONT_TEXT} anchor="start" fill={CREAM} spacing={1}>{card.penaltyText}</Label>
+        <Label x={187} y={1023} size={SIZE.description} family={FONT_TEXT} anchor="start" fill={CREAM} spacing={1}>{language === "vi" ? translateVi(card.penaltyText) : card.penaltyText}</Label>
         <Pill x={87} y={1099} fill={C.good} label={rollLabel(card.slay)} />
-        <Label x={187} y={1120} size={SIZE.description} family={FONT_TEXT} anchor="start" fill={CREAM} spacing={1}>SLAY this Monster</Label>
+        <Label x={187} y={1120} size={SIZE.description} family={FONT_TEXT} anchor="start" fill={CREAM} spacing={1}>{language === "vi" ? "HẠ Quái vật này" : "SLAY this Monster"}</Label>
         <Description text={text} box={DESCRIPTION.monster} width={width} fill={DESC_DARK} maxLines={4} />
       </>;
       break;
@@ -225,7 +229,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
 
   return <svg className={`card-renderer ${className}`} xmlns="http://www.w3.org/2000/svg" viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label={`${card.name} · ${label}`} data-definition-id={card.definitionId}>
     <title>{card.name} · {label}</title>
-    <desc>{card.text ?? "Card text unavailable."}{card.kind === "monster" ? ` Penalty ${rollLabel(card.penaltyRange)}: ${card.penaltyText} Slay ${rollLabel(card.slay)}.` : ""}</desc>
+    <desc>{text}{card.kind === "monster" ? ` ${language === "vi" ? "Phạt" : "Penalty"} ${rollLabel(card.penaltyRange)}: ${language === "vi" ? translateVi(card.penaltyText) : card.penaltyText} ${language === "vi" ? "Hạ" : "Slay"} ${rollLabel(card.slay)}.` : ""}</desc>
     <clipPath id={`${uid}c`}><rect width={width} height={height} rx={CARD_RADIUS} /></clipPath>
     <g clipPath={`url(#${uid}c)`}>{body}</g>
   </svg>;
