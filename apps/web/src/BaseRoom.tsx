@@ -358,8 +358,9 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
         ) : (
           <span className="t3-avatar" title={player.leaderId ? leaderDisplayName(player.leaderId) : "No Leader"}>{avatar}</span>
         )}
+        {/* Anchored to the hex ring, not the cluster: a long nickname must not push the Monster slots around. */}
+        <SlainHexes monsters={player.slainMonsters} />
       </div>
-      <SlainHexes monsters={player.slainMonsters} />
       {player.protections.length > 0 && (
         <span className="t3-protect">{player.protections.map((p) => (p === "no_destroy" ? "NO DESTROY" : "NO STEAL")).join(" · ")}</span>
       )}

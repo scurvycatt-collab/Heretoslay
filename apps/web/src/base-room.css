@@ -1025,3 +1025,9 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-hand-card { margin-left: calc(min(var(--hw) * var(--natural), (var(--span) - var(--hw)) / max(var(--n) - 1, 1)) - var(--hw)); transition: transform 0.25s cubic-bezier(.2, .8, .3, 1.15), margin-left 0.28s ease; }
   .t3-hand-card:first-child { margin-left: 0; }
 }
+
+/* UI-013: Monster slots hang off the hex ring (same spot the layout editor shows), independent of nickname width and nametag height. */
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-hexes > .t3-slain { top: calc(var(--hex) * -0.145); }
+  .t3-seat--me .t3-hexes > .t3-slain { left: calc(50% + var(--hex) * 1.28); }
+}
