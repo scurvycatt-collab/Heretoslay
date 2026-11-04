@@ -729,32 +729,42 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
               )}
             </div>
           )}
-          {modifierCards.map((card) => (
-            <div key={card.cardId} className={`t3-tray-card${focusCard === card.cardId ? " is-up" : ""}`}>
-              <CardRenderer card={card} size="md" onClick={() => setFocusCard(focusCard === card.cardId ? null : card.cardId)} selected={focusCard === card.cardId} />
+          {modifierCards.map((card) => {
+            const options = card.modifierOptions ?? [];
+            const singleValue = options.length === 1 ? options[0] : undefined;
+            const play = (value: number) => send("REACT_MODIFIER", {
+              windowId: chain.windowId,
+              cardInstanceId: card.cardId,
+              value,
+              ...(roll.kind === "challenge" ? { side } : {}),
+              ...(hornBonus ? { leaderBonus: hornBonus } : {}),
+            });
+            return (
+            <div key={card.cardId} className={`t3-tray-card${singleValue === undefined && focusCard === card.cardId ? " is-up" : ""}`}>
+              <CardRenderer
+                card={card}
+                size="md"
+                disabled={pending}
+                onClick={() => singleValue === undefined ? setFocusCard(focusCard === card.cardId ? null : card.cardId) : play(singleValue)}
+                selected={singleValue === undefined && focusCard === card.cardId}
+                ariaLabel={singleValue === undefined ? `${card.name} — choose modifier value` : `${card.name} — play ${signed(singleValue)}`}
+              />
               <div className="t3-tray-actions">
-                {(card.modifierOptions ?? []).map((value) => (
+                {singleValue === undefined && options.map((value) => (
                   <button
                     key={`${card.cardId}${value}`}
                     className={`t3-btn ${value >= 0 ? "t3-btn--green" : "t3-btn--red"}`}
                     disabled={pending}
                     aria-label={`${card.name}: ${signed(value)}`}
-                    onClick={() =>
-                      send("REACT_MODIFIER", {
-                        windowId: chain.windowId,
-                        cardInstanceId: card.cardId,
-                        value,
-                        ...(roll.kind === "challenge" ? { side } : {}),
-                        ...(hornBonus ? { leaderBonus: hornBonus } : {}),
-                      })
-                    }
+                    onClick={() => play(value)}
                   >
                     {signed(value)}
                   </button>
                 ))}
               </div>
             </div>
-          ))}
+            );
+          })}
         </>
       );
       primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP{modifierCards.length ? ` (${modifierCards.length})` : ""}</button>;

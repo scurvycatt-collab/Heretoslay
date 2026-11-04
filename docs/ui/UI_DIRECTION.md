@@ -31,6 +31,8 @@ Full-card inspection supports a 2-second hover (no modifier key) and right-click
 
 Reaction trays with four or more playable Challenge/Modifier cards stay on one row and reduce card/action size according to both card count and viewport height. The primary Skip control remains in its own final grid row and must stay visible without vertical scrolling.
 
+A one-way Modifier (only `+4` or only `-4`) plays immediately when its card is selected. A two-way Modifier still expands to require an explicit positive/negative value choice; challenge side and Protecting Horn choices remain authoritative inputs for either path.
+
 The Vietnamese card gallery always keeps Vietnamese frames and rule text. If a definition has standalone artwork, it fills the art window; if it only has an imported complete English face, the renderer crops that face's canonical art rectangle into the Vietnamese card instead of showing an empty artwork panel.
 
 ## Handoff

@@ -32,6 +32,7 @@
 | UI-VI-GLOSSARY | Codex | done | Chuẩn hóa bản VI: Skip = Bỏ qua, Party = Bàn chơi, Party Leader = Thủ lĩnh, Your Turn = Lượt của bạn; tên riêng thẻ Modifier giữ nguyên; catalog, glossary và test đồng bộ. |
 | UI-CARD-RIGHT-CLICK | Codex | done | Chuột phải trên thẻ mở inspector phóng to như Ctrl/Command + hover; giữ long-press trên touch, chỉ chặn context menu tại thẻ inspectable. Source, hướng dẫn và test đồng bộ. |
 | TURN-MODIFIER-BONUS | Codex | done | Mỗi Modifier được server chấp nhận cộng dồn 5 giây cho lượt hiện tại; reset ở lượt mới, không đổi deadline reaction. Engine, contract, decision và test đồng bộ. |
+| UI-MODIFIER-ONE-WAY | Codex | done | Modifier một chiều (+4/-4) dùng ngay khi bấm thẻ; Modifier hai chiều vẫn yêu cầu chọn giá trị. Challenge side/Horn giữ nguyên, UI direction và test đồng bộ. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.

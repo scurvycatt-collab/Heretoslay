@@ -63,3 +63,12 @@ test("right-click opens the same full-card inspector as a 2-second hover", async
   assert.match(room, /INSPECT_DWELL_MS = 2000/);
   assert.doesNotMatch(room, /useModifierKey|e\.key === "Control"/);
 });
+
+test("one-way Modifiers play from the card while two-way cards still ask for a value", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(room, /const singleValue = options\.length === 1 \? options\[0\] : undefined/);
+  assert.match(room, /onClick=\{\(\) => singleValue === undefined \?/);
+  assert.match(room, /: play\(singleValue\)\}/);
+  assert.match(room, /\{singleValue === undefined && options\.map\(\(value\) =>/);
+  assert.match(room, /ariaLabel=\{singleValue === undefined \? `\$\{card\.name\} — choose modifier value` : `\$\{card\.name\} — play \$\{signed\(singleValue\)\}`\}/);
+});
