@@ -399,6 +399,40 @@ export function validateTargets(game: EngineState, actorId: string, rule: Target
   }
 }
 
+
+/**
+ * True when at least one legal target set exists for `rule` right now. Used to skip a Hero's
+ * free "roll its effect" offer when it could not be used anyway (owner 2026-11-04: a Hero with
+ * no valid target still enters the Party; its ability is simply skipped).
+ */
+export function hasValidTargets(game: EngineState, actorId: string, rule: TargetRule): boolean {
+  const others = game.seats.filter((seat) => seat.playerId !== actorId);
+  const own = seatOf(game, actorId);
+  const otherHeroes = others.flatMap((seat) => seat.party).length;
+  const ownHeroes = own?.party ?? [];
+  switch (rule) {
+    case "none": return true;
+    case "other_player": return others.length > 0;
+    case "hero_other_party": return otherHeroes >= 1;
+    case "two_heroes_other_party": return otherHeroes >= 2;
+    case "hero_other_party_and_own_hero": return otherHeroes >= 1 && ownHeroes.length >= 1;
+    case "own_hero": return ownHeroes.length >= 1;
+    case "own_hero_with_cursed_item": return ownHeroes.some((entry) => entry.item?.kind === "cursed_item");
+    case "any_hero_with_item": return game.seats.some((seat) => seat.party.some((entry) => entry.item));
+  }
+}
+
+/** Opens the free roll offer for a Hero that just entered, unless its effect has no valid target. */
+function offerHeroRoll(game: EngineState, actorId: string, heroCardId: string, heroDefinitionId: string, deps: EngineDeps): boolean {
+  const rule = cardDataOfKind(heroDefinitionId, "hero")?.target ?? "none";
+  if (!hasValidTargets(game, actorId, rule)) {
+    log(game, `${cardName(heroDefinitionId)}: không có mục tiêu hợp lệ — bỏ qua hiệu ứng`);
+    return false;
+  }
+  game.chain = { step: "immediate_roll_choice", deadlineAt: deps.now() + game.settings.choiceSeconds * 1000, actorId, heroCardId };
+  return true;
+}
+
 // ---------------------------------------------------------------- effects
 
 /**
@@ -672,13 +706,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "offer_immediate_roll": {
       const found = findHero(game, step.heroCardId);
       if (!found || found.seat.playerId !== step.playerId) return false;
-      game.chain = {
-        step: "immediate_roll_choice",
-        deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
-        actorId: step.playerId,
-        heroCardId: step.heroCardId,
-      };
-      return true;
+      return offerHeroRoll(game, step.playerId, step.heroCardId, found.hero.card.definitionId, deps);
     }
     case "draw_to": {
       const seat = seatOf(game, step.playerId);
@@ -1280,12 +1308,7 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     actor.party.push({ card, item: null });
     log(game, `${whoName(game, attempt.actorId)} đưa ${cardName(card.definitionId)} vào Party`);
     // RULE-06: optional immediate roll (free) — skip if the Hero cannot use its effect.
-    game.chain = {
-      step: "immediate_roll_choice",
-      deadlineAt: deps.now() + game.settings.choiceSeconds * 1000,
-      actorId: attempt.actorId,
-      heroCardId: card.cardId,
-    };
+    offerHeroRoll(game, attempt.actorId, card.cardId, card.definitionId, deps);
     return;
   }
   if (card.kind === "item" || card.kind === "cursed_item") {
@@ -1402,11 +1425,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     }
     if (hooks.afterSlay(game, roller)) return; // WIN-SLAY-T: stop, no refill (Q-03)
     // DECK-03 refill; Q-09: no refill when the Monster deck is empty.
-    const next = game.monsterDeck.shift();
-    if (next) {
-      if (index >= 0) game.faceUpMonsters.splice(index, 0, next);
-      else game.faceUpMonsters.push(next);
-    }
+    refillFaceUpMonsters(game, index);
     return;
   }
   if (outcome === "penalty") {
@@ -1417,6 +1436,27 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
         : { op: "choice", playerId: roll.rollerId, kind: "discard", count: penalty.count, prompt: `DISCARD ${penalty.count} lá (${monster.name})` },
     );
   }
+}
+
+/** Table size of the face-up Monster row (DECK-03). */
+const FACE_UP_MONSTER_COUNT = 3;
+
+/**
+ * Keeps the face-up Monster row full: while fewer than 3 are up and the Monster deck has cards, the top
+ * card is turned up (in the slain Monster's slot when `slot` is given). Idempotent, so it is also run as a
+ * safety net after every command / deadline settle and when state is loaded (Q-09: empty deck → row shrinks).
+ * Returns true when the row changed.
+ */
+export function refillFaceUpMonsters(game: Pick<EngineState, "faceUpMonsters" | "monsterDeck">, slot = -1): boolean {
+  let changed = false;
+  while (game.faceUpMonsters.length < FACE_UP_MONSTER_COUNT && game.monsterDeck.length > 0) {
+    const next = game.monsterDeck.shift() as string;
+    if (slot >= 0 && slot <= game.faceUpMonsters.length) game.faceUpMonsters.splice(slot, 0, next);
+    else game.faceUpMonsters.push(next);
+    slot = -1;
+    changed = true;
+  }
+  return changed;
 }
 
 /** Slain-Monster skills not modelled yet (logged no-op on slay). */

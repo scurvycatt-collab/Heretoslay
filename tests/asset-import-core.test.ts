@@ -44,7 +44,7 @@ test("geometry: contain keeps aspect inside the template, cover stays inside the
 });
 
 test("print-sheet presets reproduce every reference crop of the Kickstarter pack", async () => {
-  const ref = JSON.parse(await readFile(path.join(root, "assets/cards/kickstarter-preview/manifest.json"), "utf8"));
+  const ref = JSON.parse(await readFile(path.join(root, "assets/cards/expansions/kickstarter/preview/manifest.json"), "utf8"));
   const sheetPath = new Map<string, string>(ref.sheets.map((s: { id: string; path: string }) => [s.id, s.path.replace(/\\/g, "/").split("/").slice(-2).join("/")]));
   let matched = 0;
   for (const card of ref.cards as Array<{ sheet: string; row: number; column: number; crop: object; rotationDegrees: number }>) {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { clearSession, command, createRoom, joinRoom, loadSession, saveSession, snapshot, type Session } from "./api";
+import { clearSession, command, createRoom, joinRoom, leaveRoom, loadSession, parseRoute, saveSession, snapshot, type Session } from "./api";
 import type { EffectDemoSnapshot, SetupDemoSnapshot } from "@here-to-slay/protocol";
 import { BaseRoom } from "./BaseRoom";
 
@@ -228,23 +228,25 @@ const timer = window.setInterval(() => setSeconds((value) => Math.max(0, value -
 export function App() {
   const [mode, setMode] = useState<"lobby" | "room" | "preview">(() => loadSession() ? "room" : "lobby");
   const [nickname, setNickname] = useState("");
-const [roomCode, setRoomCode] = useState("");
+const [roomCode, setRoomCode] = useState(() => parseRoute().roomCode ?? "");
   const [createMode, setCreateMode] = useState<"base" | "reaction_demo" | "setup_demo" | "effect_demo">("base");
   const [session, setSession] = useState<Session | null>(() => loadSession());
-  const [notice, setNotice] = useState(() => session ? "" : "Choose a nickname to create or join a room.");
+  const [notice, setNotice] = useState(() => session ? "" : parseRoute().roomCode ? `Enter a nickname to join room ${parseRoute().roomCode}.` : "Choose a nickname to create or join a room.");
 const [pending, setPending] = useState(false);
   const [localNow, setLocalNow] = useState(Date.now());
   const accept = (next: Session, clearNotice = true) => { saveSession(next); setSession(next); setMode("room"); if (clearNotice) setNotice(""); };
+  /** Back to the lobby = leave the room (frees a lobby seat; the room is deleted after 5 idle minutes). */
+  const leave = () => { if (session) { void leaveRoom(session.roomCode, session.sessionToken); clearSession(session); } setSession(null); setMode("lobby"); setNotice("You left the room. Choose a nickname to create or join one."); };
   const connect = async (kind: "create" | "join") => { setPending(true); setNotice(""); try { accept(kind === "create" ? await createRoom(nickname.trim(), createMode) : await joinRoom(roomCode.trim(), nickname.trim())); } catch (error) { setNotice(error instanceof Error ? error.message : "Connection failed."); } finally { setPending(false); } };
   useEffect(() => { if (!session || mode !== "room") return;
-const poll = window.setInterval(async () => { try { const next = await snapshot(session.roomCode, session.sessionToken); accept({ ...session, snapshot: next.snapshot, receivedAt: Date.now() }, false); } catch (error) { clearSession(); setSession(null); setMode("lobby"); setNotice(error instanceof Error ? error.message : "Session is no longer valid. Join a room again."); } }, 1000); return () => window.clearInterval(poll); }, [mode, session]);
+const poll = window.setInterval(async () => { try { const next = await snapshot(session.roomCode, session.sessionToken); accept({ ...session, snapshot: next.snapshot, receivedAt: Date.now() }, false); } catch (error) { clearSession(session); setSession(null); setMode("lobby"); setNotice(error instanceof Error ? error.message : "Session is no longer valid. Join a room again."); } }, 1000); return () => window.clearInterval(poll); }, [mode, session]);
   useEffect(() => { if (mode !== "room") return;
 const tick = window.setInterval(() => setLocalNow(Date.now()), 250); return () => window.clearInterval(tick); }, [mode]);
   if (mode === "preview") return <PreviewApp />;
   if (mode === "room" && session) { const state = session.snapshot;
 const send = async (kind: string, payload: object) => { setPending(true); try { let result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), state.revision, kind, payload); if (!result.outcome.accepted && result.outcome.code === "STALE_REVISION") result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), result.snapshot.revision, kind, payload); /* one retry: the board moved (e.g. a bot acted); the server re-validates the command */ accept({ ...session, snapshot: result.snapshot, receivedAt: Date.now() }, result.outcome.accepted); if (!result.outcome.accepted) setNotice(`Command rejected: ${result.outcome.code}. Refreshed from the server.`); } catch (error) { setNotice(error instanceof Error ? error.message : "Command failed."); } finally { setPending(false); } };
-if (state.mode === "base") return <BaseRoom state={state} send={send} pending={pending} serverNow={state.serverNow + (localNow - session.receivedAt)} notice={notice} onLobby={() => setMode("lobby")} />;
-if (state.mode === "setup_demo") return <main className="app-shell"><header className="review-bar"><div><b>HERE TO SLAY</b><span>SETUP DEMO · SERVER SNAPSHOT</span></div><button onClick={() => setMode("lobby")}>LOBBY</button></header><SetupRoom state={state} pending={pending} send={send}/><p className="sr-note" role="status">{notice || "Personalized synthetic setup state from server."}</p></main>;
+if (state.mode === "base") return <BaseRoom state={state} send={send} pending={pending} serverNow={state.serverNow + (localNow - session.receivedAt)} notice={notice} onLobby={leave} />;
+if (state.mode === "setup_demo") return <main className="app-shell"><header className="review-bar"><div><b>HERE TO SLAY</b><span>SETUP DEMO · SERVER SNAPSHOT</span></div><button onClick={leave}>LOBBY</button></header><SetupRoom state={state} pending={pending} send={send}/><p className="sr-note" role="status">{notice || "Personalized synthetic setup state from server."}</p></main>;
 if (state.mode === "effect_demo") return <><EffectRoom state={state} pending={pending} send={send} serverNow={state.serverNow + (localNow - session.receivedAt)} />{notice && <p className="sr-note" role="status">{notice}</p>}</>;
 const reaction = state.reaction;
 const estimatedServerNow = state.serverNow + (localNow - session.receivedAt);
@@ -257,7 +259,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <b>HERE TO SLAY</b>
 <span>REACTION DEMO · SERVER SNAPSHOT</span>
 </div>
-<button onClick={() => setMode("lobby")}>LOBBY</button>
+<button onClick={leave}>LOBBY</button>
 </header>
 <section className="table-frame">
 <div className="table-status">

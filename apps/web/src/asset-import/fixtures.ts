@@ -1,9 +1,9 @@
 import type { ImportDraft } from "./contract";
 
 // Cropped JPGs already reviewed in the local Kickstarter sample. Not imported base assets.
-const hero = new URL("../../../../assets/cards/kickstarter-preview/fronts/ks-preview-01-r1-c2.jpg", import.meta.url).href;
-const item = new URL("../../../../assets/cards/kickstarter-preview/fronts/ks-preview-03-r1-c1.jpg", import.meta.url).href;
-const monster = new URL("../../../../assets/cards/kickstarter-preview/fronts/ks-preview-04-r1-c1.jpg", import.meta.url).href;
+const hero = new URL("../../../../assets/cards/expansions/kickstarter/preview/fronts/ks-preview-01-r1-c2.jpg", import.meta.url).href;
+const item = new URL("../../../../assets/cards/expansions/kickstarter/preview/fronts/ks-preview-03-r1-c1.jpg", import.meta.url).href;
+const monster = new URL("../../../../assets/cards/expansions/kickstarter/preview/fronts/ks-preview-04-r1-c1.jpg", import.meta.url).href;
 export function createDemoDraft(): ImportDraft {
   return {
     schema: 1,

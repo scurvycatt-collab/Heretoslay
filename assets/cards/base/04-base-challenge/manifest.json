@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "collection": "Base · Challenge art",
+  "mode": "mapped",
+  "gameplaySupported": false,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "sources": [
+    {
+      "sourceId": "src-pnp-base-14",
+      "relativePath": "wiki-pnp-20261103/sheets-600dpi/base-14.png",
+      "sha256": "",
+      "width": 5100,
+      "height": 6600
+    }
+  ],
+  "assets": [
+    {
+      "candidateId": "challenge-pnp-art",
+      "definitionId": "hts.base.v1.challenge.challenge",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.challenge.challenge--art.webp",
+      "sha256": "13607e2cbdeb04543be54025cc7e258d88cb7df164763136fe9c100841f18e31",
+      "width": 645,
+      "height": 548,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 645,
+        "height": 548
+      },
+      "sourceId": "src-pnp-base-14",
+      "rotation": 90,
+      "provenance": {
+        "origin": "Cropped from Unstable Games wiki PnP base sheet 14 (crossed swords), the real Base Challenge card art; replaces the earlier Kickstarter clone",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    }
+  ]
+}

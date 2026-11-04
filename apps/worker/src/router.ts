@@ -103,7 +103,7 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
     return roomStub(env, roomCode).fetch(forwarded);
   }
 
-  const apiMatch = /^\/api\/rooms\/([A-Za-z0-9]{6})(?:\/(join|snapshot|commands))?$/.exec(
+  const apiMatch = /^\/api\/rooms\/([A-Za-z0-9]{6})(?:\/(join|snapshot|commands|leave))?$/.exec(
     url.pathname,
   );
   if (apiMatch) {

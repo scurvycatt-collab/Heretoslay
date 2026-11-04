@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "collection": "Base",
+  "mode": "mapped",
+  "gameplaySupported": false,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "sources": [
+    {
+      "sourceId": "src-22dea55f7d56",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+      "sha256": "22dea55f7d5623f176ab84a139518fbfd88d64b434e762d63f21df40fafd70c6",
+      "width": 1427,
+      "height": 1102
+    }
+  ],
+  "assets": [
+    {
+      "candidateId": "22dea55f7d56-x1",
+      "definitionId": "hts.base.v1.item.decoy-doll",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.decoy-doll--art.webp",
+      "sha256": "eae9a53f388e52c4c799dc34abd03ac2f8f63f4b32520f405b0fd9981b4eb540",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 435,
+        "y": 168,
+        "width": 232,
+        "height": 232
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "22dea55f7d56-x2",
+      "definitionId": "hts.base.v1.item.fighter-mask",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.fighter-mask--art.webp",
+      "sha256": "c181277432edb9f002b77b66932d0a90f2a5e4074d681c02a030a04b92360274",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 757,
+        "y": 167,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "22dea55f7d56-x3",
+      "definitionId": "hts.base.v1.item.ranger-mask",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.ranger-mask--art.webp",
+      "sha256": "78f751cdc4f835b73478cd9657c60dac0663fc38f5407b3c490c081d656e7a9a",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 1079,
+        "y": 168,
+        "width": 234,
+        "height": 234
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "22dea55f7d56-x4",
+      "definitionId": "hts.base.v1.item.thief-mask",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.thief-mask--art.webp",
+      "sha256": "f6a95568ddfdc7f7c88b17e1303553284ec2ce4700df3c2e750a5d3dd448bc1f",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 110,
+        "y": 688,
+        "width": 235,
+        "height": 235
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "22dea55f7d56-x5",
+      "definitionId": "hts.base.v1.item.guardian-mask",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.guardian-mask--art.webp",
+      "sha256": "fee838d5b14d170f47e2f13bac162eb105922a7faec871e0eaee813639923ca3",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 433,
+        "y": 683,
+        "width": 237,
+        "height": 237
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "22dea55f7d56-x6",
+      "definitionId": "hts.base.v1.item.wizard-mask",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.wizard-mask--art.webp",
+      "sha256": "c2ea261773fee868a15c56c562a90157b9690a789c299bbb790871d35d40379f",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 759,
+        "y": 687,
+        "width": 232,
+        "height": 232
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "22dea55f7d56-x7",
+      "definitionId": "hts.base.v1.item.bard-mask",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.item.bard-mask--art.webp",
+      "sha256": "92b8cfd2550929801f4af2b94a413b3a18a1e08560611a3d7b0f45ee2b74dbe1",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-22dea55f7d56",
+      "crop": {
+        "x": 1078,
+        "y": 688,
+        "width": 233,
+        "height": 233
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 09_41_12 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    }
+  ]
+}

@@ -7,7 +7,7 @@ Cập nhật 2026-11-03. Adapter: `apps/web/src/asset-import/adapters/browser.ts
 Dự án **không có database cho ảnh thẻ**. Nơi "lưu" asset là một **pack** trên đĩa:
 
 ```
-assets/cards/packs/<tên-pack>/
+assets/cards/base/<tên-pack>/
 ├─ manifest.json        # ánh xạ definitionId → file PNG, kèm hash/nguồn/crop
 └─ cards/*.png          # mặt thẻ hoàn chỉnh, 745×1040 (poker) hoặc 827×1417 (tarot)
 ```
@@ -37,7 +37,7 @@ Web đọc pack lúc build (`apps/web/src/cards/resolveCardFace.ts`). Thẻ có 
    - **Preview pack**: để xem thử; game **không** dùng ảnh trong pack này.
    - **Webgame pack**: game dùng ảnh cho đúng thẻ đã gán; mọi vùng phải được gán — bấm **Loại N vùng chưa gán khỏi batch** nếu cần.
    Hết lỗi thì bấm **Xuất PNG + manifest + ZIP**, rồi **Tải ZIP**.
-6. **Cài vào game**: giải nén ZIP vào `assets/cards/packs/<tên-pack>/` sao cho `manifest.json` và `cards/` nằm ngay trong thư mục đó. **Khởi động lại** `npm run dev:web` (hoặc `npm run build`). Kiểm tra tại `http://localhost:5173/?cards`.
+6. **Cài vào game**: giải nén ZIP vào `assets/cards/base/<tên-pack>/` sao cho `manifest.json` và `cards/` nằm ngay trong thư mục đó. **Khởi động lại** `npm run dev:web` (hoặc `npm run build`). Kiểm tra tại `http://localhost:5173/?cards`.
 
 ## Quy tắc quan trọng
 

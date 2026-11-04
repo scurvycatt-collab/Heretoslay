@@ -49,6 +49,7 @@ import {
   type EngineHooks,
   type EngineState,
   type RollState,
+  refillFaceUpMonsters,
 } from "./base-engine.ts";
 import {
   DEFAULT_SETTINGS,
@@ -90,6 +91,8 @@ export interface BaseGameState extends EngineState {
   leaderPickOrder?: string[];
   /** Earliest time the active bot takes its next turn action (pacing). */
   botNextActAt?: number | null;
+  /** Earliest time any bot may answer a window / choice (every accepted action pushes it out, so humans can follow). */
+  botPaceAt?: number | null;
 }
 
 /** Room-level facts the game needs but does not own. */
@@ -153,6 +156,7 @@ export function initialBaseGameState(): BaseGameState {
     turnTimerKey: null,
     leaderPickOrder: [],
     botNextActAt: null,
+    botPaceAt: null,
   };
 }
 
@@ -170,7 +174,9 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
     game.turnTimerKey ??= null;
     game.leaderPickOrder ??= [];
     game.botNextActAt ??= null;
+    game.botPaceAt ??= null;
     game.settings = { ...DEFAULT_SETTINGS, ...game.settings };
+    if (game.phase !== "game_over") refillFaceUpMonsters(game);
     return game;
   }
   const defaults = initialBaseGameState();
@@ -587,6 +593,9 @@ export function applyBaseCommand(
   if (game.phase === "game_over") return "GAME_OVER"; // WIN-END
   const code = BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps);
   if (code === "ACCEPTED") {
+    // A human action just happened: bots wait before reacting so the player can follow what is going on.
+    if (roster.players.some((player) => player.isBot)) game.botPaceAt = deps.now() + BOT_REACT_MS;
+    if ((game.phase as string) !== "game_over") refillFaceUpMonsters(game); // table always shows 3 Monsters while the deck lasts
     updateTurnTimer(game, deps.now());
     runBots(game, roster, deps);
   }
@@ -626,7 +635,12 @@ function settleTurnTimer(game: BaseGameState, deps: BaseGameDeps): boolean {
 
 // ------------------------------------------------------------- bots
 
-const BOT_STEP_MS = 1400;
+/** Pacing (owner 2026-11-04): bots must be readable. Between a bot's own turn actions: */
+const BOT_STEP_MS = 3200;
+/** ... before a bot answers a Challenge/Modifier window or a choice, and after any accepted action: */
+const BOT_REACT_MS = 2600;
+/** ... after a roll resolved the client shows a result screen; bots stay quiet until it is over. */
+const BOT_RESULT_HOLD_MS = 9000;
 const isBot = (roster: BaseRoster, playerId: string) => roster.players.some((player) => player.playerId === playerId && player.isBot);
 
 function botCommand(kind: BaseGameCommandKind, payload: object): BaseGameCommand {
@@ -662,13 +676,43 @@ function botTargets(game: BaseGameState, botId: string, rule: Parameters<typeof 
   return targets && validateTargets(game, botId, rule, targets) === null ? targets : null;
 }
 
+/** True once the pacing delays have passed (no bot acts while the previous action / result screen is still being shown). */
+function botMayAct(game: BaseGameState, deps: BaseGameDeps): boolean {
+  const now = deps.now();
+  if (game.botPaceAt != null && now < game.botPaceAt) return false;
+  if (game.lastRoll && now < game.lastRoll.resolvedAt + BOT_RESULT_HOLD_MS) return false;
+  return true;
+}
+
+/** Earliest time a bot with pending work is allowed to act (for the alarm), or null when no bot is waiting. */
+function botDueAt(game: BaseGameState, roster: BaseRoster): number | null {
+  if (game.phase !== "turn_active") return null;
+  const chain = game.chain;
+  let waiting = false;
+  if (chain) {
+    if (chain.step === "challenge_window" || chain.step === "modifier_window") waiting = Object.entries(chain.responders).some(([id, state]) => state === "pending" && isBot(roster, id));
+    else if (chain.step === "immediate_roll_choice") waiting = isBot(roster, chain.actorId);
+    else waiting = isBot(roster, chain.choice.playerId);
+  } else {
+    const active = activePlayerId(game);
+    if (!active || !isBot(roster, active) || game.botNextActAt == null) return null;
+    waiting = true;
+  }
+  if (!waiting) return null;
+  const hold = game.lastRoll ? game.lastRoll.resolvedAt + BOT_RESULT_HOLD_MS : 0;
+  return Math.max(game.botPaceAt ?? 0, hold, chain ? 0 : game.botNextActAt ?? 0);
+}
+
 /** One reaction / choice answered by a bot, if any is waiting on one. */
 function botReact(game: BaseGameState, roster: BaseRoster, deps: BaseGameDeps): boolean {
   const chain = game.chain;
   if (!chain) return false;
+  if (!botMayAct(game, deps)) return false;
   const run = (playerId: string, command: BaseGameCommand) => {
     const seat = seatOf(game, playerId);
-    return seat ? BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps) === "ACCEPTED" : false;
+    const ok = seat ? BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps) === "ACCEPTED" : false;
+    if (ok) game.botPaceAt = deps.now() + BOT_REACT_MS;
+    return ok;
   };
   if (chain.step === "challenge_window" || chain.step === "modifier_window") {
     const bot = Object.entries(chain.responders).find(([id, state]) => state === "pending" && isBot(roster, id));
@@ -699,6 +743,7 @@ function botTurnAction(game: BaseGameState, roster: BaseRoster, deps: BaseGameDe
     return false;
   }
   if (now < game.botNextActAt) return false;
+  if (!botMayAct(game, deps)) return false;
   const seat = seatOf(game, active)!;
   const ap = game.actionPoints ?? 0;
   const tryRun = (command: BaseGameCommand) => BASE_TURN_HANDLERS[command.kind](game, seat, command, roster, deps) === "ACCEPTED";
@@ -727,6 +772,7 @@ function botTurnAction(game: BaseGameState, roster: BaseRoster, deps: BaseGameDe
   if (!acted && ap >= DRAW_COST) acted = tryRun(botCommand("DRAW_CARD", {}));
   if (!acted) acted = tryRun(botCommand("END_TURN", {}));
   game.botNextActAt = now + BOT_STEP_MS;
+  game.botPaceAt = now + BOT_REACT_MS;
   return acted;
 }
 
@@ -763,6 +809,7 @@ export function settleBaseGame(game: BaseGameState, roster: BaseRoster, deps: Ba
     let step = settleDeadlines(game, deps, HOOKS);
     step = settleTurnTimer(game, deps) || step;
     step = runBots(game, roster, deps) || step;
+    if (game.phase !== "game_over") step = refillFaceUpMonsters(game) || step;
     step = updateTurnTimer(game, deps.now()) || step;
     if (!step) break;
     changed = true;
@@ -775,9 +822,8 @@ export function baseNextDeadline(game: BaseGameState, roster?: BaseRoster): numb
   const candidates = [nextDeadline(game)];
   if (game.phase === "turn_active" && !isBusy(game)) {
     candidates.push(game.turnDeadlineAt ?? null);
-    const active = activePlayerId(game);
-    if (roster && active && isBot(roster, active)) candidates.push(game.botNextActAt ?? null);
   }
+  if (roster) candidates.push(botDueAt(game, roster));
   const times = candidates.filter((value): value is number => typeof value === "number");
   return times.length ? Math.min(...times) : null;
 }

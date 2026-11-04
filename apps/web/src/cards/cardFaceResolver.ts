@@ -9,8 +9,8 @@ export interface CardFaceResolverOptions {
 type JsonRecord = Record<string, unknown>;
 const record = (value: unknown): value is JsonRecord => typeof value === "object" && value !== null && !Array.isArray(value);
 
-function safePngPath(value: unknown): value is string {
-  if (typeof value !== "string" || !/^[a-zA-Z0-9_ .\/-]+\.png$/i.test(value)) return false;
+function safeImagePath(value: unknown): value is string {
+  if (typeof value !== "string" || !/^[a-zA-Z0-9_ .\/-]+\.(png|webp)$/i.test(value)) return false;
   return !value.startsWith("/") && value.split("/").every((part) => part.length > 0 && part !== "." && part !== "..");
 }
 
@@ -35,7 +35,7 @@ export function createCardFaceResolver(manifest: unknown, options: CardFaceResol
       // Alternate selection is explicit; never let array order choose a variant.
       if (entry.variant !== undefined && entry.variant !== "default") continue;
       const path = canonical ? entry.relativePath : entry.src;
-      if (!safePngPath(path)) continue;
+      if (!safeImagePath(path)) continue;
       let url: string | undefined;
       if (options.assetUrls) {
         if (Object.hasOwn(options.assetUrls, path)) url = options.assetUrls[path];
@@ -65,7 +65,7 @@ export function createCardArtResolver(manifest: unknown, options: Pick<CardFaceR
       if (entry.variant !== undefined && entry.variant !== "default") continue;
       const id = entry.definitionId;
       const path = entry.relativePath;
-      if (typeof id !== "string" || !id || !safePngPath(path) || !options.assetUrls || !Object.hasOwn(options.assetUrls, path)) continue;
+      if (typeof id !== "string" || !id || !safeImagePath(path) || !options.assetUrls || !Object.hasOwn(options.assetUrls, path)) continue;
       if (art.has(id) || ambiguous.has(id)) { art.delete(id); ambiguous.add(id); continue; }
       art.set(id, options.assetUrls[path]);
     }

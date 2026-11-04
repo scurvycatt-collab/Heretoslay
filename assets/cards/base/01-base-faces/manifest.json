@@ -1,0 +1,694 @@
+{
+  "schema": 1,
+  "collection": "Base",
+  "mode": "mapped",
+  "gameplaySupported": false,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "sources": [
+    {
+      "sourceId": "src-9e45dba2c170",
+      "relativePath": "Base/base-11.png",
+      "sha256": "9e45dba2c17095585debb3032ef0cfe523ecbb0f0054edd9afa884ebcd183ca3",
+      "width": 6600,
+      "height": 5100
+    },
+    {
+      "sourceId": "src-f2cc7470e467",
+      "relativePath": "Base/base-12.png",
+      "sha256": "f2cc7470e467f67888a5082ae6ea9ec04e325baee706e222bde22e09ee684ef3",
+      "width": 6600,
+      "height": 5100
+    },
+    {
+      "sourceId": "src-57108894e923",
+      "relativePath": "Base/base-13.png",
+      "sha256": "57108894e9231c05769e32f494ac0bdc284eaba47a369e273044a16689c13819",
+      "width": 6600,
+      "height": 5100
+    },
+    {
+      "sourceId": "src-9c0407df6a89",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+      "sha256": "9c0407df6a896184437ea2c9d06cfc329ff259a967720c676bfd7db5876ad0ad",
+      "width": 1102,
+      "height": 1427
+    },
+    {
+      "sourceId": "src-11ff33356726",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+      "sha256": "11ff333567260004a43eb456237d54f3bceb22e73630aad46fae91bba1bf78a1",
+      "width": 1102,
+      "height": 1427
+    },
+    {
+      "sourceId": "src-65c4cd5fcfdc",
+      "relativePath": "Base/ChatGPT Image Nov 3, 2026, 07_43_00 PM-4.png",
+      "sha256": "65c4cd5fcfdc66635d367e3111088051e965d3d50794b985e8e57c564adcc3c3",
+      "width": 1102,
+      "height": 1427
+    }
+  ],
+  "assets": [
+    {
+      "candidateId": "9e45dba2c170-x2",
+      "definitionId": "hts.base.v1.modifier.modifier-plus-2-minus-2",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.modifier.modifier-plus-2-minus-2.webp",
+      "sha256": "41ebf1c7243c00cda43f616a8a3ad06353d6d1c02c831edda30deb6a97d8c766",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "sourceId": "src-9e45dba2c170",
+      "crop": {
+        "x": 3304,
+        "y": 311,
+        "width": 1471,
+        "height": 2053
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/base-11.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9e45dba2c170-x5",
+      "definitionId": "hts.base.v1.modifier.modifier-plus-3-minus-1",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.modifier.modifier-plus-3-minus-1.webp",
+      "sha256": "7fbae34ab22b84e2d1ace348f17bc94ed656b24a92d749f797e1170c408c4354",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1039
+      },
+      "sourceId": "src-9e45dba2c170",
+      "crop": {
+        "x": 1803,
+        "y": 2716,
+        "width": 1485,
+        "height": 2072
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/base-11.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "f2cc7470e467-x2",
+      "definitionId": "hts.base.v1.modifier.modifier-plus-1-minus-3",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.modifier.modifier-plus-1-minus-3.webp",
+      "sha256": "5eddf924f69d8d581b2ebe290c6c25062025ca4f632c07cacd1d945bbd572353",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "sourceId": "src-f2cc7470e467",
+      "crop": {
+        "x": 1820,
+        "y": 328,
+        "width": 1460,
+        "height": 2039
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/base-12.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "57108894e923-x1",
+      "definitionId": "hts.base.v1.modifier.modifier-plus-4",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.modifier.modifier-plus-4.webp",
+      "sha256": "6bbd643eac17dc2b4c3cac520d794492c3579c215094f144ed9fcebfca5930ab",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "sourceId": "src-57108894e923",
+      "crop": {
+        "x": 348,
+        "y": 351,
+        "width": 1417,
+        "height": 1978
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/base-13.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "57108894e923-x3",
+      "definitionId": "hts.base.v1.modifier.modifier-minus-4",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.modifier.modifier-minus-4.webp",
+      "sha256": "aa5162561d6d1396539c5ce81bb7a77376d766fb3ac88aca9f99afac8a3f76f6",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 2,
+        "y": 0,
+        "width": 741,
+        "height": 1040
+      },
+      "sourceId": "src-57108894e923",
+      "crop": {
+        "x": 3335,
+        "y": 342,
+        "width": 1404,
+        "height": 1970
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/base-13.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9c0407df6a89-x1",
+      "definitionId": "hts.base.v1.monster.corrupted-sabretooth",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.corrupted-sabretooth.webp",
+      "sha256": "9998cd194364865666b38c944ea5eac4fd790e62bf09a3f9ca6936e9f0dc07fe",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 2,
+        "y": 0,
+        "width": 823,
+        "height": 1417
+      },
+      "sourceId": "src-9c0407df6a89",
+      "crop": {
+        "x": 17,
+        "y": 68,
+        "width": 355,
+        "height": 611
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9c0407df6a89-x2",
+      "definitionId": "hts.base.v1.monster.mega-slime",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.mega-slime.webp",
+      "sha256": "bcb9f3813c52e8446c6981213c093a3349e5a86988c49efc7ba12df49c7a4aee",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "sourceId": "src-9c0407df6a89",
+      "crop": {
+        "x": 375,
+        "y": 68,
+        "width": 357,
+        "height": 612
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9c0407df6a89-x3",
+      "definitionId": "hts.base.v1.monster.anuran-cauldron",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.anuran-cauldron.webp",
+      "sha256": "6ea1c250ae1dab129f319ea9df0c1ba3444d6b4b2a7459afc54bc7969a3572b8",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 4,
+        "y": 0,
+        "width": 819,
+        "height": 1417
+      },
+      "sourceId": "src-9c0407df6a89",
+      "crop": {
+        "x": 735,
+        "y": 70,
+        "width": 351,
+        "height": 607
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9c0407df6a89-x4",
+      "definitionId": "hts.base.v1.monster.crowned-serpent",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.crowned-serpent.webp",
+      "sha256": "6c7d61b2b5daccc993ae0558ad8d83aa05fea4386b5389bb98be3cbb83a4ad06",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 4,
+        "y": 0,
+        "width": 818,
+        "height": 1417
+      },
+      "sourceId": "src-9c0407df6a89",
+      "crop": {
+        "x": 20,
+        "y": 745,
+        "width": 351,
+        "height": 608
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9c0407df6a89-x5",
+      "definitionId": "hts.base.v1.monster.dracos",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.dracos.webp",
+      "sha256": "0a6dd1115404588c201398ee97392c63a075cd636152af6b7405178330205722",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 4,
+        "y": 0,
+        "width": 819,
+        "height": 1417
+      },
+      "sourceId": "src-9c0407df6a89",
+      "crop": {
+        "x": 374,
+        "y": 746,
+        "width": 349,
+        "height": 604
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "9c0407df6a89-x6",
+      "definitionId": "hts.base.v1.monster.bloodwing",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.bloodwing.webp",
+      "sha256": "3a10ad8a46b52fe0748d240544aff2e6702fb4bffe697e6c46bfc7cbc3c9ad3d",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "sourceId": "src-9c0407df6a89",
+      "crop": {
+        "x": 731,
+        "y": 743,
+        "width": 357,
+        "height": 612
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_56 PM-2.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "11ff33356726-x1",
+      "definitionId": "hts.base.v1.monster.artic-aries",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.artic-aries.webp",
+      "sha256": "e79085b1e82b194dffae808cb221334cc6e9d172aef1d83ebd225211af9e44e7",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 3,
+        "y": 0,
+        "width": 821,
+        "height": 1417
+      },
+      "sourceId": "src-11ff33356726",
+      "crop": {
+        "x": 20,
+        "y": 68,
+        "width": 351,
+        "height": 606
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "11ff33356726-x2",
+      "definitionId": "hts.base.v1.monster.abyss-queen",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.abyss-queen.webp",
+      "sha256": "d92d03d54468cb1eeb7ebd055d039cc9005e9ccfe86faffc84f4e9e8f798eb98",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1416
+      },
+      "sourceId": "src-11ff33356726",
+      "crop": {
+        "x": 374,
+        "y": 66,
+        "width": 351,
+        "height": 601
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "11ff33356726-x3",
+      "definitionId": "hts.base.v1.monster.terratuga",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.terratuga.webp",
+      "sha256": "7242ed4b8d91ca0caa82fc224b1f6a415b8144e5aaeae996898a014b30a1acf2",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 826,
+        "height": 1417
+      },
+      "sourceId": "src-11ff33356726",
+      "crop": {
+        "x": 734,
+        "y": 66,
+        "width": 354,
+        "height": 607
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "11ff33356726-x4",
+      "definitionId": "hts.base.v1.monster.orthus",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.orthus.webp",
+      "sha256": "a41f20e5c0305e0a8fd57fdd1a9a209e76c2320b96611b4ee4b24e1b16374c29",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1416
+      },
+      "sourceId": "src-11ff33356726",
+      "crop": {
+        "x": 17,
+        "y": 737,
+        "width": 358,
+        "height": 613
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "11ff33356726-x5",
+      "definitionId": "hts.base.v1.monster.rex-major",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.rex-major.webp",
+      "sha256": "20ceef8d749c27da3df15dc77c809b736d6636d0b1eac04cedd44b850b3459d8",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 826,
+        "height": 1417
+      },
+      "sourceId": "src-11ff33356726",
+      "crop": {
+        "x": 376,
+        "y": 743,
+        "width": 352,
+        "height": 604
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "11ff33356726-x6",
+      "definitionId": "hts.base.v1.monster.dark-dragon-king",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.dark-dragon-king.webp",
+      "sha256": "25313578580f2fec56b7cd21407f6c5670088a900e19fa3613fb6a23bd69944d",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 1,
+        "width": 827,
+        "height": 1415
+      },
+      "sourceId": "src-11ff33356726",
+      "crop": {
+        "x": 737,
+        "y": 747,
+        "width": 349,
+        "height": 597
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_42_58 PM-3.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "65c4cd5fcfdc-x1",
+      "definitionId": "hts.base.v1.monster.malamammoth",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.malamammoth.webp",
+      "sha256": "bacce9e66ae68656e4e313ba4c8e44656a5a599aa64345c50f0870682dbe759a",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 1,
+        "y": 0,
+        "width": 824,
+        "height": 1417
+      },
+      "sourceId": "src-65c4cd5fcfdc",
+      "crop": {
+        "x": 17,
+        "y": 63,
+        "width": 356,
+        "height": 612
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_43_00 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "65c4cd5fcfdc-x2",
+      "definitionId": "hts.base.v1.monster.warworn-owlbear",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.warworn-owlbear.webp",
+      "sha256": "ac81977d6960968a5e6622d67e32e6b575d5e0d71f186c8f3df7fe0bdb72bc43",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 3,
+        "y": 0,
+        "width": 820,
+        "height": 1417
+      },
+      "sourceId": "src-65c4cd5fcfdc",
+      "crop": {
+        "x": 377,
+        "y": 65,
+        "width": 352,
+        "height": 608
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_43_00 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "65c4cd5fcfdc-x3",
+      "definitionId": "hts.base.v1.monster.titan-wyvern",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.base.v1.monster.titan-wyvern.webp",
+      "sha256": "690b91769ca53a82d94f6b31d17d7af8a4efbedd968274c7561e6421c5184ef1",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 7,
+        "y": 0,
+        "width": 813,
+        "height": 1417
+      },
+      "sourceId": "src-65c4cd5fcfdc",
+      "crop": {
+        "x": 737,
+        "y": 68,
+        "width": 346,
+        "height": 603
+      },
+      "rotation": 0,
+      "provenance": {
+        "origin": "Owner folder · Base/ChatGPT Image Nov 3, 2026, 07_43_00 PM-4.png",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    }
+  ]
+}

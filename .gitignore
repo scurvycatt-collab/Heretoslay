@@ -22,4 +22,4 @@ dist/
 assets/imports/
 apps/web/public/assets/cards/*
 !apps/web/public/assets/cards/.gitkeep
-# Card face packs (assets/cards/packs/<name>/) are committed: the web build bundles them for deploy (ADR-004 rights apply)
+# Card face packs (assets/cards/base/<name>/ and assets/cards/expansions/<exp>/<name>/) are committed: the web build bundles them for deploy (ADR-004 rights apply)
