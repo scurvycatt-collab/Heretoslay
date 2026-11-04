@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  ROOM_IDLE_MS,
   RoomDurableObject,
   type DurableObjectContextLike,
   type DurableObjectStorageLike,
@@ -362,7 +363,7 @@ test("deadline command and alarm resolve exactly once while incomplete players w
   const afterAlarm = await snapshot(room, guest.json.sessionToken);
   assert.equal(afterAlarm.json.snapshot.revision, revision);
   assert.equal(afterAlarm.json.snapshot.reaction.closeReason, "deadline");
-  assert.equal(storage.alarmAt, deadlineAt);
+  assert.equal(storage.alarmAt, deadlineAt + ROOM_IDLE_MS, "resolved reaction rearms the room idle-expiry alarm");
 });
 
 test("create accepts the real base mode but rejects unknown modes and expansion/capacity config", async () => {

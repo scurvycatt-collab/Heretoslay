@@ -39,7 +39,7 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 | `PLAY_HAND_CARD` | `{ cardInstanceId, targets? }` | current player, ≥1 AP, nothing pending | Hero/Item/Cursed Item/Magic from hand → `pending`, −1 AP, opens Challenge window (skipped if uncatchable: Iron Resolve, Warworn Owlbear for Items). Item target `targets.heroInstanceIds[0]`: Item → own Hero, Cursed → any Hero (Q-06), Hero without Item. Magic targets per card `target` rule (Q-08) |
 | `USE_HERO_EFFECT` | `{ heroInstanceId, targets? }` | current player, ≥1 AP | once per Hero per turn; −1 AP; server rolls 2d6 (Q-10) → Modifier window → effect if total ≥ threshold. Sealing Key → `HERO_EFFECT_BLOCKED` |
 | `IMMEDIATE_ROLL` | `{ choice: "roll"\|"skip", targets? }` | actor, after own Hero entered Party | free roll of that Hero's effect (consumes its allowance) or skip; timeout = skip |
-| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12); the Leader fills a matching class slot but never an "any" slot (retail rulebook, owner 2026-11-02 — `leaderFillsClassSlot`); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, refill from Monster deck unless empty — Q-09) / PENALTY (choice) / nothing |
+| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12); the Leader fills a matching class slot but never an "any" slot (retail rulebook, owner 2026-11-02 — `leaderFillsClassSlot`); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, then and only then refill that vacated slot unless the deck is empty — Q-09) / PENALTY (choice) / nothing |
 | `REACT_CHALLENGE` | `{ windowId, cardInstanceId }` | any non-actor while the Challenge window is open | first valid wins; server rolls both (RULE-17), then a Modifier window; challenger wins ties |
 | `REACT_MODIFIER` | `{ windowId, cardInstanceId, value, side?, leaderBonus? }` | any player, once per window | `value` ∈ card options; `side` (`challenger`\|`defender`) required only on Challenge rolls; `leaderBonus` ±1 only with The Protecting Horn |
 | `REACT_PASS` | `{ windowId }` | eligible responder | Skip; window closes early when all responded |
@@ -64,6 +64,7 @@ While `game.chain` is non-null or effect steps are queued, turn commands return 
 
 ### Deadlines (DO alarm)
 Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settings.choiceSeconds` (30 s); the timer never resets. On expiry (alarm, or before the next command): Challenge window → no challenge; Modifier window → closes; immediate roll → skip; choice → **skip** (nothing chosen, nothing happens; a "may" is declined) — owner 2026-11-02. Each settle bumps `revision` once — so a command sent right after an expiry gets `STALE_REVISION` and must be resent (new `commandId`) against the fresh snapshot.
+After a deadline is settled, the same DO alarm is re-armed to the next gameplay deadline or the room idle-expiry time, whichever is earlier. A resolved window's old deadline is not retained as the alarm target.
 "with a <class> in their Party" (Tough Teddy, Smooth Mimimeow) counts the Leader's class: the Leader is in the Party (RB). Q-01 only concerns Monster requirement slots.
 
 ### Effects
@@ -133,7 +134,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
-    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: { id, resolvedAt, outcome: success|fail|slay|penalty|none|challenge_succeeded|challenge_failed, roll, card } — outcome decided by the server, display only */;
+    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: server outcome, display only; null for a viewer when it references a card that is currently in another player's hand or the deck */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice
     winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;

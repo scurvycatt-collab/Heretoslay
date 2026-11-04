@@ -13,7 +13,7 @@ import { BASE_REFERENCE_PHYSICAL_COPIES } from "../src/content/base-reference.ts
 
 function deps(): BaseGameDeps {
   let id = 0;
-  return { newId: () => `turn-${++id}`, shuffle: (ids) => [...ids] };
+  return { newId: () => `turn-${++id}`, shuffle: (ids) => [...ids], rollDice: () => [3, 4], now: () => 1_000 };
 }
 
 function roster(count: number): BaseRoster {
@@ -90,6 +90,30 @@ test("start deals 5 real catalog cards each, 3 face-up monsters, last selector f
     for (const card of other.hand) assert.equal(serialized.includes(`"${card.cardId}"`), false);
   }
   for (const card of game.mainDeck) assert.equal(serialized.includes(`"${card.cardId}"`), false);
+});
+
+test("projection removes lastRoll when a referenced card has returned to another player's hidden zone", () => {
+  const { game, players } = startedGame(2);
+  const hidden = game.seats[0].hand[0];
+  game.lastRoll = {
+    id: "roll-public-then-hidden",
+    resolvedAt: 1_000,
+    outcome: "none",
+    subject: null,
+    roll: {
+      kind: "attack",
+      rollerId: "p2",
+      dice: [1, 1],
+      monsterId: game.faceUpMonsters[0],
+      modifiers: [{ playerId: "p1", cardId: hidden.cardId, value: 1 }],
+      passives: [],
+    },
+  };
+  const foreignView = projectBaseGame(game, players, { roomCode: "ABC234", revision: 9, serverNow: 1_000 }, "p2");
+  assert.equal(foreignView.game.lastRoll, null);
+  assert.equal(JSON.stringify(foreignView).includes(hidden.cardId), false);
+  const ownerView = projectBaseGame(game, players, { roomCode: "ABC234", revision: 9, serverNow: 1_000 }, "p1");
+  assert.equal(ownerView.game.lastRoll?.roll.modifiers[0].cardId, hidden.cardId);
 });
 
 test("leader selection is sequential and unique; rejections do not mutate", () => {
