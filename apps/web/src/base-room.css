@@ -990,3 +990,29 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-hand-card.is-up { transform: translateY(-14%) rotate(0deg); }
   .t3-target-bar { bottom: calc(var(--hw) * 1.71 + 3.2cqh + 12px); }
 }
+
+/* UI-012: per-icon Monster slain offsets from the owner's layout editor (cqh of the felt, added on top of the UI-008 column) */
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-cluster .t3-slain { transform-origin: 0 0; }
+  .t3-seat--me .t3-cluster .t3-slain { translate: 1cqh -1.5cqh; }
+  .t3-seat--left .t3-cluster .t3-slain > :nth-child(1) { translate: -1cqh 0.75cqh; }
+  .t3-seat--left .t3-cluster .t3-slain > :nth-child(2) { translate: 0.9cqh -0.5cqh; }
+  .t3-seat--left .t3-cluster .t3-slain > :nth-child(3) { translate: -1cqh -1.7cqh; }
+  .t3-seat--me .t3-cluster .t3-slain > :nth-child(1) { translate: -2.5cqh 2.2cqh; }
+  .t3-seat--me .t3-cluster .t3-slain > :nth-child(2) { translate: -0.5cqh 0.7cqh; }
+  .t3-seat--me .t3-cluster .t3-slain > :nth-child(3) { translate: -2.5cqh -0.7cqh; }
+  .t3-seat--right .t3-cluster .t3-slain > :nth-child(1) { translate: 1.4cqh 0.7cqh; }
+  .t3-seat--right .t3-cluster .t3-slain > :nth-child(2) { translate: -0.5cqh -0.6cqh; }
+  .t3-seat--right .t3-cluster .t3-slain > :nth-child(3) { translate: 1.5cqh -1.75cqh; }
+  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(1) { translate: -1cqh 0.5cqh; }
+  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(2) { translate: 1.2cqh -0.8cqh; }
+  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(3) { translate: -0.9cqh -2cqh; }
+}
+
+/* UI-012: a long hand is squeezed into a fixed span beside my seat so it never covers the Party; hovering the hand fans it out. */
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-hand { --span: 35cqw; --natural: 0.8; left: 52.5%; }
+  .t3-hand:hover, .t3-hand:focus-within { --span: 62cqw; }
+  .t3-hand-card { margin-left: calc(min(var(--hw) * var(--natural), (var(--span) - var(--hw)) / max(var(--n) - 1, 1)) - var(--hw)); transition: transform 0.25s cubic-bezier(.2, .8, .3, 1.15), margin-left 0.28s ease; }
+  .t3-hand-card:first-child { margin-left: 0; }
+}
