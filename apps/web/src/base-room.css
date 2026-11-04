@@ -991,22 +991,22 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-target-bar { bottom: calc(var(--hw) * 1.71 + 3.2cqh + 12px); }
 }
 
-/* UI-012: per-icon Monster slain offsets from the owner's layout editor (cqh of the felt, added on top of the UI-008 column) */
+/* UI-012: per-icon Monster slain offsets from the owner's layout editor (in hex units = cqh/4.1 as authored at 6 players, so they follow --hex at any player count; added on top of the UI-008 column) */
 @media (min-width: 1101px) and (min-height: 641px) {
   .t3-cluster .t3-slain { transform-origin: 0 0; }
-  .t3-seat--me .t3-cluster .t3-slain { translate: 1cqh -1.5cqh; }
-  .t3-seat--left .t3-cluster .t3-slain > :nth-child(1) { translate: -1cqh 0.75cqh; }
-  .t3-seat--left .t3-cluster .t3-slain > :nth-child(2) { translate: 0.9cqh -0.5cqh; }
-  .t3-seat--left .t3-cluster .t3-slain > :nth-child(3) { translate: -1cqh -1.7cqh; }
-  .t3-seat--me .t3-cluster .t3-slain > :nth-child(1) { translate: -2.5cqh 2.2cqh; }
-  .t3-seat--me .t3-cluster .t3-slain > :nth-child(2) { translate: -0.5cqh 0.7cqh; }
-  .t3-seat--me .t3-cluster .t3-slain > :nth-child(3) { translate: -2.5cqh -0.7cqh; }
-  .t3-seat--right .t3-cluster .t3-slain > :nth-child(1) { translate: 1.4cqh 0.7cqh; }
-  .t3-seat--right .t3-cluster .t3-slain > :nth-child(2) { translate: -0.5cqh -0.6cqh; }
-  .t3-seat--right .t3-cluster .t3-slain > :nth-child(3) { translate: 1.5cqh -1.75cqh; }
-  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(1) { translate: -1cqh 0.5cqh; }
-  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(2) { translate: 1.2cqh -0.8cqh; }
-  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(3) { translate: -0.9cqh -2cqh; }
+  .t3-seat--me .t3-cluster .t3-slain { translate: calc(var(--hex) * 0.2439) calc(var(--hex) * -0.3659); }
+  .t3-seat--left .t3-cluster .t3-slain > :nth-child(1) { translate: calc(var(--hex) * -0.2439) calc(var(--hex) * 0.1829); }
+  .t3-seat--left .t3-cluster .t3-slain > :nth-child(2) { translate: calc(var(--hex) * 0.2195) calc(var(--hex) * -0.1220); }
+  .t3-seat--left .t3-cluster .t3-slain > :nth-child(3) { translate: calc(var(--hex) * -0.2439) calc(var(--hex) * -0.4146); }
+  .t3-seat--me .t3-cluster .t3-slain > :nth-child(1) { translate: calc(var(--hex) * -0.6098) calc(var(--hex) * 0.5366); }
+  .t3-seat--me .t3-cluster .t3-slain > :nth-child(2) { translate: calc(var(--hex) * -0.1220) calc(var(--hex) * 0.1707); }
+  .t3-seat--me .t3-cluster .t3-slain > :nth-child(3) { translate: calc(var(--hex) * -0.6098) calc(var(--hex) * -0.1707); }
+  .t3-seat--right .t3-cluster .t3-slain > :nth-child(1) { translate: calc(var(--hex) * 0.3415) calc(var(--hex) * 0.1707); }
+  .t3-seat--right .t3-cluster .t3-slain > :nth-child(2) { translate: calc(var(--hex) * -0.1220) calc(var(--hex) * -0.1463); }
+  .t3-seat--right .t3-cluster .t3-slain > :nth-child(3) { translate: calc(var(--hex) * 0.3659) calc(var(--hex) * -0.4268); }
+  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(1), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(1) { translate: calc(var(--hex) * -0.2439) calc(var(--hex) * 0.1220); }
+  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(2), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(2) { translate: calc(var(--hex) * 0.2927) calc(var(--hex) * -0.1951); }
+  .t3-seat--top-c .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-cl .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-cr .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-l .t3-cluster .t3-slain > :nth-child(3), .t3-seat--top-r .t3-cluster .t3-slain > :nth-child(3) { translate: calc(var(--hex) * -0.2195) calc(var(--hex) * -0.4878); }
 }
 
 /* UI-012: a long hand is squeezed into a fixed span beside my seat so it never covers the Party; hovering the hand fans it out. */
