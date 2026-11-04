@@ -97,13 +97,19 @@ function Symbol({ x, y, size, fill, icon, children }: { x: number; y: number; si
 const Letter = ({ x, y, size, letter }: { x: number; y: number; size: number; letter: string }) =>
   <text x={x + size / 2} y={y + size / 2 + size * 0.03} fill="#fff" fontFamily={FONT_NAME} fontSize={cssPx(size * (SIZE.symbolLetter / 102), "name")} textAnchor="middle" dominantBaseline="central">{letter}</text>;
 
-function Art({ id, href, x, y, w, h, top = 0, bottom = 0 }: { id: string; href?: string; x: number; y: number; w: number; h: number; top?: number; bottom?: number }) {
+type FaceCrop = { x: number; y: number; w: number; h: number; cardWidth: number; cardHeight: number };
+
+function Art({ id, href, faceCrop, x, y, w, h, top = 0, bottom = 0 }: { id: string; href?: string; faceCrop?: FaceCrop; x: number; y: number; w: number; h: number; top?: number; bottom?: number }) {
   const shape = roundedRect(x, y, w, h, top, bottom);
+  const sx = faceCrop ? w / faceCrop.w : 1;
+  const sy = faceCrop ? h / faceCrop.h : 1;
   return <g>
     <clipPath id={id}><path d={shape} /></clipPath>
     <path d={shape} fill={C.artPending} />
     {href
-      ? <image href={href} x={x} y={y} width={w} height={h} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id})`} />
+      ? faceCrop
+        ? <image href={href} x={x - faceCrop.x * sx} y={y - faceCrop.y * sy} width={faceCrop.cardWidth * sx} height={faceCrop.cardHeight * sy} preserveAspectRatio="none" clipPath={`url(#${id})`} />
+        : <image href={href} x={x} y={y} width={w} height={h} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id})`} />
       : <text x={x + w / 2} y={y + h / 2} fill="#ffffff55" fontFamily={FONT_TEXT} fontSize={22} letterSpacing={4} textAnchor="middle" dominantBaseline="central">ARTWORK PENDING</text>}
   </g>;
 }
@@ -118,11 +124,18 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
   const { language } = useLanguage();
   useFontsReady();
   const uid = useId().replaceAll(":", "");
-  const face = artUrl || language === "vi" ? CARD_FACE_PLACEHOLDER : resolveCardFace(card.definitionId);
+  const completeFace = resolveCardFace(card.definitionId);
+  const face = artUrl || language === "vi" ? CARD_FACE_PLACEHOLDER : completeFace;
   if (face !== CARD_FACE_PLACEHOLDER) return <CardFaceImage cardId={card.definitionId} label={card.name} className={className} />;
-  const art = artUrl ?? resolveCardArt(card.definitionId) ?? cardAssets[card.definitionId]?.artUrl;
   const tarot = card.kind === "monster" || card.kind === "party_leader";
   const width = tarot ? 827 : 745, height = tarot ? 1417 : 1040;
+  const importedArt = artUrl ?? resolveCardArt(card.definitionId) ?? cardAssets[card.definitionId]?.artUrl;
+  const art = importedArt ?? (completeFace !== CARD_FACE_PLACEHOLDER ? completeFace : undefined);
+  const layoutKey = card.kind === "cursed_item" ? "item" : card.kind;
+  const artRect = spec.layouts[layoutKey].art;
+  const faceCrop: FaceCrop | undefined = !importedArt && completeFace !== CARD_FACE_PLACEHOLDER
+    ? { ...artRect, cardWidth: width, cardHeight: height }
+    : undefined;
   const sourceText = card.text ?? "Text unavailable";
   const text = language === "vi" ? translateVi(sourceText) : sourceText;
   const sourceLabel = card.kind === "party_leader" ? `Party Leader: ${titleCase(card.heroClass)}` : card.kind === "hero" ? `Hero: ${titleCase(card.heroClass)}` : card.kind === "cursed_item" ? "Cursed Item" : titleCase(card.kind);
@@ -137,7 +150,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
       body = <>
         <rect width={width} height={height} fill={frame} />
         <rect x={BORDER} y={BORDER} width={width - 2 * BORDER} height={height - 2 * BORDER} rx={PANEL_RADIUS} fill={CREAM} />
-        <Art id={`${uid}a`} href={art} x={100} y={232} w={545} h={545} />
+        <Art id={`${uid}a`} href={art} faceCrop={faceCrop} x={100} y={232} w={545} h={545} />
         <Label x={width / 2} y={80} size={SIZE.name}>{card.name}</Label>
         <Label x={width / 2} y={134} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={frame}>{label}</Label>
         {card.kind === "hero" && <>
@@ -155,7 +168,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
       body = <>
         <rect width={width} height={height} fill={C.item} />
         <path d={roundedRect(BORDER, BORDER, width - 2 * BORDER, FRAME.itemPanelBottom - BORDER, PANEL_RADIUS, 0)} fill={CREAM} />
-        <Art id={`${uid}a`} href={art} x={100} y={232} w={545} h={545} />
+        <Art id={`${uid}a`} href={art} faceCrop={faceCrop} x={100} y={232} w={545} h={545} />
         <Label x={width / 2} y={80} size={SIZE.name}>{card.name}</Label>
         <Label x={width / 2} y={134} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={title}>{label}</Label>
         <Symbol x={99} y={886} size={102} fill={mask ? classColor(mask) : title} icon={mask ? CLASS_ICON[mask] : card.kind === "cursed_item" ? cursedItemIcon : itemIcon}>
@@ -175,7 +188,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
       const both = good !== undefined && bad !== undefined;
       body = <>
         <rect width={width} height={height} fill={CREAM} />
-        <Art id={`${uid}a`} href={art} x={challenge ? 50 : 100} y={challenge ? 215 : 182} w={challenge ? 645 : 545} h={challenge ? 550 : 545} top={PANEL_RADIUS} bottom={PANEL_RADIUS} />
+        <Art id={`${uid}a`} href={art} faceCrop={faceCrop} x={challenge ? 50 : 100} y={challenge ? 215 : 182} w={challenge ? 645 : 545} h={challenge ? 550 : 545} top={PANEL_RADIUS} bottom={PANEL_RADIUS} />
         <Label x={width / 2} y={52} size={SIZE.nameBlank}>{challenge ? card.name.toUpperCase() : "MODIFIER"}</Label>
         {!challenge && <>
           {both && <Label x={width / 2} y={763} size={SIZE.modifier}>/</Label>}
@@ -191,7 +204,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
       const reqWidth = measure(reqLabel, cssPx(SIZE.requirement, "text"), FONT_TEXT, 700, 0);
       body = <>
         <rect width={width} height={height} fill={C.monster} />
-        <Art id={`${uid}a`} href={art} x={BORDER} y={BORDER} w={width - 2 * BORDER} h={FRAME.monsterBandTop - BORDER} top={PANEL_RADIUS} />
+        <Art id={`${uid}a`} href={art} faceCrop={faceCrop} x={BORDER} y={BORDER} w={width - 2 * BORDER} h={FRAME.monsterBandTop - BORDER} top={PANEL_RADIUS} />
         <rect x={0} y={FRAME.tarotCreamTop} width={width} height={height - FRAME.tarotCreamTop} fill={CREAM} />
         <Label x={width / 2} y={67} size={SIZE.name} fill="#fff" shadow={{ fill: "rgba(0,0,0,.5)", offset: 3 }}>{card.name}</Label>
         <Label x={width / 2} y={118} size={SIZE.title} family={FONT_TEXT} spacing={1} fill="#fff" shadow={{ fill: "rgba(0,0,0,.5)", offset: 2 }}>Monster</Label>
@@ -216,7 +229,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
       const onArt = !!art;
       body = <>
         <rect width={width} height={height} fill={frame} />
-        <Art id={`${uid}a`} href={art} x={BORDER} y={BORDER} w={width - 2 * BORDER} h={FRAME.tarotCreamTop - BORDER} top={PANEL_RADIUS} />
+        <Art id={`${uid}a`} href={art} faceCrop={faceCrop} x={BORDER} y={BORDER} w={width - 2 * BORDER} h={FRAME.tarotCreamTop - BORDER} top={PANEL_RADIUS} />
         <rect x={0} y={FRAME.tarotCreamTop} width={width} height={height - FRAME.tarotCreamTop} fill={CREAM} />
         <Label x={width / 2} y={67} size={SIZE.name} fill={onArt ? "#000" : "#fff"} shadow={{ fill: onArt ? "rgba(255,255,255,.4)" : "rgba(0,0,0,.5)", offset: 3 }}>{card.name}</Label>
         <Label x={width / 2} y={118} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={onArt ? "#000" : "#fff"} shadow={{ fill: onArt ? "rgba(255,255,255,.4)" : "rgba(0,0,0,.5)", offset: 2 }}>{label}</Label>

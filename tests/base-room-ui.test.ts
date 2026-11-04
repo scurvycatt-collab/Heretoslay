@@ -35,3 +35,21 @@ test("game over removes every gameplay action path", async () => {
   assert.match(source, /if \(game\.phase !== "game_over"\) return;\s+setTargetRequest\(null\);\s+setAttackFor\(null\);/);
   assert.match(source, /onClick=\{gameActive \? \(\) => setAttackFor/);
 });
+
+test("large reaction hands shrink into one tray row so the primary action stays visible", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
+  assert.match(room, /trayCardCount >= 4 \? " is-dense"/);
+  assert.match(room, /"--tray-count": Math\.max\(1, trayCardCount\)/);
+  assert.match(css, /\.t3-stage-tray\.is-dense \{ flex-wrap: nowrap;/);
+  assert.match(css, /calc\(\(88vw - \(var\(--tray-count\) - 1\) \* 14px\) \/ var\(--tray-count\)\)/);
+});
+
+test("a growing hand keeps overlapping so it does not cover the deployed Party", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
+  assert.match(room, /const handShift = -Math\.min\(0\.78, 0\.2 \+ Math\.max\(0, n - 5\) \* 0\.055\)/);
+  assert.match(room, /"--hand-shift": handShift/);
+  assert.match(css, /\.t3-hand-card \{ margin-left: calc\(var\(--hw\) \* var\(--hand-shift\)\); \}/);
+  assert.match(css, /\.t3-seat--me \.t3-party \{ max-width: 20cqw;/);
+});

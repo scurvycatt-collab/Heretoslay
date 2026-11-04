@@ -663,6 +663,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
   let center: ReactNode = null;
   let roster: ReactNode = null;
   let tray: ReactNode = null;
+  let trayCardCount = 0;
   let primary: ReactNode = null;
 
   if (chain.step === "challenge_window") {
@@ -674,6 +675,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     roster = <Roster state={state} responders={chain.responders} />;
     const cards = state.yourHand.filter((c) => c.kind === "challenge");
     if (mine === "pending") {
+      trayCardCount = cards.length;
       tray = cards.map((card) => (
         <div key={card.cardId} className="t3-tray-card">
           <CardRenderer
@@ -703,6 +705,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     center = parts.center;
     const modifierCards = state.yourHand.filter((c) => c.kind === "modifier");
     if (mine === "pending") {
+      trayCardCount = modifierCards.length;
       tray = (
         <>
           {(roll.kind === "challenge" || hasHorn) && (
@@ -866,7 +869,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
       {featured && <div className="t3-stage-feature">{featured}</div>}
       <div className="t3-stage-center">{center}</div>
       {roster}
-      {tray && <div className="t3-stage-tray">{tray}</div>}
+      {tray && <div className={`t3-stage-tray${trayCardCount >= 4 ? " is-dense" : ""}`} style={{ "--tray-count": Math.max(1, trayCardCount) } as CSSProperties}>{tray}</div>}
       {primary && <div className="t3-stage-primary">{primary}</div>}
     </div>
     </RevealContext.Provider>
@@ -965,8 +968,9 @@ function DiscardView({ pile, count, onClose }: { pile: BaseCardView[]; count: nu
 function Hand({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolean; onPlay: (card: BaseCardView) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const n = hand.length;
+  const handShift = -Math.min(0.78, 0.2 + Math.max(0, n - 5) * 0.055);
   return (
-    <div className="t3-hand" aria-label="Your hand" style={{ "--n": n } as CSSProperties}>
+    <div className="t3-hand" aria-label="Your hand" style={{ "--n": n, "--hand-shift": handShift } as CSSProperties}>
       {hand.map((card, i) => {
         const offset = i - (n - 1) / 2;
         const playable = card.kind === "hero" || card.kind === "item" || card.kind === "cursed_item" || card.kind === "magic";

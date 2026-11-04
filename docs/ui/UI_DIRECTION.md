@@ -25,6 +25,12 @@ Pressing `Esc` while any reaction/choice stage is open folds it to the table exa
 
 Once the authoritative phase is `game_over`, no hand play, Monster attack, Hero roll, Leader action, draw/redeal/pass button, target dialog, or keyboard gameplay shortcut remains actionable. The finished table, result, log, and navigation stay available for review.
 
+On desktop, cards in hand overlap progressively as the hand grows, up to a 78% overlap. The deployed Party retains its own bounded region beside the hand so a large hand does not cover Hero cards.
+
+Reaction trays with four or more playable Challenge/Modifier cards stay on one row and reduce card/action size according to both card count and viewport height. The primary Skip control remains in its own final grid row and must stay visible without vertical scrolling.
+
+The Vietnamese card gallery always keeps Vietnamese frames and rule text. If a definition has standalone artwork, it fills the art window; if it only has an imported complete English face, the renderer crops that face's canonical art rectangle into the Vietnamese card instead of showing an empty artwork panel.
+
 ## Handoff
 
 Files: `UI_DIRECTION.md`, `REFERENCE_REVISION.svg`; `WIREFRAME.svg` is intentionally unchanged. SVG is a review artifact with placeholder content and no third-party assets. Validation: SVG XML parsed; no renderer installed, so visual preview beyond source inspection was unavailable.
