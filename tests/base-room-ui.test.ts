@@ -53,3 +53,11 @@ test("a growing hand keeps overlapping so it does not cover the deployed Party",
   assert.match(css, /\.t3-hand-card \{ margin-left: calc\(var\(--hw\) \* var\(--hand-shift\)\); \}/);
   assert.match(css, /\.t3-seat--me \.t3-party \{ max-width: 20cqw;/);
 });
+
+test("right-click opens the same full-card inspector as Ctrl-hover", async () => {
+  const card = await readFile(new URL("../apps/web/src/CardRenderer.tsx", import.meta.url), "utf8");
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(card, /onContextMenu: canInspect/);
+  assert.match(card, /e\.preventDefault\(\);\s+setInspect\(card, e\.currentTarget\.getBoundingClientRect\(\), true\)/);
+  assert.match(room, /Ctrl<\/kbd> \+ hover or right-click to enlarge/);
+});

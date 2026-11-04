@@ -214,7 +214,7 @@ function useModifierKey() {
   return held;
 }
 
-/** Full-size card in the middle of the screen while Ctrl/⌘ is held over a card (or on touch long-press). */
+/** Full-size card while Ctrl/⌘ is held, after right-click, or on touch long-press. */
 function Inspector({ hovered, held }: { hovered: { card: CardLike; rect: DOMRect | null; pinned: boolean } | null; held: boolean }) {
   if (!hovered || (!held && !hovered.pinned)) return null;
   const tall = hovered.card.kind === "monster" || hovered.card.kind === "party_leader";
@@ -792,7 +792,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     ) : chain.kind === "confirm" ? null : chain.options ? (
       <div className="t3-choice">
         <p className="t3-muted">
-          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hold Ctrl + hover for full text.
+          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hold Ctrl + hover or right-click for full text.
           {chain.kind === "play_card" && <> You will choose targets after confirming.</>}
         </p>
         <div className="t3-choice-row">
@@ -958,7 +958,7 @@ function DiscardView({ pile, count, onClose }: { pile: BaseCardView[]; count: nu
         </div>
         <button className="t3-pileview-nav" onClick={() => scroll(1)} aria-label="Scroll right">▶</button>
       </div>
-      <p className="t3-pileview-hint">Newest first · hold <kbd>Ctrl</kbd> + hover to enlarge · click outside or <kbd>Esc</kbd> to close</p>
+      <p className="t3-pileview-hint">Newest first · hold <kbd>Ctrl</kbd> + hover or right-click to enlarge · click outside or <kbd>Esc</kbd> to close</p>
     </div>
   );
 }

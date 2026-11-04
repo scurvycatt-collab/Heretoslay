@@ -27,6 +27,8 @@ Once the authoritative phase is `game_over`, no hand play, Monster attack, Hero 
 
 On desktop, cards in hand overlap progressively as the hand grows, up to a 78% overlap. The deployed Party retains its own bounded region beside the hand so a large hand does not cover Hero cards.
 
+Full-card inspection supports `Ctrl`/`Command` + hover and right-click on desktop, plus long-press on touch. The native context menu is suppressed only for inspectable cards.
+
 Reaction trays with four or more playable Challenge/Modifier cards stay on one row and reduce card/action size according to both card count and viewport height. The primary Skip control remains in its own final grid row and must stay visible without vertical scrolling.
 
 The Vietnamese card gallery always keeps Vietnamese frames and rule text. If a definition has standalone artwork, it fills the art window; if it only has an imported complete English face, the renderer crops that face's canonical art rectangle into the Vietnamese card instead of showing an empty artwork panel.

@@ -47,8 +47,8 @@ export type CardSizeName = "xs" | "sm" | "md" | "lg" | "xl";
 
 /**
  * Card inspector: cards report hover/focus (with their screen rect) and touch
- * long-press (`pinned`). The provider decides when to show the full card
- * (e.g. only while Ctrl is held, or always when pinned).
+ * long-press / right-click (`pinned`). The provider decides when to show the
+ * full card (e.g. only while Ctrl is held, or always when pinned).
  */
 export type InspectFn = (card: CardLike | null, rect?: DOMRect | null, pinned?: boolean) => void;
 export const InspectContext = createContext<InspectFn | null>(null);
@@ -299,6 +299,13 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
     onMouseLeave: canInspect ? () => setInspect(null) : undefined,
     onFocus: canInspect ? (e: { currentTarget: Element }) => setInspect(card, e.currentTarget.getBoundingClientRect()) : undefined,
     onBlur: canInspect ? () => setInspect(null) : undefined,
+    // Desktop: right-click mirrors Ctrl/⌘ + hover without opening the browser menu.
+    onContextMenu: canInspect
+      ? (e: { preventDefault: () => void; currentTarget: Element }) => {
+          e.preventDefault();
+          setInspect(card, e.currentTarget.getBoundingClientRect(), true);
+        }
+      : undefined,
     // Touch: long-press shows the full card until release.
     onPointerDown: canInspect
       ? (e: PointerEvent<Element>) => {
