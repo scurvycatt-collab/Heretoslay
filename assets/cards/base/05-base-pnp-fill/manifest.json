@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "mode": "mapped",
+  "gameplaySupported": false,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "collection": "Base · PnP gap fill (Mighty Blade, Sealing Key)",
+  "sources": [
+    {
+      "sourceId": "src-pnp-base-04",
+      "relativePath": "wiki-pnp-20261103/sheets-600dpi/base-04.png",
+      "sha256": "",
+      "width": 5100,
+      "height": 6600
+    },
+    {
+      "sourceId": "src-pnp-base-10",
+      "relativePath": "wiki-pnp-20261103/sheets-600dpi/base-10.png",
+      "sha256": "",
+      "width": 5100,
+      "height": 6600
+    }
+  ],
+  "assets": [
+    {
+      "candidateId": "hero-mighty-blade-pnp-art",
+      "definitionId": "hts.base.v1.hero.mighty-blade",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.hero.mighty-blade--art.webp",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-pnp-base-04",
+      "rotation": 90,
+      "provenance": {
+        "origin": "Cropped from Unstable Games wiki PnP base sheet 04, rotated upright",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "sha256": "2a92061da95baacc9c8095fcb6ead7f57ec8e77c3750dfc4dac404d2501e313f",
+      "format": "webp"
+    },
+    {
+      "candidateId": "cursed-item-sealing-key-pnp-art",
+      "definitionId": "hts.base.v1.cursed-item.sealing-key",
+      "variant": "default",
+      "inputType": "artwork",
+      "renderMode": "artwork",
+      "template": "poker",
+      "relativePath": "cards/hts.base.v1.cursed-item.sealing-key--art.webp",
+      "width": 545,
+      "height": 545,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 545,
+        "height": 545
+      },
+      "sourceId": "src-pnp-base-10",
+      "rotation": 90,
+      "provenance": {
+        "origin": "Cropped from Unstable Games wiki PnP base sheet 10, rotated upright",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "sha256": "ae6239b81ad88748939e7cd6e6d295f8822be011844bc1591ceec299979a68f2",
+      "format": "webp"
+    }
+  ]
+}

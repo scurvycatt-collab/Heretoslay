@@ -19,7 +19,7 @@ test("bundled URL wins; missing bundled image cannot create a broken path", () =
   assert.equal(resolve("hero-2"), options.placeholderUrl);
 });
 test("all actual 69 PNGs resolve by previewId without invented base mappings", () => {
-  const root = new URL("../../assets/cards/kickstarter-preview/png-webgame/", import.meta.url);
+  const root = new URL("../../assets/cards/expansions/kickstarter/preview/webgame/", import.meta.url);
   const data = JSON.parse(readFileSync(new URL("manifest.json", root), "utf8"));
   const urls = Object.fromEntries(data.cards.map((card: { src: string }) => {
     assert.ok(existsSync(new URL(card.src, root)));

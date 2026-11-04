@@ -135,7 +135,8 @@ async function playHero(rt: Rt, code: string, players: Player[], actor: Player, 
   assert.ok(card, `${actor.name} lacks ${definitionId}`);
   await ok(rt, code, actor, "PLAY_HAND_CARD", { cardInstanceId: card.cardId });
   await othersPass(rt, code, players, actor);
-  await ok(rt, code, actor, "IMMEDIATE_ROLL", { choice: "skip" });
+  // A Hero whose effect has no valid target is skipped by the server (no roll offer).
+  if ((await snap(rt, code, actor)).game.chain?.step === "immediate_roll_choice") await ok(rt, code, actor, "IMMEDIATE_ROLL", { choice: "skip" });
 }
 
 const H = (slug: string) => `hts.base.v1.hero.${slug}`;

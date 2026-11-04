@@ -16,7 +16,10 @@ type Game = BaseGameSnapshot["game"];
 
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
 const leaderColor = (player: Player) => (player.leaderClass ? CLASS_COLOR[player.leaderClass as HeroClass] ?? CLASS_COLOR.none : CLASS_COLOR.none);
-const RESULT_MS = 5000;
+const RESULT_MS = 8000;
+/** Dice tumble for this long, then the numbers are revealed (owner 2026-11-04: slower, readable rolls). */
+const DICE_ROLL_MS = 2000;
+const TOTAL_REVEAL_MS = 600;
 const rollText = (roll: { op: "gte" | "lte"; value: number }) => `${roll.value}${roll.op === "gte" ? "+" : "-"}`;
 
 /* ------------------------------------------------------------------ targets */
@@ -211,23 +214,16 @@ function useModifierKey() {
   return held;
 }
 
-/** Full card next to the hovered token while Ctrl/⌘ is held (or on touch long-press). */
+/** Full-size card in the middle of the screen while Ctrl/⌘ is held over a card (or on touch long-press). */
 function Inspector({ hovered, held }: { hovered: { card: CardLike; rect: DOMRect | null; pinned: boolean } | null; held: boolean }) {
   if (!hovered || (!held && !hovered.pinned)) return null;
-  const w = 300;
-  const h = Math.round(w * (hovered.card.kind === "monster" || hovered.card.kind === "party_leader" ? 1.713 : 1.396));
-  const r = hovered.rect;
+  const tall = hovered.card.kind === "monster" || hovered.card.kind === "party_leader";
+  const ratio = tall ? 1.713 : 1.396;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  let left = vw / 2 - w / 2;
-  let top = vh / 2 - h / 2;
-  if (r) {
-    left = r.right + 14 + w < vw ? r.right + 14 : Math.max(8, r.left - 14 - w);
-    top = Math.min(Math.max(8, r.top + r.height / 2 - h / 2), Math.max(8, vh - h - 8));
-  }
-  if (vw < 640) { left = (vw - w) / 2; top = Math.max(8, (vh - h) / 2); }
+  const w = Math.floor(Math.max(220, Math.min(vw * 0.9, (vh * 0.9) / ratio, 720)));
   return (
-    <div className="t3-inspect" style={{ left, top }} aria-hidden>
+    <div className="t3-inspect" aria-hidden>
       <CardRenderer card={hovered.card} size="xl" inspect={false} style={{ "--w": `${w}px` } as CSSProperties} />
     </div>
   );
@@ -243,13 +239,14 @@ const TableHoverContext = createContext<TableHover>({ showLeader: () => {}, show
 
 /** Leader card + party / win-progress summary for one seat (hover the avatar). */
 function LeaderPanel({ player, game, rect }: { player: Player; game: Game; rect: DOMRect }) {
-  const w = 230;
-  const h = 620;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  // Leader card + 8 stat rows: as large as fits the viewport so the text is readable (≤ 400 px wide).
+  const w = Math.floor(Math.max(240, Math.min(400, (vh - 24 - 330) / 1.713)));
+  const h = Math.round(w * 1.713) + 330;
   let left = rect.right + 12 + w < vw ? rect.right + 12 : rect.left - 12 - w;
   if (vw < 640) left = (vw - w) / 2;
-  const top = Math.min(Math.max(8, rect.top - 60), Math.max(8, vh - h));
+  const top = Math.min(Math.max(8, rect.top - 60), Math.max(8, vh - h - 8));
   const missing = HERO_CLASSES.filter((c) => !player.partyClasses.includes(c));
   const isTurn = player.playerId === game.currentPlayerId;
   const rows: Array<[string, ReactNode]> = [
@@ -269,7 +266,7 @@ function LeaderPanel({ player, game, rect }: { player: Player; game: Game; rect:
     ["EQUIPPED ITEMS", player.party.filter((e) => e.item).length],
   ];
   return (
-    <div className="t3-leader-panel" style={{ left: Math.max(8, left), top }} aria-hidden>
+    <div className="t3-leader-panel" style={{ left: Math.max(8, left), top, width: w, "--panel-w": `${w}px` } as CSSProperties} aria-hidden>
       {player.leaderId && <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} size="lg" inspect={false} style={{ "--w": `${w}px` } as CSSProperties} />}
       <dl className="t3-leader-stats">
         <div className="t3-leader-who"><b>{player.nickname}</b>{isTurn && <em>TURN</em>}</div>
@@ -288,7 +285,7 @@ function LeaderPanel({ player, game, rect }: { player: Player; game: Game; rect:
  */
 function HeroStack({ entry, rect, onEnter, onLeave }: { entry: Player["party"][number]; rect: DOMRect; onEnter: () => void; onLeave: () => void }) {
   const [split, setSplit] = useState(false);
-  const w = 220;
+  const w = 300;
   const h = Math.round(w * 1.396);
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -330,8 +327,13 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
     </>
   );
   return (
-    <div className={`t3-cluster${isActive ? " is-active" : ""}`}>
+    <div className={`t3-cluster${isActive ? " is-active" : ""}`} title={`${player.nickname} · ✋ ${player.handCount} cards in hand · ◆ ${player.partyClasses.length}/6 classes · ☠ ${player.slainMonsters.length}/3 Monsters`}>
       <span className={`t3-nametag${isActive ? " is-active" : ""}`}>{player.isBot ? "🤖 " : ""}{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
+      {player.leaderId && (
+        <span className="t3-seat-leader t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
+          <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-leader-card" inspect={false} />
+        </span>
+      )}
       <div className="t3-hexes" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
         {HERO_CLASSES.map((c, i) => {
           const lit = player.partyClasses.includes(c);
@@ -355,11 +357,6 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
         )}
       </div>
       <SlainHexes monsters={player.slainMonsters} />
-      <span className="t3-stats">
-        <span title="Classes in Party (6 = win)">◆ {player.partyClasses.length}/6</span>
-        <span title="Monsters slain (3 = win)">☠ {player.slainMonsters.length}/3</span>
-        <span title="Cards in hand">✋ {player.handCount}</span>
-      </span>
       {player.protections.length > 0 && (
         <span className="t3-protect">{player.protections.map((p) => (p === "no_destroy" ? "NO DESTROY" : "NO STEAL")).join(" · ")}</span>
       )}
@@ -388,11 +385,6 @@ function PartyTokens({ player, target, heroAction, vertical }: { player: Player;
   const hover = useContext(TableHoverContext);
   return (
     <div className={`t3-party${vertical ? " is-vertical" : ""}`}>
-      {player.leaderId && (
-        <span className="t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
-          <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-token--leader" inspect={false} />
-        </span>
-      )}
       {player.party.map((entry) => {
         const order = heroIds.indexOf(entry.hero.cardId);
         return (
@@ -445,11 +437,33 @@ function Roster({ state, responders }: { state: BaseGameSnapshot; responders: Re
   );
 }
 
+/** 0 = dice tumbling · 1 = dice landed · 2 = totals revealed. Live windows animate; the result screen shows the final state. */
+type Reveal = 0 | 1 | 2;
+const RevealContext = createContext<Reveal>(2);
+
+function useRevealPhase(): Reveal {
+  const [phase, setPhase] = useState<Reveal>(0);
+  useEffect(() => {
+    const landed = window.setTimeout(() => setPhase(1), DICE_ROLL_MS);
+    const shown = window.setTimeout(() => setPhase(2), DICE_ROLL_MS + TOTAL_REVEAL_MS);
+    return () => { window.clearTimeout(landed); window.clearTimeout(shown); };
+  }, []);
+  return phase;
+}
+
 function Die({ value, tone, tilt }: { value: number; tone: string; tilt: number }) {
+  const phase = useContext(RevealContext);
+  const rolling = phase === 0;
+  const [face, setFace] = useState(value);
+  useEffect(() => {
+    if (!rolling) { setFace(value); return; }
+    const id = window.setInterval(() => setFace(1 + Math.floor(Math.random() * 6)), 120);
+    return () => window.clearInterval(id);
+  }, [rolling, value]);
   const pips: Record<number, number[]> = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
   return (
-    <span className={`t3-die t3-die--${tone}`} style={{ "--tilt": `${tilt}deg` } as CSSProperties} aria-label={`die ${value}`}>
-      {Array.from({ length: 9 }, (_, i) => <i key={i} className={pips[value]?.includes(i) ? "on" : ""} />)}
+    <span className={`t3-die t3-die--${tone}${rolling ? " is-rolling" : phase === 1 ? " is-landed" : ""}`} style={{ "--tilt": `${tilt}deg`, "--seed": (value * 37) % 11 } as CSSProperties} aria-label={rolling ? "die rolling" : `die ${value}`}>
+      {Array.from({ length: 9 }, (_, i) => <i key={i} className={pips[face]?.includes(i) ? "on" : ""} />)}
     </span>
   );
 }
@@ -471,11 +485,13 @@ function Countdown({ deadlineAt, serverNow, totalMs, big }: { deadlineAt: number
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: ReactNode; tone?: string }) {
+function Stat({ label, value, tone, rolled }: { label: string; value: ReactNode; tone?: string; rolled?: boolean }) {
+  const phase = useContext(RevealContext);
+  const hidden = Boolean(rolled) && phase < 2;
   return (
-    <div className={`t3-stat${tone ? ` t3-stat--${tone}` : ""}`}>
+    <div className={`t3-stat${tone && !hidden ? ` t3-stat--${tone}` : ""}${hidden ? " is-hidden" : ""}`}>
       <small>{label}</small>
-      <strong>{value}</strong>
+      <strong>{hidden ? "?" : value}</strong>
     </div>
   );
 }
@@ -527,9 +543,9 @@ function rollParts(state: BaseGameSnapshot, roll: BaseRollView, result?: BaseRol
           <div className={`t3-side t3-side--a${winnerId === roll.rollerPlayerId ? " is-winner" : winnerId ? " is-loser" : ""}`}>
             <h3>{name(roll.rollerPlayerId)}</h3>
             <div className="t3-stats-row">
-              <Stat label="ROLLED" value={diceSum(roll.dice)} />
-              <Stat label="MODIFIER" value={signed(dMod)} tone={dMod > 0 ? "pos" : dMod < 0 ? "neg" : "zero"} />
-              <Stat label="TOTAL" value={roll.total} />
+              <Stat rolled label="ROLLED" value={diceSum(roll.dice)} />
+              <Stat rolled label="MODIFIER" value={signed(dMod)} tone={dMod > 0 ? "pos" : dMod < 0 ? "neg" : "zero"} />
+              <Stat rolled label="TOTAL" value={roll.total} />
             </div>
             {chips("defender")}
             <div className="t3-dice">{roll.dice.map((d, i) => <Die key={i} value={d} tone="green" tilt={i ? 14 : -10} />)}</div>
@@ -538,9 +554,9 @@ function rollParts(state: BaseGameSnapshot, roll: BaseRollView, result?: BaseRol
           <div className={`t3-side t3-side--b${winnerId === roll.challengerPlayerId ? " is-winner" : winnerId ? " is-loser" : ""}`}>
             <h3>{name(roll.challengerPlayerId!)}</h3>
             <div className="t3-stats-row">
-              <Stat label="ROLLED" value={diceSum(roll.challengerDice!)} />
-              <Stat label="MODIFIER" value={signed(cMod)} tone={cMod > 0 ? "pos" : cMod < 0 ? "neg" : "zero"} />
-              <Stat label="TOTAL" value={roll.challengerTotal} />
+              <Stat rolled label="ROLLED" value={diceSum(roll.challengerDice!)} />
+              <Stat rolled label="MODIFIER" value={signed(cMod)} tone={cMod > 0 ? "pos" : cMod < 0 ? "neg" : "zero"} />
+              <Stat rolled label="TOTAL" value={roll.challengerTotal} />
             </div>
             {chips("challenger")}
             <div className="t3-dice">{roll.challengerDice!.map((d, i) => <Die key={i} value={d} tone="orange" tilt={i ? -16 : 9} />)}</div>
@@ -557,9 +573,9 @@ function rollParts(state: BaseGameSnapshot, roll: BaseRollView, result?: BaseRol
   const center = (
     <div className="t3-rollboard">
       <div className="t3-stats-row">
-        <Stat label="ROLLED" value={diceSum(roll.dice)} />
-        <Stat label="MODIFIER" value={signed(mod)} tone={mod > 0 ? "pos" : mod < 0 ? "neg" : "zero"} />
-        <Stat label="TOTAL" value={roll.total} />
+        <Stat rolled label="ROLLED" value={diceSum(roll.dice)} />
+        <Stat rolled label="MODIFIER" value={signed(mod)} tone={mod > 0 ? "pos" : mod < 0 ? "neg" : "zero"} />
+        <Stat rolled label="TOTAL" value={roll.total} />
         {roll.threshold !== undefined && <Stat label="REQUIRED" value={roll.threshold} tone="req" />}
         {monsterData?.kind === "monster" && (
           <Stat label="REQUIRED" value={`${monsterData.slay.op === "gte" ? "≥" : "≤"}${monsterData.slay.value}`} tone="req" />
@@ -622,6 +638,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
   const [hornBonus, setHornBonus] = useState<0 | 1 | -1>(0);
   const [picked, setPicked] = useState<string[]>([]);
   const [focusCard, setFocusCard] = useState<string | null>(null);
+  const phase = useRevealPhase();
   const needsMe =
     chain.step === "challenge_window" || chain.step === "modifier_window"
       ? chain.responders[me] === "pending"
@@ -798,7 +815,8 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
           disabled={pending}
           onClick={() => {
             const card = chain.kind === "play_card" && picked.length ? chain.options?.find((c) => c.cardId === picked[0]) : undefined;
-            const rule = card ? ruleFor(card) : null;
+            // A Hero played from a choice enters first; its own ability asks for targets (or is skipped) afterwards.
+            const rule = card && card.kind !== "hero" ? ruleFor(card) : null;
             if (card && rule) {
               const ids = picked;
               askTargets({ title: `Targets for ${card.name}`, verb: "PLAY", card, rule, onConfirm: (t) => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: ids, targets: t }) });
@@ -826,6 +844,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
   }
 
   return (
+    <RevealContext.Provider value={phase}>
     <div className={`t3-stage t3-stage--${tone}`} role="dialog" aria-label={kicker}>
       <button className="t3-stage-min" onClick={() => setCollapsed(true)} aria-label="Hide to view the table">◱ TABLE</button>
       <header className="t3-stage-head" aria-live="polite">
@@ -839,6 +858,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
       {tray && <div className="t3-stage-tray">{tray}</div>}
       {primary && <div className="t3-stage-primary">{primary}</div>}
     </div>
+    </RevealContext.Provider>
   );
 }
 
@@ -862,19 +882,25 @@ function Popup({ title, onClose, children, wide }: { title: string; onClose: () 
 
 type Toast = { seq: number; text: string };
 
+/** How long the latest action stays on screen; the last 0.6s of it is the CSS fade-away. */
+const TOAST_MS = 5000;
+
+/** Only the most recent action is shown (next to the LOG button); it fades away after TOAST_MS. */
 function useLogToasts(log: Game["log"]) {
   const lastSeq = useRef<number>(log.length ? log[log.length - 1].seq : 0);
+  const timer = useRef<number | undefined>(undefined);
   const [toasts, setToasts] = useState<Toast[]>([]);
   useEffect(() => {
     const fresh = log.filter((entry) => entry.seq > lastSeq.current);
     if (!fresh.length) return;
-    lastSeq.current = fresh[fresh.length - 1].seq;
-    setToasts((current) => [...current, ...fresh.map((e) => ({ seq: e.seq, text: e.text }))].slice(-3));
-    const ids = fresh.map((e) => e.seq);
-    const timer = window.setTimeout(() => setToasts((current) => current.filter((t) => !ids.includes(t.seq))), 4500);
-    return () => window.clearTimeout(timer);
+    const latest = fresh[fresh.length - 1];
+    lastSeq.current = latest.seq;
+    setToasts([{ seq: latest.seq, text: latest.text }]);
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => setToasts([]), TOAST_MS);
   }, [log]);
-  return [toasts, (seq: number) => setToasts((current) => current.filter((t) => t.seq !== seq))] as const;
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  return [toasts, () => setToasts([])] as const;
 }
 
 /** Discard pile: full cards in a horizontal strip over the blurred table, newest first. */
@@ -1045,13 +1071,13 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
 
 /* --------------------------------------------------------------------- room */
 
-/** Seat slots by opponent count (clockwise after you): left edge, top row, right edge. */
+/** Seat slots by opponent count (clockwise after you): left edge, top row (corners first), right edge. */
 function seatSlots(count: number): string[] {
   switch (count) {
     case 1: return ["top-c"];
-    case 2: return ["top-l2", "top-r2"];
-    case 3: return ["top-l", "top-c", "top-r"];
-    case 4: return ["left", "top-l2", "top-r2", "right"];
+    case 2: return ["top-cl", "top-cr"];
+    case 3: return ["left", "top-c", "right"];
+    case 4: return ["left", "top-cl", "top-cr", "right"];
     default: return ["left", "top-l", "top-c", "top-r", "right"];
   }
 }
@@ -1071,6 +1097,16 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const [stack, setStack] = useState<{ heroId: string; rect: DOMRect } | null>(null);
   const stackTimer = useRef<number | null>(null);
   const [dismissedRoll, setDismissedRoll] = useState<string | null>(null);
+  const [attackFor, setAttackFor] = useState<string | null>(null);
+  // Click anywhere else (or Esc) folds the ATTACK button back behind its Monster.
+  useEffect(() => {
+    if (!attackFor) return;
+    const away = (e: PointerEvent) => { if (!(e.target as HTMLElement | null)?.closest?.(".t3-monster")) setAttackFor(null); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setAttackFor(null); };
+    window.addEventListener("pointerdown", away);
+    window.addEventListener("keydown", esc);
+    return () => { window.removeEventListener("pointerdown", away); window.removeEventListener("keydown", esc); };
+  }, [attackFor]);
   const cancelStackClose = () => { if (stackTimer.current !== null) window.clearTimeout(stackTimer.current); stackTimer.current = null; };
   const tableHover: TableHover = {
     showLeader: (playerId, rect) => setLeaderHover(playerId && rect ? { playerId, rect } : null),
@@ -1193,7 +1229,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
             </nav>
 
-            <section className="t3-felt" aria-label="Base game table">
+            <section className={`t3-felt t3-felt--p${opponents.length + 1}`} aria-label="Base game table">
               <button className="t3-corner t3-corner--menu" onClick={() => setPanel("menu")} aria-label="Menu">≡</button>
               <div className="t3-corner t3-corner--status" aria-label="Turn status">
                 {chain ? <span className="t3-status-timer">⧗ {Math.max(0, Math.ceil((chain.deadlineAt - serverNow) / 1000))}s</span> : null}
@@ -1218,12 +1254,26 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                   <small>DECK</small>
                 </div>
                 <div className="t3-monsters" aria-label="Monsters">
-                  {game.faceUpMonsters.map((monster) => (
-                    <div key={monster.cardId} className="t3-monster">
-                      <CardRenderer card={monster} size="lg" />
-                      <button className="t3-btn t3-btn--red t3-attack" disabled={pending || !free || ap < 2} onClick={() => send("ATTACK_MONSTER", { monsterInstanceId: monster.cardId })}>ATTACK · 2 AP</button>
-                    </div>
-                  ))}
+                  {game.faceUpMonsters.map((monster) => {
+                    const open = attackFor === monster.cardId && free;
+                    return (
+                      <div key={monster.cardId} className={`t3-monster${open ? " is-open" : ""}`}>
+                        {/* The ATTACK button sits behind the card and slides out below it when the Monster is clicked. */}
+                        <div className="t3-attack-drawer" aria-hidden={!open}>
+                          <button
+                            className="t3-btn t3-btn--red t3-attack"
+                            tabIndex={open ? 0 : -1}
+                            disabled={pending || !free || ap < 2}
+                            title={ap < 2 ? "Needs 2 AP" : undefined}
+                            onClick={() => { send("ATTACK_MONSTER", { monsterInstanceId: monster.cardId }); setAttackFor(null); }}
+                          >
+                            ⚔ ATTACK · 2 AP
+                          </button>
+                        </div>
+                        <CardRenderer card={monster} size="lg" selected={open} onClick={() => setAttackFor(attackFor === monster.cardId ? null : monster.cardId)} ariaLabel={`${monster.name} — click to attack`} />
+                      </div>
+                    );
+                  })}
                   <span className="t3-monster-deck" title="Monster deck">☠ {game.monsterDeckCount}</span>
                 </div>
                 <span className="t3-divider" aria-hidden />
@@ -1301,7 +1351,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               {toasts.map((t) => (
                 <div key={t.seq} className="t3-toast">
                   <span>{t.text}</span>
-                  <button className="t3-icon-btn" onClick={() => dismissToast(t.seq)} aria-label="Dismiss">✕</button>
+                  <button className="t3-icon-btn" onClick={() => dismissToast()} aria-label="Dismiss">✕</button>
                 </div>
               ))}
             </div>

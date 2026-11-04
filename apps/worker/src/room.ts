@@ -42,6 +42,9 @@ export interface DurableObjectTransactionLike {
 }
 
 export interface DurableObjectStorageLike extends DurableObjectTransactionLike {
+  /** Room expiry (owner 2026-11-04): wipes every key of the room. */
+  deleteAll?(): Promise<void>;
+  deleteAlarm?(): Promise<void>;
   transaction<T>(callback: (txn: DurableObjectTransactionLike) => Promise<T>): Promise<T>;
 }
 
@@ -163,12 +166,22 @@ interface PersistedRoomState {
   effect?: PersistedEffectState | null;
   /** Real base game state (mode "base"); owned by ./game/base-game.ts. */
   game?: BaseGameState | null;
+  /** Last human activity (create / join / leave / command). Bots never touch it. */
+  lastActivityAt?: number;
+  /** Last snapshot poll per human playerId (0 = left). Drives bot pausing. */
+  presence?: Record<string, number>;
+  /** Set while no human is present: bots and turn timers are frozen; shifted forward on return. */
+  pausedAt?: number | null;
 }
 
 const ROOM_STATE_KEY = "room-state-v2";
 const MAX_BODY_BYTES = 4_096;
 const REACTION_WINDOW_MS = 20_000;
 const MAX_PLAYERS = 6;
+/** A room with no player activity (commands / join / leave — bots do not count) for this long is deleted. */
+export const ROOM_IDLE_MS = 5 * 60_000;
+/** A human counts as present while their client keeps polling the snapshot at least this often. */
+export const PRESENCE_MS = 20_000;
 const RATE_WINDOW_MS = 60_000;
 const SETUP_LEADERS = Array.from({ length: 6 }, (_, index) =>
   `fixture.setup.leader.${index + 1}`,
@@ -380,6 +393,46 @@ function enforceRate(
 function requireState(state: PersistedRoomState | undefined): PersistedRoomState {
   if (!state) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
   return normalizeState(state);
+}
+
+function markSeen(state: PersistedRoomState, playerId: string, now: number): void {
+  (state.presence ??= {})[playerId] = now;
+}
+
+function humanPresent(state: PersistedRoomState, now: number): boolean {
+  return state.players.some((player) => !player.isBot && (state.presence?.[player.playerId] ?? 0) > now - PRESENCE_MS);
+}
+
+const SHIFTED_KEYS = new Set(["deadlineAt", "turnDeadlineAt", "botNextActAt", "botPaceAt"]);
+function shiftDeadlines(node: unknown, delta: number): void {
+  if (Array.isArray(node)) { node.forEach((item) => shiftDeadlines(item, delta)); return; }
+  if (node === null || typeof node !== "object") return;
+  const record = node as Record<string, unknown>;
+  for (const [key, value] of Object.entries(record)) {
+    if (SHIFTED_KEYS.has(key) && typeof value === "number") record[key] = value + delta;
+    else shiftDeadlines(value, delta);
+  }
+}
+
+/**
+ * Pause bots + timers while no human is connected; resume (shifting every deadline by the time
+ * spent paused) as soon as one comes back. Returns true while paused.
+ */
+function syncPause(state: PersistedRoomState, now: number): boolean {
+  if (roomMode(state) !== "base" || !state.game) return false;
+  if (humanPresent(state, now)) {
+    if (state.pausedAt != null) {
+      shiftDeadlines(state.game, Math.max(0, now - state.pausedAt));
+      state.pausedAt = null;
+      state.revision += 1;
+    }
+    return false;
+  }
+  if (state.pausedAt == null) {
+    const lastSeen = Math.max(0, ...Object.values(state.presence ?? {}));
+    state.pausedAt = Math.min(now, lastSeen + PRESENCE_MS);
+  }
+  return true;
 }
 
 function sessionPlayer(state: PersistedRoomState, tokenHash: string): PersistedPlayer {
@@ -833,8 +886,9 @@ export class RoomDurableObject {
       const state = await this.ctx.storage.get<PersistedRoomState>(ROOM_STATE_KEY);
       if (!state) return;
       normalizeState(state);
-      const deadline = nextEffectDeadline(state);
-      if (deadline !== null) await this.ctx.storage.setAlarm(deadline);
+      const idleAt = (state.lastActivityAt ?? this.now()) + ROOM_IDLE_MS;
+      const deadline = roomMode(state) === "base" && state.pausedAt != null ? null : nextEffectDeadline(state);
+      await this.ctx.storage.setAlarm(deadline === null ? idleAt : Math.min(deadline, idleAt));
     });
   }
 
@@ -853,6 +907,9 @@ export class RoomDurableObject {
       }
       if (request.method === "POST" && url.pathname.endsWith("/join")) {
         return await this.joinRoom(request, roomCode);
+      }
+      if (request.method === "POST" && url.pathname.endsWith("/leave")) {
+        return await this.leaveRoom(request, roomCode);
       }
       if (request.method === "GET" && url.pathname.endsWith("/snapshot")) {
         return await this.getSnapshot(request, roomCode);
@@ -921,8 +978,12 @@ export class RoomDurableObject {
         setup: mode === "setup_demo" ? initialSetupState() : null,
         effect: mode === "effect_demo" ? initialEffectState(reactionSeconds) : null,
         game: mode === "base" ? initialBaseGameState() : null,
+        lastActivityAt: now,
+        presence: { [playerId]: now },
+        pausedAt: null,
       };
       await txn.put(ROOM_STATE_KEY, created);
+      await this.rearm(txn, created, now);
       return created;
     });
     return Response.json(
@@ -970,13 +1031,65 @@ export class RoomDurableObject {
       };
       state.players.push(player);
       state.revision += 1;
+      state.lastActivityAt = now;
+      markSeen(state, player.playerId, now);
+      syncPause(state, now);
       await txn.put(ROOM_STATE_KEY, state);
+      await this.rearm(txn, state, now);
       return { state, player };
     });
     return Response.json(
       { roomCode, sessionToken, snapshot: snapshot(result.state, result.player, now) },
       { status: 201, headers: { "cache-control": "no-store" } },
     );
+  }
+
+  /** One alarm serves both game deadlines and room expiry: whichever is sooner. Paused games have no game deadline. */
+  async rearm(txn: DurableObjectTransactionLike, state: PersistedRoomState, now: number): Promise<void> {
+    state.lastActivityAt ??= now;
+    const idleAt = state.lastActivityAt + ROOM_IDLE_MS;
+    const paused = roomMode(state) === "base" && state.pausedAt != null;
+    const deadline = paused ? null : nextEffectDeadline(state);
+    await txn.setAlarm(deadline === null ? idleAt : Math.min(deadline, idleAt));
+  }
+
+  async rearmStored(now: number): Promise<void> {
+    await this.ctx.storage.transaction(async (txn) => {
+      const stored = await txn.get<PersistedRoomState>(ROOM_STATE_KEY);
+      if (!stored) return;
+      const state = normalizeState(stored);
+      const had = state.lastActivityAt;
+      await this.rearm(txn, state, now);
+      if (had === undefined) await txn.put(ROOM_STATE_KEY, state);
+    });
+  }
+
+  /** Leave the room: lobby seats are freed, in-game seats are kept (bots/timers pause once nobody is left). */
+  async leaveRoom(request: Request, roomCode: string): Promise<Response> {
+    const tokenHash = await hashToken(bearerToken(request));
+    const now = this.now();
+    await this.ctx.storage.transaction(async (txn) => {
+      const state = requireState(await txn.get<PersistedRoomState>(ROOM_STATE_KEY));
+      if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
+      const player = sessionPlayer(state, tokenHash);
+      state.lastActivityAt = now;
+      (state.presence ??= {})[player.playerId] = 0;
+      if (roomMode(state) === "base" && state.game?.phase === "lobby") {
+        const index = state.players.findIndex((candidate) => candidate.playerId === player.playerId);
+        if (index >= 0) state.players.splice(index, 1);
+        delete state.presence[player.playerId];
+        if (state.hostPlayerId === player.playerId) {
+          const next = state.players.find((candidate) => !candidate.isBot);
+          if (next) state.hostPlayerId = next.playerId;
+        }
+        settleBaseGame(state.game, baseRoster(state), this.baseDeps(now));
+      }
+      state.revision += 1;
+      syncPause(state, now);
+      await txn.put(ROOM_STATE_KEY, state);
+      await this.rearm(txn, state, now);
+    });
+    return Response.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   }
 
   async getSnapshot(request: Request, roomCode: string): Promise<Response> {
@@ -991,13 +1104,14 @@ export class RoomDurableObject {
       if (roomMode(state) === "effect_demo") {
         await this.settleExpiredEffect(state, now, txn);
       }
-      if (roomMode(state) === "base" && state.game) {
+      markSeen(state, player.playerId, now);
+      const paused = syncPause(state, now);
+      if (roomMode(state) === "base" && state.game && !paused) {
         // Expired windows/choices close before the command is judged (timer never resets).
         if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) state.revision += 1;
-        const deadline = baseNextDeadline(state.game, baseRoster(state));
-        if (deadline !== null) await txn.setAlarm(deadline);
       }
       await txn.put(ROOM_STATE_KEY, state);
+      await this.rearm(txn, state, now);
       return { state, player };
     });
     return Response.json(
@@ -1033,6 +1147,9 @@ export class RoomDurableObject {
       if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
       const player = sessionPlayer(state, tokenHash);
       enforceRate(state, `command:${tokenHash}`, 120, now);
+      state.lastActivityAt = now;
+      markSeen(state, player.playerId, now);
+      syncPause(state, now);
 
       const expiredEffectChoice =
         roomMode(state) === "effect_demo" &&
@@ -1125,6 +1242,7 @@ export class RoomDurableObject {
       await txn.put(ROOM_STATE_KEY, state);
       return { state, player, outcome };
     });
+    await this.rearmStored(now);
     return Response.json(
       { outcome: result.outcome, snapshot: snapshot(result.state, result.player, now) },
       { headers: { "cache-control": "no-store" } },
@@ -1712,18 +1830,24 @@ export class RoomDurableObject {
   async alarm(): Promise<void> {
     await this.ready;
     const now = this.now();
+    const current = await this.ctx.storage.get<PersistedRoomState>(ROOM_STATE_KEY);
+    if (current?.lastActivityAt !== undefined && now >= current.lastActivityAt + ROOM_IDLE_MS) {
+      // No player activity for ROOM_IDLE_MS: the room is gone (state, receipts, alarm).
+      await this.ctx.storage.deleteAll?.();
+      return;
+    }
     await this.ctx.storage.transaction(async (txn) => {
       const stored = await txn.get<PersistedRoomState>(ROOM_STATE_KEY);
       if (!stored) return;
       const state = normalizeState(stored);
       if (roomMode(state) === "base") {
         if (!state.game) return;
-        if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) {
+        const paused = syncPause(state, now);
+        if (!paused && settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) {
           state.revision += 1;
-          await txn.put(ROOM_STATE_KEY, state);
         }
-        const deadline = baseNextDeadline(state.game, baseRoster(state));
-        if (deadline !== null) await txn.setAlarm(deadline);
+        await txn.put(ROOM_STATE_KEY, state);
+        await this.rearm(txn, state, now);
         return;
       }
       if (roomMode(state) === "effect_demo") {

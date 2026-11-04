@@ -11,8 +11,8 @@ import { RIGHTS_STATUS as CLI_RIGHTS, TAKEDOWN_CONTACT as CLI_TAKEDOWN, isRelati
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFESTS = [
-  "assets/cards/kickstarter-preview/manifest.json",
-  "assets/cards/kickstarter-preview/png-webgame/manifest.json",
+  "assets/cards/expansions/kickstarter/preview/manifest.json",
+  "assets/cards/expansions/kickstarter/preview/webgame/manifest.json",
 ];
 
 test("rights policy constants agree across contract, core and CLI", () => {
