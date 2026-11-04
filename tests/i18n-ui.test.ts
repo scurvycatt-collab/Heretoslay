@@ -38,3 +38,9 @@ test("lobby uses one mutually exclusive Create/Join/View state", async () => {
   assert.match(app, /connect\("view"\)/);
   assert.match(app, /watchRoom\(roomCode\.trim\(\), nickname\.trim\(\)\)/);
 });
+
+test("lobby room-code fields accept 3 to 24 letters or digits", async () => {
+  const app = await readFile(new URL("../apps/web/src/App.tsx", import.meta.url), "utf8");
+  assert.equal((app.match(/minLength=\{3\} maxLength=\{24\} pattern="\[A-Za-z0-9\]\{3,24\}"/g) ?? []).length, 3);
+  assert.doesNotMatch(app, /roomCode\.trim\(\)\.length !== 6/);
+});

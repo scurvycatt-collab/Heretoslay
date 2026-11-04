@@ -19,7 +19,7 @@ Same routes as the demo slices; mode is chosen at create time and fixed for the 
 | GET | `/api/rooms/:code/snapshot` | `Bearer <sessionToken>` | — | 200 `{ snapshot }` |
 | POST | `/api/rooms/:code/commands` | `Bearer <sessionToken>` | command (below) | 200 `{ outcome, snapshot }` |
 
-- Room code: exactly 6 letters/digits. Create may request one; omitting it generates 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Path code is case-insensitive.
+- Room code: a requested code contains 3–24 letters/digits. Omitting it generates 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Path code is case-insensitive.
 - Reconnect/reload keeps `sessionToken` client-side. Closing/leaving the page sends `disconnect`, so another device can reclaim the same seat immediately with room code + nickname; reclaim rotates the token. Unexpected network/power loss falls back to the 3-second heartbeat expiry. An online old session returns `SESSION_ACTIVE`.
 - `disconnect` and `leave` are intentionally different. `disconnect` preserves the player seat for reconnect. Explicit `leave` removes a spectator immediately; for a player in the lobby it frees the seat and transfers host ownership to the next human player. After leader selection or game start, explicit `leave` preserves the player record and game state, marks that seat offline, and pauses bots/timers when no human remains. The leaving browser clears only its own local session.
 - An explicit lobby leave invalidates that session immediately. A retained in-game seat can be reclaimed through the normal room-code + nickname recovery flow; no session token is ever placed in the public room URL.

@@ -24,6 +24,7 @@
 | UI-009 | Codex | done | Gộp lobby thành một box Tạo/Vào/Xem; EN mặc định + VI toàn ứng dụng, glossary chung và rules text thẻ Việt. I18n 3/3, web typecheck/build, Worker dry-run PASS; production bundle + health xác minh 200. Xem `docs/ui/LOCALIZATION.md`. |
 | GAME-006 | Codex | done | Không refill ngoài transition slay; redaction `lastRoll` khi card quay về vùng ẩn; fixture deps đủ clock/dice; alarm sau settle chuyển sang deadline kế/idle expiry. Full `npm run verify` PASS, 93 integration: 92 pass/0 fail/1 live skip; Worker version và public health 200 đã xác minh. |
 | DOC-ROOM-LEAVE | Codex | done | Đồng bộ `GAME_ROOM_API.md` với endpoint `/leave`: spectator rời ngay; lobby giải phóng ghế/chuyển host; trong game giữ record, offline/pause để reconnect. Test bảo vệ: `tests/room-lifecycle.integration.test.ts`. |
+| ROOM-CODE-LENGTH | Codex | done | Mã phòng tự chọn nhận 3–24 ký tự chữ/số; mã tự sinh giữ 6 ký tự. UI, API route, deep-link, contract và test được đồng bộ. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.

@@ -338,7 +338,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <h2>{copy.createRoom}</h2>
 <label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
 </label>
-<label>{copy.optionalRoomCode}<input value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={6} maxLength={6}/>
+<label>{copy.optionalRoomCode}<input value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={3} maxLength={24} pattern="[A-Za-z0-9]{3,24}"/>
 </label>
 <label>{copy.mode}<select value={createMode} onChange={(event) => setCreateMode(event.target.value as "base" | "reaction_demo" | "setup_demo" | "effect_demo")}><option value="base">{copy.baseMode}</option><option value="reaction_demo">{copy.reactionDemo}</option><option value="setup_demo">{copy.setupDemo}</option><option value="effect_demo">{copy.effectDemo}</option></select></label>
 <button disabled={pending || !nickname.trim()}>{copy.createRoom}</button>
@@ -347,7 +347,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <h2>{copy.joinRoom}</h2>
 <label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
 </label>
-<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={6} maxLength={6}/>
+<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={3} maxLength={24} pattern="[A-Za-z0-9]{3,24}"/>
 </label>
 <button disabled={pending || !nickname.trim() || !roomCode.trim()}>{copy.joinRoom}</button>
 </form>}
@@ -355,8 +355,8 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <h2>{copy.viewGame}</h2>
 <p>{copy.viewDescription}</p>
 <label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/></label>
-<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={6} maxLength={6}/></label>
-<button disabled={pending || !nickname.trim() || roomCode.trim().length !== 6}>{copy.openView}</button>
+<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={3} maxLength={24} pattern="[A-Za-z0-9]{3,24}"/></label>
+<button disabled={pending || !nickname.trim() || !/^[A-Za-z0-9]{3,24}$/.test(roomCode.trim())}>{copy.openView}</button>
 </form>}
 </section>
 </div>

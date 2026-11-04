@@ -42,10 +42,10 @@ test("room route normalizes the code and forwards to its Durable Object", async 
       },
     },
   } satisfies WorkerEnv;
-  const response = await routeRequest(new Request("https://local.test/rooms/ab12"), env);
+  const response = await routeRequest(new Request("https://local.test/api/rooms/abc/join", { method: "POST" }), env);
   assert.equal(response.status, 200);
-  assert.equal(routedName, "AB12");
-  assert.equal(receivedCode, "AB12");
+  assert.equal(routedName, "ABC");
+  assert.equal(receivedCode, "ABC");
 });
 
 test("POST /api/rooms generates a server room code and marks an internal create", async () => {
@@ -80,7 +80,7 @@ test("POST /api/rooms generates a server room code and marks an internal create"
   assert.equal(operation, "CREATE_ROOM");
 });
 
-test("POST /api/rooms uses a requested six-character room code", async () => {
+test("POST /api/rooms accepts a requested room code from 3 to 24 characters", async () => {
   let routedName = "";
   const env = {
     ROOMS: {
@@ -91,10 +91,28 @@ test("POST /api/rooms uses a requested six-character room code", async () => {
   const response = await routeRequest(new Request("https://local.test/api/rooms", {
     method: "POST",
     headers: { "content-type": "application/json", "cf-connecting-ip": "test-custom-create" },
-    body: JSON.stringify({ nickname: "Host", roomCode: "slay42" }),
+    body: JSON.stringify({ nickname: "Host", roomCode: "slay2026party" }),
   }), env);
   assert.equal(response.status, 201);
-  assert.equal(routedName, "SLAY42");
+  assert.equal(routedName, "SLAY2026PARTY");
+});
+
+test("POST /api/rooms rejects room codes outside the supported format", async () => {
+  const env = {
+    ROOMS: {
+      idFromName: () => { throw new Error("invalid room code must not route"); },
+      get: () => { throw new Error("invalid room code must not route"); },
+    },
+  } satisfies WorkerEnv;
+  for (const [roomCode, client] of [["AB", "short"], ["A".repeat(25), "long"], ["ROOM-NAME", "symbol"]]) {
+    const response = await routeRequest(new Request("https://local.test/api/rooms", {
+      method: "POST",
+      headers: { "content-type": "application/json", "cf-connecting-ip": `test-custom-${client}` },
+      body: JSON.stringify({ nickname: "Host", roomCode }),
+    }), env);
+    assert.equal(response.status, 400);
+    assert.equal((await response.json() as any).error.code, "INVALID_ROOM_CODE");
+  }
 });
 
 test("POST /api/rooms rejects bodies over 4 KiB before routing", async () => {
