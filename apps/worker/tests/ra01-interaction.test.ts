@@ -177,38 +177,28 @@ test("C03 Snowball → Magic: nested play resolves (Challenge, effect, cleanup) 
   assert.equal(t.game.chain, null);
 });
 
-test("C11 Forced Exchange: empty own Party ok; STEAL first, then return any own Hero (incl. the stolen one)", () => {
+test("C11 Forced Exchange: needs an own Hero; STEAL first, own Hero goes to the victim", () => {
+  const none = table();
+  const target = none.toParty(none.them, "peanut");
+  const fx0 = none.toHand(none.me, "hts.base.v1.magic.forced-exchange");
+  assert.notEqual(none.run(none.me, "PLAY_HAND_CARD", { cardInstanceId: fx0.cardId, targets: { heroInstanceIds: [target.cardId] } }), "ACCEPTED");
+
   const t = table();
   const hero = t.toParty(t.them, "peanut");
-  const spare = t.toParty(t.them, "bad-axe");
+  const mine = t.toParty(t.me, "bad-axe");
   const fx = t.toHand(t.me, "hts.base.v1.magic.forced-exchange");
-  play(t, fx.cardId, { heroInstanceIds: [hero.cardId] });
-  assert.ok(t.seat(t.me).party.some((h) => h.card.cardId === hero.cardId), "STEAL done first");
-  const c = t.choice() as { choiceId: string; kind: string };
-  assert.equal(c.kind, "return_hero");
-  assert.equal(t.run(t.me, "RESOLVE_CHOICE", { choiceId: c.choiceId, cardInstanceIds: [spare.cardId] }), "INVALID_CHOICE");
-  assert.equal(t.run(t.me, "RESOLVE_CHOICE", { choiceId: c.choiceId, cardInstanceIds: [hero.cardId] }), "ACCEPTED");
-  assert.equal(t.seat(t.me).party.length, 0);
-  assert.ok(t.seat(t.them).party.some((h) => h.card.cardId === hero.cardId), "returned to the original victim");
-  assert.equal(t.run(t.me, "RESOLVE_CHOICE", { choiceId: c.choiceId, cardInstanceIds: [hero.cardId] }), "NO_PENDING_CHOICE");
+  play(t, fx.cardId, { heroInstanceIds: [hero.cardId, mine.cardId] });
+  assert.deepEqual(t.seat(t.me).party.map((h) => h.card.cardId), [hero.cardId]);
+  assert.deepEqual(t.seat(t.them).party.map((h) => h.card.cardId), [mine.cardId]);
 });
 
-test("C11 Forced Exchange: blocked STEAL → no return choice, no transfer; return timeout falls back", () => {
-  const blocked = table();
-  const hero = blocked.toParty(blocked.them, "peanut");
-  blocked.seat(blocked.them).protections.noSteal = true;
-  const fx = blocked.toHand(blocked.me, "hts.base.v1.magic.forced-exchange");
-  blocked.toParty(blocked.me, "bad-axe");
-  play(blocked, fx.cardId, { heroInstanceIds: [hero.cardId] });
-  assert.equal(blocked.game.chain, null);
-  assert.equal(blocked.seat(blocked.me).party.length, 1);
-  assert.equal(blocked.seat(blocked.them).party.length, 1);
-
+test("C11 Forced Exchange: blocked STEAL → own Hero is not moved", () => {
   const t = table();
-  const h = t.toParty(t.them, "peanut");
-  const fx2 = t.toHand(t.me, "hts.base.v1.magic.forced-exchange");
-  play(t, fx2.cardId, { heroInstanceIds: [h.cardId] });
-  expire(t);
-  assert.equal(t.seat(t.me).party.length, 0, "required return leg still happens on timeout");
-  assert.equal(t.seat(t.them).party.length, 1);
+  const hero = t.toParty(t.them, "peanut");
+  const mine = t.toParty(t.me, "bad-axe");
+  t.seat(t.them).protections.noSteal = true;
+  const fx = t.toHand(t.me, "hts.base.v1.magic.forced-exchange");
+  play(t, fx.cardId, { heroInstanceIds: [hero.cardId, mine.cardId] });
+  assert.deepEqual(t.seat(t.me).party.map((h) => h.card.cardId), [mine.cardId]);
+  assert.deepEqual(t.seat(t.them).party.map((h) => h.card.cardId), [hero.cardId]);
 });

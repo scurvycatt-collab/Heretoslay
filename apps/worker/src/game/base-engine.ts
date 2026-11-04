@@ -87,8 +87,6 @@ export type RollState =
 export type ChoiceKind =
   | "discard"
   | "sacrifice_hero"
-  /** Forced Exchange: pick a Hero in your Party to move to the original victim (after a successful STEAL). */
-  | "return_hero"
   | "give_card"
   | "take_from_discard"
   | "discard_from_set"
@@ -186,7 +184,7 @@ export type Step =
       fromCollected?: boolean;
     } & ChoiceExtras)
   | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string; noStealInstead?: boolean }
-  | { op: "steal"; heroCardId: string; toPlayerId: string; thenIfStolen?: Step[] }
+  | { op: "steal"; heroCardId: string; toPlayerId: string }
   | { op: "move_hero"; heroCardId: string; toPlayerId: string; onlyIfOwns?: { heroCardId: string; playerId: string } }
   | { op: "discard_card"; card: BaseCard }
   | { op: "trade_hands"; a: string; b: string }
@@ -631,16 +629,11 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       ];
     case "magic.forced-exchange": {
       const victim = ownerOf(h[0]);
-      // C11: STEAL first; only after it succeeded pick a Hero from your Party (the stolen one included) to send back.
+      // C11 (owner 2026-11-04): needs an own Hero (target h[1], chosen on play); STEAL first, the own Hero
+      // moves back to the victim only if the STEAL succeeded.
       return [
-        {
-          op: "steal",
-          heroCardId: h[0],
-          toPlayerId: actorId,
-          thenIfStolen: [
-            { op: "choice", playerId: actorId, kind: "return_hero", count: 1, prompt: "Chọn 1 Hero trong Party của bạn để chuyển cho người bị STEAL (Forced Exchange)", recipientId: victim },
-          ],
-        },
+        { op: "steal", heroCardId: h[0], toPlayerId: actorId },
+        { op: "move_hero", heroCardId: h[1], toPlayerId: victim, onlyIfOwns: { heroCardId: h[0], playerId: actorId } },
       ];
     }
     case "magic.forceful-winds":
@@ -786,7 +779,6 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       found.seat.party.splice(found.index, 1);
       to.party.push(found.hero);
       log(game, `${whoName(game, step.toPlayerId)} STEAL ${cardName(found.hero.card.definitionId)} của ${whoName(game, found.seat.playerId)}`);
-      if (step.thenIfStolen) game.queue.unshift(...step.thenIfStolen);
       return false;
     }
     case "move_hero": {
@@ -994,7 +986,6 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
   if (!seat) return [];
   switch (choice.kind) {
     case "sacrifice_hero":
-    case "return_hero":
       return seat.party.map((hero) => hero.card);
     case "take_from_discard":
       return game.discard.filter(
@@ -1107,15 +1098,6 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       return;
     case "confirm":
       return;
-    case "return_hero": {
-      const recipient = choice.recipientId ? seatOf(game, choice.recipientId) : undefined;
-      const found = cardIds[0] ? findHero(game, cardIds[0]) : null;
-      if (!recipient || !found || found.seat !== seat || recipient === seat) return;
-      seat.party.splice(found.index, 1);
-      recipient.party.push(found.hero);
-      log(game, `${cardName(found.hero.card.definitionId)} chuyển sang Party của ${whoName(game, recipient.playerId)}`);
-      return;
-    }
     case "sacrifice_hero":
       for (const id of cardIds) {
         const found = findHero(game, id);
@@ -1506,9 +1488,9 @@ const UNMODELLED_SLAIN = new Set<string>([]);
 
 // ---------------------------------------------------------------- deadlines
 
-const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card", "return_hero"]);
+const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card"]);
 
-/** C02: required (min > 0) penalty/return choice that is not an elective payment gating a benefit (C01). */
+/** C02: required (min > 0) penalty choice that is not an elective payment gating a benefit (C01). */
 export function isMandatoryChoice(choice: PendingChoice): boolean {
   return MANDATORY_KINDS.has(choice.kind) && choice.min > 0 && !choice.thenIfPaid;
 }
