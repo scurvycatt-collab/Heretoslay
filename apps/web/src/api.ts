@@ -25,7 +25,7 @@ export type RoutePath = { roomCode: string | null; playerId: string | null };
 export const parseRoute = (): RoutePath => {
   const path = location.pathname.startsWith(publicBase) ? location.pathname.slice(publicBase.length) : location.pathname;
   const [room, player] = path.split("/").filter(Boolean);
-  return { roomCode: room && /^[A-Za-z0-9]{6}$/.test(room) ? room.toUpperCase() : null, playerId: room && player ? decodeURIComponent(player) : null };
+  return { roomCode: room && /^[A-Za-z0-9]{3,24}$/.test(room) ? room.toUpperCase() : null, playerId: room && player ? decodeURIComponent(player) : null };
 };
 const routeUrl = (roomCode: string | null) => `${publicBase}/${roomCode ?? ""}${location.search}`;
 type Store = Record<string, Session>;

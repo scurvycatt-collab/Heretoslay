@@ -13,6 +13,7 @@ export interface WorkerEnv {
 }
 
 const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ROOM_CODE_PATTERN = /^[A-Za-z0-9]{3,24}$/;
 const MAX_BODY_BYTES = 4_096;
 const CREATE_LIMIT = 10;
 const CREATE_WINDOW_MS = 60_000;
@@ -92,8 +93,8 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
     let requestedRoomCode: unknown;
     try { requestedRoomCode = (JSON.parse(body) as { roomCode?: unknown }).roomCode; }
     catch { return apiError("INVALID_BODY", "Request body must be valid JSON", 400); }
-    if (requestedRoomCode !== undefined && (typeof requestedRoomCode !== "string" || !/^[A-Za-z0-9]{6}$/.test(requestedRoomCode))) {
-      return apiError("INVALID_ROOM_CODE", "Room code must contain exactly 6 letters or digits", 400);
+    if (requestedRoomCode !== undefined && (typeof requestedRoomCode !== "string" || !ROOM_CODE_PATTERN.test(requestedRoomCode))) {
+      return apiError("INVALID_ROOM_CODE", "Room code must contain 3 to 24 letters or digits", 400);
     }
     const roomCode = typeof requestedRoomCode === "string" ? requestedRoomCode.toUpperCase() : randomRoomCode();
     const headers = new Headers(request.headers);
@@ -109,7 +110,7 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
     return roomStub(env, roomCode).fetch(forwarded);
   }
 
-  const apiMatch = /^\/api\/rooms\/([A-Za-z0-9]{6})(?:\/(join|watch|snapshot|commands|disconnect|leave))?$/.exec(
+  const apiMatch = /^\/api\/rooms\/([A-Za-z0-9]{3,24})(?:\/(join|watch|snapshot|commands|disconnect|leave))?$/.exec(
     url.pathname,
   );
   if (apiMatch) {
@@ -118,7 +119,7 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
   }
 
   // Foundation compatibility: public metadata only; no session or hidden state.
-  const legacyMatch = /^\/rooms\/([A-Za-z0-9]{4,12})$/.exec(url.pathname);
+  const legacyMatch = /^\/rooms\/([A-Za-z0-9]{3,24})$/.exec(url.pathname);
   if (legacyMatch) {
     const roomCode = legacyMatch[1].toUpperCase();
     return roomStub(env, roomCode).fetch(internalRequest(request, roomCode));

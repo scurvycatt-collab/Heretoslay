@@ -64,9 +64,9 @@ function Label({ x, y, size, children, fill = "#000", family = FONT_NAME, weight
   </>;
 }
 
-function Description({ text, box, width, fill, maxLines = 5 }: { text: string; box: { left: number; right: number; area: number; bottom: number }; width: number; fill: string; maxLines?: number }) {
+function Description({ text, box, width, fill, maxLines = 5, size = SIZE.description, minSize = 26 }: { text: string; box: { left: number; right: number; area: number; bottom: number }; width: number; fill: string; maxLines?: number; size?: number; minSize?: number }) {
   const maxWidth = width - box.left - box.right;
-  const fitted = fitDescription(text, maxWidth, maxLines, (s, size) => measure(s, cssPx(size, "text")));
+  const fitted = fitDescription(text, maxWidth, maxLines, (s, fittedSize) => measure(s, cssPx(fittedSize, "text")), size, minSize);
   const tops = descriptionLineTops(fitted.lines.length, box.area, box.bottom, fitted.size, fitted.paragraphBreaks.length);
   let gap = 0;
   return <text fill={fill} fontFamily={FONT_TEXT} fontSize={cssPx(fitted.size, "text")} letterSpacing={1} dominantBaseline="text-before-edge">
@@ -221,7 +221,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
         <Label x={width / 2} y={67} size={SIZE.name} fill={onArt ? "#000" : "#fff"} shadow={{ fill: onArt ? "rgba(255,255,255,.4)" : "rgba(0,0,0,.5)", offset: 3 }}>{card.name}</Label>
         <Label x={width / 2} y={118} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={onArt ? "#000" : "#fff"} shadow={{ fill: onArt ? "rgba(255,255,255,.4)" : "rgba(0,0,0,.5)", offset: 2 }}>{label}</Label>
         <Symbol x={363} y={1167} size={102} fill={frame} icon={CLASS_ICON[card.heroClass]}><Letter x={363} y={1167} size={102} letter={card.heroClass[0].toUpperCase()} /></Symbol>
-        <Description text={text} box={DESCRIPTION.party_leader} width={width} fill={DESC_DARK} maxLines={4} />
+        <Description text={text} box={DESCRIPTION.party_leader} width={width} fill={DESC_DARK} maxLines={4} size={42} minSize={30} />
       </>;
       break;
     }

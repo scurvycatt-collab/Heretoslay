@@ -1,0 +1,37 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+test("Challenge Skip folds the popup to the table before sending REACT_PASS", async () => {
+  const source = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(source, /setCollapsed\(true\); send\("REACT_PASS", \{ windowId: chain\.windowId \}\); \}\}>SKIP<\/button>/);
+});
+
+test("Escape folds a reaction popup to the table without sending a game command", async () => {
+  const source = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const reaction = source.slice(source.indexOf("function ReactionStage"), source.indexOf("function LogToasts"));
+  assert.match(reaction, /event\.key === "Escape"\) setCollapsed\(true\)/);
+  assert.match(reaction, /addEventListener\("keydown", returnToTable\)/);
+  assert.match(reaction, /removeEventListener\("keydown", returnToTable\)/);
+});
+
+test("a Challenge can be submitted from either its card or its action button", async () => {
+  const source = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const challengeBlock = source.slice(source.indexOf('if (chain.step === "challenge_window")'), source.indexOf('} else if (chain.step === "modifier_window")'));
+  const action = /send\("REACT_CHALLENGE", \{ windowId: chain\.windowId, cardInstanceId: card\.cardId \}\)/g;
+  assert.equal((challengeBlock.match(action) ?? []).length, 2);
+  assert.match(challengeBlock, />CHALLENGE<\/button>/);
+});
+
+test("Party Leader effect copy uses the larger fitted type scale", async () => {
+  const source = await readFile(new URL("../apps/web/src/cards/CardRenderer.tsx", import.meta.url), "utf8");
+  assert.match(source, /DESCRIPTION\.party_leader[^\n]+size=\{42\} minSize=\{30\}/);
+});
+
+test("game over removes every gameplay action path", async () => {
+  const source = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(source, /const gameActive = game\.phase === "turn_active";/);
+  assert.match(source, /const active = gameActive && game\.currentPlayerId === me;/);
+  assert.match(source, /if \(game\.phase !== "game_over"\) return;\s+setTargetRequest\(null\);\s+setAttackFor\(null\);/);
+  assert.match(source, /onClick=\{gameActive \? \(\) => setAttackFor/);
+});
