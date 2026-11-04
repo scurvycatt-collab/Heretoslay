@@ -89,7 +89,13 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
     }
     const body = await boundedBody(request);
     if (body instanceof Response) return body;
-    const roomCode = randomRoomCode();
+    let requestedRoomCode: unknown;
+    try { requestedRoomCode = (JSON.parse(body) as { roomCode?: unknown }).roomCode; }
+    catch { return apiError("INVALID_BODY", "Request body must be valid JSON", 400); }
+    if (requestedRoomCode !== undefined && (typeof requestedRoomCode !== "string" || !/^[A-Za-z0-9]{6}$/.test(requestedRoomCode))) {
+      return apiError("INVALID_ROOM_CODE", "Room code must contain exactly 6 letters or digits", 400);
+    }
+    const roomCode = typeof requestedRoomCode === "string" ? requestedRoomCode.toUpperCase() : randomRoomCode();
     const headers = new Headers(request.headers);
     headers.delete("x-room-code");
     headers.delete("x-internal-operation");
@@ -103,7 +109,7 @@ export async function routeRequest(request: Request, env: WorkerEnv): Promise<Re
     return roomStub(env, roomCode).fetch(forwarded);
   }
 
-  const apiMatch = /^\/api\/rooms\/([A-Za-z0-9]{6})(?:\/(join|snapshot|commands|leave))?$/.exec(
+  const apiMatch = /^\/api\/rooms\/([A-Za-z0-9]{6})(?:\/(join|watch|snapshot|commands|leave))?$/.exec(
     url.pathname,
   );
   if (apiMatch) {

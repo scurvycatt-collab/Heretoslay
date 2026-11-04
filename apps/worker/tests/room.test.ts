@@ -106,6 +106,13 @@ async function join(room: RoomDurableObject, nickname: string) {
   return { response, json: await body(response) };
 }
 
+async function watch(room: RoomDurableObject, nickname: string) {
+  const response = await room.fetch(
+    roomRequest("/api/rooms/ABC234/watch", "POST", { body: { nickname } }),
+  );
+  return { response, json: await body(response) };
+}
+
 async function snapshot(room: RoomDurableObject, token: string) {
   const response = await room.fetch(
     roomRequest("/api/rooms/ABC234/snapshot", "GET", { token }),
@@ -132,18 +139,24 @@ function setupCardTotal(state: any): number {
   );
 }
 
-test("create/join sessions isolate hands, reject duplicate nickname, and reload without a seat", async () => {
-  const { room } = harness();
+test("create/join sessions isolate hands and room+nickname resumes the same seat with a new token", async () => {
+  const { room, setNow } = harness();
   const host = await create(room);
   const guest = await join(room, "Guest");
   assert.equal(guest.response.status, 201);
 
+  const activeDuplicate = await join(room, "  guest  ");
+  assert.equal(activeDuplicate.response.status, 409);
+  assert.equal(activeDuplicate.json.error.code, "SESSION_ACTIVE");
+  setNow(1_000 + 20_001);
   const duplicate = await join(room, "  guest  ");
-  assert.equal(duplicate.response.status, 409);
-  assert.equal(duplicate.json.error.code, "NICKNAME_TAKEN");
+  assert.equal(duplicate.response.status, 201);
+  assert.equal(duplicate.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);
+  assert.notEqual(duplicate.json.sessionToken, guest.json.sessionToken);
+  assert.equal((await snapshot(room, guest.json.sessionToken)).response.status, 401);
 
   const hostView = await snapshot(room, host.sessionToken);
-  const guestView = await snapshot(room, guest.json.sessionToken);
+  const guestView = await snapshot(room, duplicate.json.sessionToken);
   assert.equal(hostView.response.status, 200);
   assert.equal(guestView.response.status, 200);
   assert.equal(hostView.json.snapshot.players.length, 2);
@@ -798,4 +811,28 @@ test("snapshot polling at one request/second remains below the session rate boun
     const result = await snapshot(room, host.sessionToken);
     assert.equal(result.response.status, 200);
   }
+});
+
+test("spectators watch live snapshots without a seat, private hand, presence, or command rights", async () => {
+  const { room, storage } = harness();
+  const host = await create(room, "Host");
+  const viewer = await watch(room, "Observer");
+  assert.equal(viewer.response.status, 201);
+  assert.equal(viewer.json.snapshot.you.nickname, "Observer");
+  assert.equal(viewer.json.snapshot.you.isHost, false);
+  assert.equal(viewer.json.snapshot.players.length, 1);
+  assert.deepEqual(viewer.json.snapshot.yourHand, []);
+  const stored = storage.values.get("room-state-v2") as any;
+  assert.equal(stored.players.length, 1);
+  assert.equal(stored.spectators.length, 1);
+  assert.equal(stored.presence[viewer.json.snapshot.you.playerId], undefined);
+
+  const refreshed = await snapshot(room, viewer.json.sessionToken);
+  assert.equal(refreshed.response.status, 200);
+  assert.equal(refreshed.json.snapshot.revision, host.snapshot.revision);
+  const attempted = await room.fetch(roomRequest("/api/rooms/ABC234/commands", "POST", {
+    token: viewer.json.sessionToken,
+    body: { commandId: "spectator-command", expectedRevision: host.snapshot.revision, kind: "DRAW_CARD", payload: {} },
+  }));
+  assert.equal(attempted.status, 401);
 });

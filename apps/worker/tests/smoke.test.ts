@@ -80,6 +80,23 @@ test("POST /api/rooms generates a server room code and marks an internal create"
   assert.equal(operation, "CREATE_ROOM");
 });
 
+test("POST /api/rooms uses a requested six-character room code", async () => {
+  let routedName = "";
+  const env = {
+    ROOMS: {
+      idFromName(name: string) { routedName = name; return name; },
+      get() { return { fetch: async (request: Request) => Response.json({ roomCode: request.headers.get("x-room-code") }, { status: 201 }) }; },
+    },
+  } satisfies WorkerEnv;
+  const response = await routeRequest(new Request("https://local.test/api/rooms", {
+    method: "POST",
+    headers: { "content-type": "application/json", "cf-connecting-ip": "test-custom-create" },
+    body: JSON.stringify({ nickname: "Host", roomCode: "slay42" }),
+  }), env);
+  assert.equal(response.status, 201);
+  assert.equal(routedName, "SLAY42");
+});
+
 test("POST /api/rooms rejects bodies over 4 KiB before routing", async () => {
   const env = {
     ROOMS: {

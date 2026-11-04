@@ -4,7 +4,7 @@ import "./styles.css";
 import "./lobby.css";
 import { App } from "./App";
 import { CardGallery } from "./cards/CardGallery";
-import { LanguageProvider, LanguageSwitch } from "./i18n";
+import { LanguageProvider } from "./i18n";
 
 const params = new URLSearchParams(location.search);
 // Dev-only route: the workbench and its Kickstarter demo fixtures (rights FAN_MADE_NON_COMMERCIAL, ADR-004)
@@ -26,7 +26,6 @@ const AssetImportRoute = import.meta.env.DEV && params.has("asset-import")
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LanguageProvider>
-      <LanguageSwitch />
       {AssetImportRoute ? <Suspense fallback={null}><AssetImportRoute /></Suspense> : params.has("cards") ? <CardGallery /> : <App />}
     </LanguageProvider>
   </StrictMode>,

@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { clearSession, command, createRoom, joinRoom, leaveRoom, loadSession, parseRoute, saveSession, snapshot, type Session } from "./api";
+import { clearSession, command, createRoom, joinRoom, leaveRoom, loadSession, parseRoute, saveSession, snapshot, watchRoom, type Session } from "./api";
 import type { EffectDemoSnapshot, SetupDemoSnapshot } from "@here-to-slay/protocol";
 import { BaseRoom } from "./BaseRoom";
-import { useLanguage } from "./i18n";
+import { LanguageSwitch, useLanguage } from "./i18n";
 
 type Scene = "table" | "modifier" | "challenge" | "versus";
 type View = "lobby" | "preview";
 type CloseReason = "all-completed" | "deadline" | null;
 type Player = { id: string; name: string; hasModifier: boolean; hasChallenge: boolean; isActor: boolean; status: "waiting" | "completed" };
 const lobbyCopy = {
-  en: { create: "CREATE", join: "JOIN", view: "VIEW", intro: "Nickname and room code only. No account. Base rooms support 2–6 players.", createRoom: "CREATE ROOM", joinRoom: "JOIN ROOM", viewGame: "VIEW GAME", nickname: "Nickname", mode: "Mode", roomCode: "Room code", baseMode: "Base game (2–6 players)", reactionDemo: "Reaction demo", setupDemo: "Setup demo · synthetic", effectDemo: "Effect demo · synthetic two cards", viewDescription: "Explore the table and interaction design without creating or joining a live room.", openView: "OPEN GAME VIEW", expansion: "+ Expansion → max 8 (not supported)", cards: "BROWSE BASE CARD COLLECTION →" },
-  vi: { create: "TẠO", join: "VÀO", view: "XEM", intro: "Chỉ cần biệt danh và mã phòng, không cần tài khoản. Phòng cơ bản hỗ trợ 2–6 người chơi.", createRoom: "TẠO PHÒNG", joinRoom: "VÀO PHÒNG", viewGame: "XEM BÀN CHƠI", nickname: "Biệt danh", mode: "Chế độ", roomCode: "Mã phòng", baseMode: "Bản cơ bản (2–6 người)", reactionDemo: "Thử phản ứng", setupDemo: "Thử thiết lập · mô phỏng", effectDemo: "Thử hiệu ứng · hai lá mô phỏng", viewDescription: "Khám phá bàn chơi và thiết kế tương tác mà không cần tạo hoặc tham gia phòng trực tiếp.", openView: "MỞ CHẾ ĐỘ XEM", expansion: "+ Bản mở rộng → tối đa 8 (chưa hỗ trợ)", cards: "XEM BỘ LÁ CƠ BẢN →" },
+  en: { create: "CREATE", join: "JOIN", view: "VIEW", intro: "Nickname and room code only. No account. Base rooms support 2–6 players.", createRoom: "CREATE ROOM", joinRoom: "JOIN ROOM", viewGame: "VIEW GAME", nickname: "Nickname", mode: "Mode", roomCode: "Room code", optionalRoomCode: "Room code (optional)", baseMode: "Base game (2–6 players)", reactionDemo: "Reaction demo", setupDemo: "Setup demo · synthetic", effectDemo: "Effect demo · synthetic two cards", viewDescription: "Watch a live game without taking a player seat.", openView: "VIEW GAME", expansion: "+ Expansion → max 8 (not supported)", cards: "BROWSE BASE CARD COLLECTION →" },
+  vi: { create: "TẠO", join: "VÀO", view: "XEM", intro: "Chỉ cần biệt danh và mã phòng, không cần tài khoản. Phòng cơ bản hỗ trợ 2–6 người chơi.", createRoom: "TẠO PHÒNG", joinRoom: "VÀO PHÒNG", viewGame: "XEM TRẬN", nickname: "Biệt danh", mode: "Chế độ", roomCode: "Mã phòng", optionalRoomCode: "Mã phòng (không bắt buộc)", baseMode: "Bản cơ bản (2–6 người)", reactionDemo: "Thử phản ứng", setupDemo: "Thử thiết lập · mô phỏng", effectDemo: "Thử hiệu ứng · hai lá mô phỏng", viewDescription: "Xem trận đang diễn ra mà không chiếm chỗ người chơi.", openView: "XEM TRẬN", expansion: "+ Bản mở rộng → tối đa 8 (chưa hỗ trợ)", cards: "XEM BỘ LÁ CƠ BẢN →" },
 } as const;
 
 const createPlayers = (): Player[] => [
@@ -254,15 +254,15 @@ const [pending, setPending] = useState(false);
   const accept = (next: Session, clearNotice = true) => { saveSession(next); setSession(next); setMode("room"); if (clearNotice) setNotice(""); };
   /** Back to the lobby = leave the room (frees a lobby seat; the room is deleted after 5 idle minutes). */
   const leave = () => { if (session) { void leaveRoom(session.roomCode, session.sessionToken); clearSession(session); } setSession(null); setMode("lobby"); setNotice("You left the room. Choose a nickname to create or join one."); };
-  const connect = async (kind: "create" | "join") => { setPending(true); setNotice(""); try { accept(kind === "create" ? await createRoom(nickname.trim(), createMode) : await joinRoom(roomCode.trim(), nickname.trim())); } catch (error) { setNotice(error instanceof Error ? error.message : "Connection failed."); } finally { setPending(false); } };
+  const connect = async (kind: "create" | "join" | "view") => { setPending(true); setNotice(""); try { accept(kind === "create" ? await createRoom(nickname.trim(), createMode, roomCode.trim() || undefined) : kind === "join" ? await joinRoom(roomCode.trim(), nickname.trim()) : await watchRoom(roomCode.trim(), nickname.trim())); } catch (error) { setNotice(error instanceof Error ? error.message : "Connection failed."); } finally { setPending(false); } };
   useEffect(() => { if (!session || mode !== "room") return;
 const poll = window.setInterval(async () => { try { const next = await snapshot(session.roomCode, session.sessionToken); accept({ ...session, snapshot: next.snapshot, receivedAt: Date.now() }, false); } catch (error) { clearSession(session); setSession(null); setMode("lobby"); setNotice(error instanceof Error ? error.message : "Session is no longer valid. Join a room again."); } }, 1000); return () => window.clearInterval(poll); }, [mode, session]);
   useEffect(() => { if (mode !== "room") return;
 const tick = window.setInterval(() => setLocalNow(Date.now()), 250); return () => window.clearInterval(tick); }, [mode]);
   if (mode === "preview") return <PreviewApp />;
   if (mode === "room" && session) { const state = session.snapshot;
-const send = async (kind: string, payload: object) => { setPending(true); try { let result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), state.revision, kind, payload); if (!result.outcome.accepted && result.outcome.code === "STALE_REVISION") result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), result.snapshot.revision, kind, payload); /* one retry: the board moved (e.g. a bot acted); the server re-validates the command */ accept({ ...session, snapshot: result.snapshot, receivedAt: Date.now() }, result.outcome.accepted); if (!result.outcome.accepted) setNotice(`Command rejected: ${result.outcome.code}. Refreshed from the server.`); } catch (error) { setNotice(error instanceof Error ? error.message : "Command failed."); } finally { setPending(false); } };
-if (state.mode === "base") return <BaseRoom state={state} send={send} pending={pending} serverNow={state.serverNow + (localNow - session.receivedAt)} notice={notice} onLobby={leave} />;
+const send = async (kind: string, payload: object) => { if (session.spectator) { setNotice(language === "vi" ? "Chế độ xem không thể thao tác trong trận." : "Spectators cannot send game commands."); return; } setPending(true); try { let result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), state.revision, kind, payload); if (!result.outcome.accepted && result.outcome.code === "STALE_REVISION") result = await command(state.roomCode, session.sessionToken, crypto.randomUUID(), result.snapshot.revision, kind, payload); /* one retry: the board moved (e.g. a bot acted); the server re-validates the command */ accept({ ...session, snapshot: result.snapshot, receivedAt: Date.now() }, result.outcome.accepted); if (!result.outcome.accepted) setNotice(`Command rejected: ${result.outcome.code}. Refreshed from the server.`); } catch (error) { setNotice(error instanceof Error ? error.message : "Command failed."); } finally { setPending(false); } };
+if (state.mode === "base") return <BaseRoom state={state} send={send} pending={pending} serverNow={state.serverNow + (localNow - session.receivedAt)} notice={session.spectator ? (language === "vi" ? `ĐANG XEM · ${state.roomCode}` : `SPECTATING · ${state.roomCode}`) : notice} onLobby={leave} />;
 if (state.mode === "setup_demo") return <main className="app-shell"><header className="review-bar"><div><b>HERE TO SLAY</b><span>SETUP DEMO · SERVER SNAPSHOT</span></div><button onClick={leave}>LOBBY</button></header><SetupRoom state={state} pending={pending} send={send}/><p className="sr-note" role="status">{notice || "Personalized synthetic setup state from server."}</p></main>;
 if (state.mode === "effect_demo") return <><EffectRoom state={state} pending={pending} send={send} serverNow={state.serverNow + (localNow - session.receivedAt)} />{notice && <p className="sr-note" role="status">{notice}</p>}</>;
 const reaction = state.reaction;
@@ -321,7 +321,8 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <p className="sr-note" role="status">{notice || "Server state is personalized; no other hand or token is shown."}</p>
 </main>; }
   return <main className="lobby-shell">
-<section className="lobby-panel">
+<LanguageSwitch />
+<section className="lobby-panel" key={language}>
 <div className="lobby-topline"><span className="lobby-kicker">BASE GAME</span></div>
 <h1>HERE TO SLAY</h1>
 <p>{copy.intro}</p>
@@ -336,6 +337,8 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <h2>{copy.createRoom}</h2>
 <label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
 </label>
+<label>{copy.optionalRoomCode}<input value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={6} maxLength={6}/>
+</label>
 <label>{copy.mode}<select value={createMode} onChange={(event) => setCreateMode(event.target.value as "base" | "reaction_demo" | "setup_demo" | "effect_demo")}><option value="base">{copy.baseMode}</option><option value="reaction_demo">{copy.reactionDemo}</option><option value="setup_demo">{copy.setupDemo}</option><option value="effect_demo">{copy.effectDemo}</option></select></label>
 <button disabled={pending || !nickname.trim()}>{copy.createRoom}</button>
 </form>}
@@ -343,15 +346,17 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 <h2>{copy.joinRoom}</h2>
 <label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/>
 </label>
-<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} maxLength={12}/>
+<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={6} maxLength={6}/>
 </label>
 <button disabled={pending || !nickname.trim() || !roomCode.trim()}>{copy.joinRoom}</button>
 </form>}
-{lobbyAction === "view" && <div className="lobby-view" role="tabpanel">
+{lobbyAction === "view" && <form className="lobby-view" role="tabpanel" onSubmit={(event) => { event.preventDefault(); void connect("view"); }}>
 <h2>{copy.viewGame}</h2>
 <p>{copy.viewDescription}</p>
-<button type="button" onClick={() => setMode("preview")}>{copy.openView}</button>
-</div>}
+<label>{copy.nickname}<input required value={nickname} onChange={(event) => setNickname(event.target.value)} maxLength={24}/></label>
+<label>{copy.roomCode}<input required value={roomCode} onChange={(event) => setRoomCode(event.target.value.toUpperCase())} minLength={6} maxLength={6}/></label>
+<button disabled={pending || !nickname.trim() || roomCode.trim().length !== 6}>{copy.openView}</button>
+</form>}
 </section>
 </div>
 <button className="expansion" disabled>{copy.expansion}</button>

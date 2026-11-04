@@ -908,12 +908,13 @@ function chainView(game: BaseGameState, viewerId: string): BaseChainView | null 
 export function projectBaseGame(
   rawGame: BaseGameState,
   roster: BaseRoster,
-  meta: { roomCode: string; revision: number; serverNow: number },
+  meta: { roomCode: string; revision: number; serverNow: number; viewerNickname?: string },
   viewerPlayerId: string,
 ): BaseGameSnapshot {
   const game = normalizeBaseGame(rawGame);
   const seats = new Map(game.seats.map((seat) => [seat.playerId, seat]));
-  const viewer = roster.players.find((player) => player.playerId === viewerPlayerId);
+  const viewer = roster.players.find((player) => player.playerId === viewerPlayerId) ??
+    (meta.viewerNickname ? { playerId: viewerPlayerId, nickname: meta.viewerNickname, isBot: false } : undefined);
   if (!viewer) throw new Error("Viewer is not seated in this room");
   return {
     mode: "base",

@@ -155,6 +155,8 @@ interface PersistedRoomState {
   supportedSetIds: [typeof BASE_SET_ID];
   enabledSetIds: [typeof BASE_SET_ID];
   players: PersistedPlayer[];
+  /** Read-only viewers; never player seats and never game participants. */
+  spectators?: PersistedPlayer[];
   discard: FixtureCard[];
   reaction: ReactionWindowState | null;
   lastChallengeRoll: ChallengeRoll | null;
@@ -178,6 +180,7 @@ const ROOM_STATE_KEY = "room-state-v2";
 const MAX_BODY_BYTES = 4_096;
 const REACTION_WINDOW_MS = 20_000;
 const MAX_PLAYERS = 6;
+const MAX_SPECTATORS = 20;
 /** A room with no player activity (commands / join / leave — bots do not count) for this long is deleted. */
 export const ROOM_IDLE_MS = 5 * 60_000;
 /** A human counts as present while their client keeps polling the snapshot at least this often. */
@@ -263,13 +266,13 @@ function createModeFrom(value: unknown): RoomCreateMode {
 function assertSupportedCreateShape(value: unknown): void {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return;
   const mode = "mode" in value ? (value as { mode?: unknown }).mode : undefined;
-  const allowed = new Set(["nickname", "mode"]);
+  const allowed = new Set(["nickname", "mode", "roomCode"]);
   if (mode === "effect_demo") allowed.add("reactionSeconds");
   const unsupported = Object.keys(value).filter((key) => !allowed.has(key));
   if (unsupported.length > 0) {
     throw new ApiFault(
       "EXPANSION_UNSUPPORTED",
-      "Create supports only nickname and mode; expansion/capacity config is unavailable",
+      "Create supports nickname, mode, and an optional room code; expansion/capacity config is unavailable",
       409,
     );
   }
@@ -367,6 +370,7 @@ function normalizeState(state: PersistedRoomState): PersistedRoomState {
   if (state.setup === undefined) state.setup = null;
   if (state.effect === undefined) state.effect = null;
   if (state.game === undefined) state.game = null;
+  if (state.spectators === undefined) state.spectators = [];
   for (const player of state.players) {
     if (player.leaderId === undefined) player.leaderId = null;
     if (player.party === undefined) player.party = [];
@@ -439,6 +443,14 @@ function sessionPlayer(state: PersistedRoomState, tokenHash: string): PersistedP
   const player = state.players.find((candidate) => candidate.sessionTokenHash === tokenHash);
   if (!player) throw new ApiFault("UNAUTHORIZED", "Session is not valid for this room", 401);
   return player;
+}
+
+function sessionViewer(state: PersistedRoomState, tokenHash: string): { viewer: PersistedPlayer; spectator: boolean } {
+  const player = state.players.find((candidate) => candidate.sessionTokenHash === tokenHash);
+  if (player) return { viewer: player, spectator: false };
+  const spectator = state.spectators?.find((candidate) => candidate.sessionTokenHash === tokenHash);
+  if (spectator) return { viewer: spectator, spectator: true };
+  throw new ApiFault("UNAUTHORIZED", "Session is not valid for this room", 401);
 }
 
 function reactionState(
@@ -698,7 +710,7 @@ function snapshot(
     return projectBaseGame(
       state.game ?? initialBaseGameState(),
       baseRoster(state),
-      { roomCode: state.roomCode, revision: state.revision, serverNow: now },
+      { roomCode: state.roomCode, revision: state.revision, serverNow: now, viewerNickname: viewer.nickname },
       viewer.playerId,
     );
   }
@@ -908,6 +920,9 @@ export class RoomDurableObject {
       if (request.method === "POST" && url.pathname.endsWith("/join")) {
         return await this.joinRoom(request, roomCode);
       }
+      if (request.method === "POST" && url.pathname.endsWith("/watch")) {
+        return await this.watchRoom(request, roomCode);
+      }
       if (request.method === "POST" && url.pathname.endsWith("/leave")) {
         return await this.leaveRoom(request, roomCode);
       }
@@ -968,6 +983,7 @@ export class RoomDurableObject {
         supportedSetIds: [BASE_SET_ID],
         enabledSetIds: [BASE_SET_ID],
         players: [player],
+        spectators: [],
         discard: [],
         reaction: null,
         lastChallengeRoll: null,
@@ -1002,6 +1018,20 @@ export class RoomDurableObject {
       const state = requireState(await txn.get<PersistedRoomState>(ROOM_STATE_KEY));
       if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
       enforceRate(state, "join", 30, now);
+      const resumed = state.players.find((player) => !player.isBot && player.normalizedNickname === normalized);
+      if (resumed) {
+        if ((state.presence?.[resumed.playerId] ?? 0) > now - PRESENCE_MS) {
+          throw new ApiFault("SESSION_ACTIVE", "This player is still connected on another device", 409);
+        }
+        resumed.nickname = nickname;
+        resumed.sessionTokenHash = tokenHash;
+        state.lastActivityAt = now;
+        markSeen(state, resumed.playerId, now);
+        syncPause(state, now);
+        await txn.put(ROOM_STATE_KEY, state);
+        await this.rearm(txn, state, now);
+        return { state, player: resumed };
+      }
       if (roomMode(state) === "setup_demo" && state.setup?.phase !== "lobby") {
         throw new ApiFault("SETUP_LOCKED", "Join is locked after selection begins", 409);
       }
@@ -1016,9 +1046,6 @@ export class RoomDurableObject {
       }
       if (state.players.length >= MAX_PLAYERS) {
         throw new ApiFault("ROOM_FULL", "Base room supports at most 6 players", 409);
-      }
-      if (state.players.some((player) => player.normalizedNickname === normalized)) {
-        throw new ApiFault("NICKNAME_TAKEN", "Nickname is already used in this room", 409);
       }
       const player: PersistedPlayer = {
         playerId,
@@ -1040,6 +1067,41 @@ export class RoomDurableObject {
     });
     return Response.json(
       { roomCode, sessionToken, snapshot: snapshot(result.state, result.player, now) },
+      { status: 201, headers: { "cache-control": "no-store" } },
+    );
+  }
+
+  async watchRoom(request: Request, roomCode: string): Promise<Response> {
+    const { nickname, normalized } = nicknameFrom(await readJsonBody(request));
+    const sessionToken = this.makeSessionToken();
+    const tokenHash = await hashToken(sessionToken);
+    const spectatorId = `spectator-${this.randomUUID()}`;
+    const now = this.now();
+    const result = await this.ctx.storage.transaction(async (txn) => {
+      const state = requireState(await txn.get<PersistedRoomState>(ROOM_STATE_KEY));
+      if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
+      enforceRate(state, "watch", 30, now);
+      const spectators = (state.spectators ??= []);
+      if (spectators.length >= MAX_SPECTATORS) throw new ApiFault("ROOM_FULL", "Room supports at most 20 spectators", 409);
+      if ([...state.players, ...spectators].some((entry) => entry.normalizedNickname === normalized)) {
+        throw new ApiFault("NICKNAME_TAKEN", "Nickname is already used in this room", 409);
+      }
+      const viewer: PersistedPlayer = {
+        playerId: spectatorId,
+        nickname,
+        normalizedNickname: normalized,
+        sessionTokenHash: tokenHash,
+        hand: [],
+        party: [],
+        leaderId: null,
+      };
+      spectators.push(viewer);
+      await txn.put(ROOM_STATE_KEY, state);
+      await this.rearm(txn, state, now);
+      return { state, viewer };
+    });
+    return Response.json(
+      { roomCode, sessionToken, snapshot: snapshot(result.state, result.viewer, now) },
       { status: 201, headers: { "cache-control": "no-store" } },
     );
   }
@@ -1071,7 +1133,13 @@ export class RoomDurableObject {
     await this.ctx.storage.transaction(async (txn) => {
       const state = requireState(await txn.get<PersistedRoomState>(ROOM_STATE_KEY));
       if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
-      const player = sessionPlayer(state, tokenHash);
+      const { viewer: player, spectator } = sessionViewer(state, tokenHash);
+      if (spectator) {
+        state.spectators = (state.spectators ?? []).filter((entry) => entry.playerId !== player.playerId);
+        await txn.put(ROOM_STATE_KEY, state);
+        await this.rearm(txn, state, now);
+        return;
+      }
       state.lastActivityAt = now;
       (state.presence ??= {})[player.playerId] = 0;
       if (roomMode(state) === "base" && state.game?.phase === "lobby") {
@@ -1098,14 +1166,14 @@ export class RoomDurableObject {
     const result = await this.ctx.storage.transaction(async (txn) => {
       const state = requireState(await txn.get<PersistedRoomState>(ROOM_STATE_KEY));
       if (state.roomCode !== roomCode) throw new ApiFault("ROOM_NOT_FOUND", "Room does not exist", 404);
-      const player = sessionPlayer(state, tokenHash);
+      const { viewer: player, spectator } = sessionViewer(state, tokenHash);
       // 180/min allows six independent clients polling once per second with headroom.
       enforceRate(state, `snapshot:${tokenHash}`, 180, now);
       if (roomMode(state) === "effect_demo") {
         await this.settleExpiredEffect(state, now, txn);
       }
-      markSeen(state, player.playerId, now);
-      const paused = syncPause(state, now);
+      if (!spectator) markSeen(state, player.playerId, now);
+      const paused = spectator ? state.pausedAt != null : syncPause(state, now);
       if (roomMode(state) === "base" && state.game && !paused) {
         // Expired windows/choices close before the command is judged (timer never resets).
         if (settleBaseGame(state.game, baseRoster(state), this.baseDeps(now))) state.revision += 1;

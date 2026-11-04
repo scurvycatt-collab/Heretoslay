@@ -33,6 +33,7 @@ function runtime() {
   let id = 0;
   let session = 0;
   let ip = 0;
+  let now = 50_000;
   const namespace = {
     idFromName: (name: string) => name,
     get(roomId: unknown) {
@@ -45,7 +46,7 @@ function runtime() {
           blockConcurrencyWhile: async <T>(callback: () => Promise<T>) => callback(),
         };
         room = new RoomDurableObject(context, {
-          now: () => 50_000,
+          now: () => now,
           randomUUID: () => `id-${++id}`,
           sessionToken: () => `base-session-${++session}`,
           shuffle: (values) => [...values],
@@ -80,6 +81,7 @@ function runtime() {
     snapshot: (code: string, token: string) => request(`/api/rooms/${code}/snapshot`, { token }),
     command: (code: string, token: string, body: Record<string, unknown>) =>
       request(`/api/rooms/${code}/commands`, { method: "POST", token, body }),
+    advance: (milliseconds: number) => { now += milliseconds; },
   };
   return api;
 }
@@ -126,7 +128,7 @@ async function startGame(api: Api, code: string, players: Session[]) {
   return started.json.snapshot;
 }
 
-test("base: create returns a server room code and non-demo snapshot; join, duplicate nickname and reconnect", async () => {
+test("base: create returns a server room code and room+nickname reconnects the same seat", async () => {
   const api = runtime();
   const host = await api.create("Host");
   assert.equal(host.response.status, 201);
@@ -144,13 +146,18 @@ test("base: create returns a server room code and non-demo snapshot; join, dupli
   assert.equal(guest.response.status, 201);
   assert.equal(guest.json.snapshot.players.length, 2);
 
+  const activeDuplicate = await api.join(code, "  guest ");
+  assert.equal(activeDuplicate.response.status, 409);
+  assert.equal(activeDuplicate.json.error.code, "SESSION_ACTIVE");
+  api.advance(20_001);
   const duplicate = await api.join(code, "  guest ");
-  assert.equal(duplicate.response.status, 409);
-  assert.equal(duplicate.json.error.code, "NICKNAME_TAKEN");
-  assert.equal("sessionToken" in duplicate.json, false);
+  assert.equal(duplicate.response.status, 201);
+  assert.equal(duplicate.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);
+  assert.notEqual(duplicate.json.sessionToken, guest.json.sessionToken);
+  assert.equal((await api.snapshot(code, guest.json.sessionToken)).response.status, 401);
 
   // Reload: same token → same seat, no new player.
-  const reload = await api.snapshot(code, guest.json.sessionToken);
+  const reload = await api.snapshot(code, duplicate.json.sessionToken);
   assert.equal(reload.response.status, 200);
   assert.equal(reload.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);
   assert.equal(reload.json.snapshot.players.length, 2);

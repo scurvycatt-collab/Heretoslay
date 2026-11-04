@@ -4,17 +4,20 @@ import test from "node:test";
 
 const root = new URL("../", import.meta.url);
 
-test("English/Vietnamese locale is global, persistent, and available on every web route", async () => {
-  const [main, i18n] = await Promise.all([
+test("English/Vietnamese locale is global and persistent while its switch is lobby-only", async () => {
+  const [main, app, i18n] = await Promise.all([
     readFile(new URL("../apps/web/src/main.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../apps/web/src/App.tsx", import.meta.url), "utf8"),
     readFile(new URL("../apps/web/src/i18n.tsx", import.meta.url), "utf8"),
   ]);
   assert.match(main, /<LanguageProvider>/);
-  assert.match(main, /<LanguageSwitch \/>/);
+  assert.doesNotMatch(main, /<LanguageSwitch \/>/);
+  assert.match(app, /return <main className="lobby-shell">\s*<LanguageSwitch \/>/);
   assert.match(i18n, /localStorage\.setItem\("hts\.language"/);
   assert.match(i18n, /MutationObserver/);
   assert.match(i18n, /COMMON_VI_TERMS/);
-  for (const term of ["DRAW", "DISCARD", "STEAL", "DESTROY", "CHALLENGE", "PARTY LEADER"]) assert.match(i18n, new RegExp(`\\\\b${term}\\\\b`));
+  for (const term of ["DRAW", "DISCARD", "STEAL", "DESTROY", "CHALLENGE", "LEADER"]) assert.match(i18n, new RegExp(`\\\\b${term}\\\\b`));
+  assert.match(i18n, /\[\/\\bLEADER\\b\/gi, "THỦ LĨNH"\]/);
 });
 
 test("Vietnamese catalog covers every base-card rule and monster penalty", async () => {
@@ -32,4 +35,6 @@ test("lobby uses one mutually exclusive Create/Join/View state", async () => {
   assert.equal((app.match(/<form className="lobby-card"/g) ?? []).length, 0);
   assert.equal((app.match(/className="lobby-actions"/g) ?? []).length, 2);
   for (const action of ["create", "join", "view"]) assert.match(app, new RegExp(`lobbyAction === "${action}"`));
+  assert.match(app, /connect\("view"\)/);
+  assert.match(app, /watchRoom\(roomCode\.trim\(\), nickname\.trim\(\)\)/);
 });

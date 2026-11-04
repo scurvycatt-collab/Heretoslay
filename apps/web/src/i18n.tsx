@@ -16,7 +16,7 @@ const criticalVi: Record<string, string> = {
 
 /** Canonical game glossary. Every screen, dynamic status and card rule uses this one rule set. */
 export const COMMON_VI_TERMS = [
-  [/\bPARTY LEADER\b/gi, "THỦ LĨNH TỔ ĐỘI"], [/\bCURSED ITEM\b/gi, "VẬT PHẨM BỊ NGUYỀN"],
+  [/\bPARTY LEADER\b/gi, "THỦ LĨNH"], [/\bLEADER\b/gi, "THỦ LĨNH"], [/\bCURSED ITEM\b/gi, "VẬT PHẨM BỊ NGUYỀN"],
   [/\bCHALLENGE\b/gi, "THÁCH ĐẤU"], [/\bDESTROY\b/gi, "TIÊU DIỆT"], [/\bDISCARD\b/gi, "BỎ"],
   [/\bDRAW\b/gi, "RÚT"], [/\bSTEAL\b/gi, "CƯỚP"], [/\bMODIFIER\b/gi, "ĐIỀU CHỈNH"],
   [/\bATTACK\b/gi, "TẤN CÔNG"], [/\bROLL\b/gi, "ĐỔ XÚC XẮC"], [/\bPLAY\b/gi, "CHƠI"],

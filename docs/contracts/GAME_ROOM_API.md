@@ -11,15 +11,17 @@ Same routes as the demo slices; mode is chosen at create time and fixed for the 
 
 | Method | Path | Auth | Body | Success |
 |---|---|---|---|---|
-| POST | `/api/rooms` | — | `{ "nickname": string, "mode": "base" }` | 201 `{ roomCode, sessionToken, snapshot }` |
+| POST | `/api/rooms` | — | `{ "nickname": string, "mode": "base", "roomCode"?: string }` | 201 `{ roomCode, sessionToken, snapshot }` |
 | POST | `/api/rooms/:code/join` | — | `{ "nickname": string }` | 201 `{ roomCode, sessionToken, snapshot }` |
+| POST | `/api/rooms/:code/watch` | — | `{ "nickname": string }` | 201 read-only `{ roomCode, sessionToken, snapshot }` |
 | GET | `/api/rooms/:code/snapshot` | `Bearer <sessionToken>` | — | 200 `{ snapshot }` |
 | POST | `/api/rooms/:code/commands` | `Bearer <sessionToken>` | command (below) | 200 `{ outcome, snapshot }` |
 
-- Room code: 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, server-generated; path code is case-insensitive.
-- Nickname: NFKC + trim, 1–24 printable chars, unique per room case-insensitively.
-- Reconnect/reload: keep `sessionToken` client-side and call `snapshot` with it; the same seat (`you.playerId`) is returned. Only the SHA-256 hash of the token is stored.
-- Create accepts only `nickname` and `mode`; any other key (e.g. `enabledSetIds`, `capacity`, `reactionSeconds`) → 409 `EXPANSION_UNSUPPORTED`. Omitting `mode` still defaults to `reaction_demo` for backward compatibility.
+- Room code: exactly 6 letters/digits. Create may request one; omitting it generates 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Path code is case-insensitive.
+- Reconnect/reload keeps `sessionToken` client-side. A different device may reclaim the same seat with room code + nickname only after the old heartbeat is offline for more than 20 seconds; reclaim rotates the token. An online old session returns `SESSION_ACTIVE`.
+- Spectators are read-only, do not occupy a player seat or presence heartbeat, receive no private hand, and cannot send commands.
+- Public room URLs contain only the room code; player IDs and tokens remain in browser storage. Legacy player-ID URLs are normalized after loading.
+- Create accepts `nickname`, `mode`, and optional `roomCode`; expansion/capacity keys remain unsupported.
 - Body limit 4 KiB. Rate limits: create 10/min/IP (Worker), join 30/min/room, snapshot 180/min/session, commands 120/min/session.
 
 ## Commands
@@ -117,7 +119,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
 
 ## HTTP errors
 
-`{ ok: false, error: { code, message } }`: 400 `INVALID_JSON`/`INVALID_NICKNAME`/`INVALID_MODE`/`INVALID_COMMAND`; 401 `UNAUTHORIZED`; 404 `ROOM_NOT_FOUND`/`NOT_FOUND`; 409 `ROOM_FULL` (7th player), `NICKNAME_TAKEN`, `SETUP_LOCKED` (join after selection begins), `EXPANSION_UNSUPPORTED`, `ROOM_CODE_TAKEN`; 413 `BODY_TOO_LARGE`; 429 `RATE_LIMITED`.
+`{ ok: false, error: { code, message } }`: 400 `INVALID_JSON`/`INVALID_NICKNAME`/`INVALID_MODE`/`INVALID_ROOM_CODE`/`INVALID_COMMAND`; 401 `UNAUTHORIZED`; 404 `ROOM_NOT_FOUND`/`NOT_FOUND`; 409 `ROOM_FULL`, `SESSION_ACTIVE`, `SETUP_LOCKED`, `EXPANSION_UNSUPPORTED`, `ROOM_CODE_TAKEN`; 413 `BODY_TOO_LARGE`; 429 `RATE_LIMITED`.
 
 ## Snapshot (`mode: "base"`)
 
