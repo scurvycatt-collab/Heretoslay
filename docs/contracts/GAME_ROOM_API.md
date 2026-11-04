@@ -11,15 +11,21 @@ Same routes as the demo slices; mode is chosen at create time and fixed for the 
 
 | Method | Path | Auth | Body | Success |
 |---|---|---|---|---|
-| POST | `/api/rooms` | — | `{ "nickname": string, "mode": "base" }` | 201 `{ roomCode, sessionToken, snapshot }` |
+| POST | `/api/rooms` | — | `{ "nickname": string, "mode": "base", "roomCode"?: string }` | 201 `{ roomCode, sessionToken, snapshot }` |
 | POST | `/api/rooms/:code/join` | — | `{ "nickname": string }` | 201 `{ roomCode, sessionToken, snapshot }` |
+| POST | `/api/rooms/:code/watch` | — | `{ "nickname": string }` | 201 read-only `{ roomCode, sessionToken, snapshot }` |
+| POST | `/api/rooms/:code/disconnect` | Bearer | — | marks the tab offline without deleting its seat |
+| POST | `/api/rooms/:code/leave` | Bearer | — | leaves explicitly; lifecycle depends on room phase (below) |
 | GET | `/api/rooms/:code/snapshot` | `Bearer <sessionToken>` | — | 200 `{ snapshot }` |
 | POST | `/api/rooms/:code/commands` | `Bearer <sessionToken>` | command (below) | 200 `{ outcome, snapshot }` |
 
-- Room code: 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, server-generated; path code is case-insensitive.
-- Nickname: NFKC + trim, 1–24 printable chars, unique per room case-insensitively.
-- Reconnect/reload: keep `sessionToken` client-side and call `snapshot` with it; the same seat (`you.playerId`) is returned. Only the SHA-256 hash of the token is stored.
-- Create accepts only `nickname` and `mode`; any other key (e.g. `enabledSetIds`, `capacity`, `reactionSeconds`) → 409 `EXPANSION_UNSUPPORTED`. Omitting `mode` still defaults to `reaction_demo` for backward compatibility.
+- Room code: exactly 6 letters/digits. Create may request one; omitting it generates 6 chars from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`. Path code is case-insensitive.
+- Reconnect/reload keeps `sessionToken` client-side. Closing/leaving the page sends `disconnect`, so another device can reclaim the same seat immediately with room code + nickname; reclaim rotates the token. Unexpected network/power loss falls back to the 3-second heartbeat expiry. An online old session returns `SESSION_ACTIVE`.
+- `disconnect` and `leave` are intentionally different. `disconnect` preserves the player seat for reconnect. Explicit `leave` removes a spectator immediately; for a player in the lobby it frees the seat and transfers host ownership to the next human player. After leader selection or game start, explicit `leave` preserves the player record and game state, marks that seat offline, and pauses bots/timers when no human remains. The leaving browser clears only its own local session.
+- An explicit lobby leave invalidates that session immediately. A retained in-game seat can be reclaimed through the normal room-code + nickname recovery flow; no session token is ever placed in the public room URL.
+- Spectators are read-only, do not occupy a player seat or presence heartbeat, receive no private hand, and cannot send commands.
+- Public room URLs contain only the room code; player IDs and tokens remain in browser storage. Legacy player-ID URLs are normalized after loading.
+- Create accepts `nickname`, `mode`, and optional `roomCode`; expansion/capacity keys remain unsupported.
 - Body limit 4 KiB. Rate limits: create 10/min/IP (Worker), join 30/min/room, snapshot 180/min/session, commands 120/min/session.
 
 ## Commands
@@ -39,7 +45,7 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 | `PLAY_HAND_CARD` | `{ cardInstanceId, targets? }` | current player, ≥1 AP, nothing pending | Hero/Item/Cursed Item/Magic from hand → `pending`, −1 AP, opens Challenge window (skipped if uncatchable: Iron Resolve, Warworn Owlbear for Items). Item target `targets.heroInstanceIds[0]`: Item → own Hero, Cursed → any Hero (Q-06), Hero without Item. Magic targets per card `target` rule (Q-08) |
 | `USE_HERO_EFFECT` | `{ heroInstanceId, targets? }` | current player, ≥1 AP | once per Hero per turn; −1 AP; server rolls 2d6 (Q-10) → Modifier window → effect if total ≥ threshold. Sealing Key → `HERO_EFFECT_BLOCKED` |
 | `IMMEDIATE_ROLL` | `{ choice: "roll"\|"skip", targets? }` | actor, after own Hero entered Party | free roll of that Hero's effect (consumes its allowance) or skip; timeout = skip |
-| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12); the Leader fills a matching class slot but never an "any" slot (retail rulebook, owner 2026-11-02 — `leaderFillsClassSlot`); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, refill from Monster deck unless empty — Q-09) / PENALTY (choice) / nothing |
+| `ATTACK_MONSTER` | `{ monsterInstanceId }` | current player, ≥2 AP | face-up Monster; requirement checked now (Q-12); the Leader fills a matching class slot but never an "any" slot (retail rulebook, owner 2026-11-02 — `leaderFillsClassSlot`); −2 AP; roll → Modifier window → SLAY (to `slainMonsters`, then and only then refill that vacated slot unless the deck is empty — Q-09) / PENALTY (choice) / nothing |
 | `REACT_CHALLENGE` | `{ windowId, cardInstanceId }` | any non-actor while the Challenge window is open | first valid wins; server rolls both (RULE-17), then a Modifier window; challenger wins ties |
 | `REACT_MODIFIER` | `{ windowId, cardInstanceId, value, side?, leaderBonus? }` | any player, once per window | `value` ∈ card options; `side` (`challenger`\|`defender`) required only on Challenge rolls; `leaderBonus` ±1 only with The Protecting Horn |
 | `REACT_PASS` | `{ windowId }` | eligible responder | Skip; window closes early when all responded |
@@ -64,6 +70,7 @@ While `game.chain` is non-null or effect steps are queued, turn commands return 
 
 ### Deadlines (DO alarm)
 Windows last `settings.reactionSeconds` (20 s), choices / immediate roll `settings.choiceSeconds` (30 s); the timer never resets. On expiry (alarm, or before the next command): Challenge window → no challenge; Modifier window → closes; immediate roll → skip; choice → **skip** (nothing chosen, nothing happens; a "may" is declined) — owner 2026-11-02. Each settle bumps `revision` once — so a command sent right after an expiry gets `STALE_REVISION` and must be resent (new `commandId`) against the fresh snapshot.
+After a deadline is settled, the same DO alarm is re-armed to the next gameplay deadline or the room idle-expiry time, whichever is earlier. A resolved window's old deadline is not retained as the alarm target.
 "with a <class> in their Party" (Tough Teddy, Smooth Mimimeow) counts the Leader's class: the Leader is in the Party (RB). Q-01 only concerns Monster requirement slots.
 
 ### Effects
@@ -116,7 +123,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
 
 ## HTTP errors
 
-`{ ok: false, error: { code, message } }`: 400 `INVALID_JSON`/`INVALID_NICKNAME`/`INVALID_MODE`/`INVALID_COMMAND`; 401 `UNAUTHORIZED`; 404 `ROOM_NOT_FOUND`/`NOT_FOUND`; 409 `ROOM_FULL` (7th player), `NICKNAME_TAKEN`, `SETUP_LOCKED` (join after selection begins), `EXPANSION_UNSUPPORTED`, `ROOM_CODE_TAKEN`; 413 `BODY_TOO_LARGE`; 429 `RATE_LIMITED`.
+`{ ok: false, error: { code, message } }`: 400 `INVALID_JSON`/`INVALID_NICKNAME`/`INVALID_MODE`/`INVALID_ROOM_CODE`/`INVALID_COMMAND`; 401 `UNAUTHORIZED`; 404 `ROOM_NOT_FOUND`/`NOT_FOUND`; 409 `ROOM_FULL`, `SESSION_ACTIVE`, `SETUP_LOCKED`, `EXPANSION_UNSUPPORTED`, `ROOM_CODE_TAKEN`; 413 `BODY_TOO_LARGE`; 429 `RATE_LIMITED`.
 
 ## Snapshot (`mode: "base"`)
 
@@ -133,7 +140,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
-    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: { id, resolvedAt, outcome: success|fail|slay|penalty|none|challenge_succeeded|challenge_failed, roll, card } — outcome decided by the server, display only */;
+    mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: server outcome, display only; null for a viewer when it references a card that is currently in another player's hand or the deck */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice
     winnerPlayerId; winReason; log: {seq,text}[]; settings: BaseGameSettings;

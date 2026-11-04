@@ -52,14 +52,12 @@ Read against `product-decisions.md` (later sections override earlier), `RULES-00
 | Hero once per turn incl. immediate roll | ✔ | `heroRollsUsed`; Skip does not consume the allowance, a roll does |
 | G-03 last AP | ✔ | turn auto-ends once, after chain/queue empty |
 
-### Mismatches / observations (no Critical/High found)
+### Settled decisions / observations (no Critical/High found)
 
-1. **MISMATCH-1 (Low, rule) — card owner cannot Skip the Challenge window.** `base-engine.ts:1083` builds `responders` without `attempt.actorId`; `pass()` (l.1207) then returns `NOT_ELIGIBLE` for the owner (verified). Decision "Duyệt Foundation và reaction participation" (2026-10-28): *every* player participates in the Challenge and Modifier windows, "người chơi lá cũng có thể Skip trong window chung; gửi self-Challenge bị từ chối". Expected: owner REACT_PASS accepted and counted for early close (or an explicit owner decision that the owner is not a participant). Actual: owner Skip rejected; window closes when all *others* passed. Gameplay-neutral for rules, but a UI that shows the owner a Skip button would get an error. `GAME_ROOM_API.md` ("any non-actor") agrees with the code, so one of the two documents needs the owner's call.
-2. **MISMATCH-2 (Low, doc/contract) — choice and immediate-roll deadlines use `choiceSeconds` (30 s)** (`base-engine.ts:622, 664, 1272`), whereas PC-CONTRACT-001-PM says choice deadlines reuse the same duration as `reactionSeconds` (20 s). `GAME_ROOM_API.md` documents the 30 s split (MOD-005), so this is a superseded contract rather than a bug; the product-decisions file has no decision for it.
-3. **Stale documentation (Info).** `base-cards.json` carries 15 provenance notes (first at l.341) saying "Leader does not fill a slot in engine by owner decision Q-01" — superseded by "lần 2"; `RULES-001_TURN_LOOP_SPEC.md` MON-04 / EC-07 / Q-01 still show the old default ("Reject"); `base-engine.ts:1417` doc comment for `settleDeadlines` still says "choice → first `min` eligible cards" (code correctly skips). No behaviour impact.
-4. **Mega Slime** makes AP 4 on its holder's turns (`base-game.ts:207`); the "AP ≤ 3" invariant has this single, card-driven exception. Intended per card text, not in RULES-001.
-5. **Data**: Dracos has inverted ranges (slay ≤ 5, penalty ≥ 8) — documented in the card's `notes` and unit-tested; engine classifies slay first. Looks odd but is sourced (S/J/L agree).
-6. **Q-11 remains "CẦN XÁC NHẬN"** in product-decisions; default (does not occupy the slot) is implemented and switchable.
+1. **CHALLENGE-SKIP settled.** The card actor is excluded from the Challenge responders; only opponents answer. Actor `REACT_PASS` returns `NOT_ELIGIBLE`. Mandatory conformance test is in `audit-rules.test.ts`.
+2. **CHOICE-TIMER settled.** Reaction uses `reactionSeconds` (default 20 s); choices and immediate rolls use `choiceSeconds` (default 30 s). Mandatory conformance test is in `audit-rules.test.ts`.
+3. **Mega Slime** makes AP 4 on its holder's turns (`base-game.ts:207`); the "AP ≤ 3" invariant has this single, card-driven exception.
+4. **Data**: Dracos has inverted ranges (slay ≤ 5, penalty ≥ 8), documented in its source notes and unit-tested.
 
 ## What could not be checked
 * Durable Object layer (`room.ts`: auth, idempotency receipts, STALE_REVISION, rate limits, persistence/recovery, disconnect handling, real alarm scheduling) — the simulation drives the pure game module with a harness that mimics settle-then-apply; the 30 integration tests cover the DO only on a small number of paths.

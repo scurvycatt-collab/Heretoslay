@@ -176,7 +176,6 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
     game.botNextActAt ??= null;
     game.botPaceAt ??= null;
     game.settings = { ...DEFAULT_SETTINGS, ...game.settings };
-    if (game.phase !== "game_over") refillFaceUpMonsters(game);
     return game;
   }
   const defaults = initialBaseGameState();
@@ -595,7 +594,6 @@ export function applyBaseCommand(
   if (code === "ACCEPTED") {
     // A human action just happened: bots wait before reacting so the player can follow what is going on.
     if (roster.players.some((player) => player.isBot)) game.botPaceAt = deps.now() + BOT_REACT_MS;
-    if ((game.phase as string) !== "game_over") refillFaceUpMonsters(game); // table always shows 3 Monsters while the deck lasts
     updateTurnTimer(game, deps.now());
     runBots(game, roster, deps);
   }
@@ -809,7 +807,6 @@ export function settleBaseGame(game: BaseGameState, roster: BaseRoster, deps: Ba
     let step = settleDeadlines(game, deps, HOOKS);
     step = settleTurnTimer(game, deps) || step;
     step = runBots(game, roster, deps) || step;
-    if (game.phase !== "game_over") step = refillFaceUpMonsters(game) || step;
     step = updateTurnTimer(game, deps.now()) || step;
     if (!step) break;
     changed = true;
@@ -849,6 +846,20 @@ function rollView(roll: RollState): BaseRollView {
   }
   if (roll.kind === "hero_effect") return { ...base, heroInstanceId: roll.heroCardId, threshold: roll.threshold };
   return { ...base, monsterInstanceId: roll.monsterId };
+}
+
+function rollReferencesHiddenCard(game: BaseGameState, viewerId: string, roll: RollState, subject: BaseCard | null): boolean {
+  const hidden = new Set<string>(game.mainDeck.map((card) => card.cardId));
+  for (const seat of game.seats) {
+    if (seat.playerId !== viewerId) for (const card of seat.hand) hidden.add(card.cardId);
+  }
+  const referenced = [
+    ...roll.modifiers.map((entry) => entry.cardId),
+    ...(roll.kind === "challenge" ? [roll.attempt.card.cardId] : []),
+    ...(roll.kind === "hero_effect" ? [roll.heroCardId] : []),
+    ...(subject ? [subject.cardId] : []),
+  ];
+  return referenced.some((cardId) => hidden.has(cardId));
 }
 
 function chainView(game: BaseGameState, viewerId: string): BaseChainView | null {
@@ -897,12 +908,13 @@ function chainView(game: BaseGameState, viewerId: string): BaseChainView | null 
 export function projectBaseGame(
   rawGame: BaseGameState,
   roster: BaseRoster,
-  meta: { roomCode: string; revision: number; serverNow: number },
+  meta: { roomCode: string; revision: number; serverNow: number; viewerNickname?: string },
   viewerPlayerId: string,
 ): BaseGameSnapshot {
   const game = normalizeBaseGame(rawGame);
   const seats = new Map(game.seats.map((seat) => [seat.playerId, seat]));
-  const viewer = roster.players.find((player) => player.playerId === viewerPlayerId);
+  const viewer = roster.players.find((player) => player.playerId === viewerPlayerId) ??
+    (meta.viewerNickname ? { playerId: viewerPlayerId, nickname: meta.viewerNickname, isBot: false } : undefined);
   if (!viewer) throw new Error("Viewer is not seated in this room");
   return {
     mode: "base",
@@ -957,7 +969,7 @@ export function projectBaseGame(
       faceUpMonsters: game.faceUpMonsters.map(monsterView),
       discardCount: game.discard.length,
       discardPile: game.discard.map(cardView),
-      lastRoll: game.lastRoll
+      lastRoll: game.lastRoll && !rollReferencesHiddenCard(game, viewerPlayerId, game.lastRoll.roll, game.lastRoll.subject)
         ? {
             id: game.lastRoll.id,
             resolvedAt: game.lastRoll.resolvedAt,

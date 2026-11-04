@@ -63,7 +63,7 @@ if (!baseUrl) {
 
     const duplicate = await join(code, " guest ");
     assert.equal(duplicate.response.status, 409);
-    assert.equal(duplicate.json.error.code, "NICKNAME_TAKEN");
+    assert.equal(duplicate.json.error.code, "SESSION_ACTIVE");
     const invalid = await join(code, "   ");
     assert.equal(invalid.response.status, 400);
     assert.equal(invalid.json.error.code, "INVALID_NICKNAME");

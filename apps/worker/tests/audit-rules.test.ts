@@ -1,7 +1,6 @@
 // AUDIT-001 (QA) — rule-conformance spot checks against the owner decisions
 // (product-decisions.md: "Owner chốt RULES-001", "lần 2", "lần 3") and RULES-001.
-// Each test names the decision ID it audits. Mismatches are NOT asserted here; they are
-// listed in docs/qa/AUDIT-001_REPORT.md (and as test.todo at the bottom).
+// Each test names the decision ID it audits. Settled product decisions are mandatory assertions.
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -335,6 +334,36 @@ test("Q-06/Q-07/Q-12: Item→own Hero only, Cursed→any; target lost before res
   assert.equal(t2.seat(m2).slain.length, 1, "requirement is not re-checked after the roll");
 });
 
-// ---------------------------------------------------------------- Part 2 mismatches (documented, not asserted)
-test.todo("MISMATCH-1 (low): Challenge window excludes the card's owner from `responders`; product decision 'Duyệt Foundation' says every player (card owner included) may Skip — owner REACT_PASS currently returns NOT_ELIGIBLE and early close ignores the owner");
-test.todo("MISMATCH-2 (low): Hero immediate roll / choices use settings.choiceSeconds (30s) whereas PC-CONTRACT-001-PM says choice deadlines reuse reactionSeconds (20s); GAME_ROOM_API documents the 30s split");
+// ---------------------------------------------------------------- CHALLENGE-SKIP / CHOICE-TIMER
+test("CHALLENGE-SKIP: card actor is excluded; only opponents must answer", () => {
+  const t = table(["the-cloaked-sage", "the-charismatic-song"]);
+  const actor = t.active();
+  const opponent = t.others()[0];
+  const hero = t.give(actor, HERO("peanut"));
+  assert.equal(t.run(actor, "PLAY_HAND_CARD", { cardInstanceId: hero.cardId }), "ACCEPTED");
+  const challenge = t.game.chain!;
+  assert.equal(challenge.step, "challenge_window");
+  if (challenge.step !== "challenge_window") return;
+  assert.equal(Object.hasOwn(challenge.responders, actor), false);
+  assert.equal(challenge.responders[opponent], "pending");
+  assert.equal(t.run(actor, "REACT_PASS", { windowId: challenge.windowId }), "NOT_ELIGIBLE");
+  assert.equal(t.run(opponent, "REACT_PASS", { windowId: challenge.windowId }), "ACCEPTED");
+  assert.equal(t.game.chain?.step, "immediate_roll_choice");
+});
+
+test("CHOICE-TIMER: reactions use 20s while choices and immediate rolls use 30s", () => {
+  const t = table(["the-cloaked-sage", "the-charismatic-song"], { reactionSeconds: 20, choiceSeconds: 30 });
+  const actor = t.active();
+  const opponent = t.others()[0];
+  const hero = t.give(actor, HERO("peanut"));
+  assert.equal(t.run(actor, "PLAY_HAND_CARD", { cardInstanceId: hero.cardId }), "ACCEPTED");
+  const challenge = t.game.chain!;
+  assert.equal(challenge.step, "challenge_window");
+  if (challenge.step !== "challenge_window") return;
+  assert.equal(challenge.deadlineAt, t.clock.now + 20_000);
+  assert.equal(t.run(opponent, "REACT_PASS", { windowId: challenge.windowId }), "ACCEPTED");
+  const choice = t.game.chain!;
+  assert.equal(choice.step, "immediate_roll_choice");
+  if (choice.step !== "immediate_roll_choice") return;
+  assert.equal(choice.deadlineAt, t.clock.now + 30_000);
+});

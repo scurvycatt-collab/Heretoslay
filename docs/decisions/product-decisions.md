@@ -165,3 +165,16 @@ Owner tiếp tục theo approach mới; PM duyệt narrow contract delta EF_FOLL
 | ROLL-TARGET | Hero/Magic/Item cần mục tiêu: hỏi mục tiêu ngay lúc chơi/roll (chỉ liệt kê lựa chọn hợp lệ), không còn bị từ chối âm thầm `INVALID_TARGET`. | UI `TargetDialog` / `TargetOptions`; server vẫn validate (Q-08) |
 | BOT-AUTO | Bot tự xử lý hết: tự Skip cửa sổ phản ứng, tự roll, tự chọn khi có lựa chọn, tự chơi lượt. | bot driver (base-game.ts `runBots`) |
 | BOT-RESULT | Màn kết quả roll của bot hiển thị như của người chơi (tự ẩn ~5 s hoặc CONTINUE). | `ResultStage` không phân biệt bot |
+
+## Owner xác nhận lần 6 (2026-11-04)
+
+- `CHALLENGE-SKIP`: giữ quyết định lần 4 — người đánh lá không tham gia Challenge của chính lá đó; chỉ đối thủ phải Challenge hoặc Skip.
+- `CHOICE-TIMER`: giữ hai timer riêng — reaction mặc định 20 giây; choice và immediate roll mặc định 30 giây.
+- Hai quyết định này là contract bắt buộc, không còn là TODO/mismatch.
+
+## Owner xác nhận lần 7 (2026-11-04)
+
+- `View` xem trận trực tiếp bằng tên + mã phòng: spectator không chiếm ghế, không có bài riêng và không gửi command.
+- Tạo phòng cho nhập mã 6 ký tự tùy chọn; bỏ trống thì sinh ngẫu nhiên.
+- Tên + mã phòng khôi phục ghế ngay khi phiên cũ offline; đóng/rời trang gửi `disconnect` tức thì, mất mạng đột ngột dùng heartbeat dự phòng 3 giây. Token mới vô hiệu token cũ; phiên cũ còn online trả `SESSION_ACTIVE`.
+- URL công khai chỉ chứa mã phòng, không chứa playerId. Bộ chọn ngôn ngữ chỉ hiện ở trang chủ; `HERE TO SLAY` giữ nguyên; `LEADER` dùng rule chung `THỦ LĨNH`.

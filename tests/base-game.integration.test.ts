@@ -78,6 +78,7 @@ function runtime() {
     join: (code: string, nickname: string) =>
       request(`/api/rooms/${code}/join`, { method: "POST", body: { nickname } }),
     snapshot: (code: string, token: string) => request(`/api/rooms/${code}/snapshot`, { token }),
+    disconnect: (code: string, token: string) => request(`/api/rooms/${code}/disconnect`, { method: "POST", token }),
     command: (code: string, token: string, body: Record<string, unknown>) =>
       request(`/api/rooms/${code}/commands`, { method: "POST", token, body }),
   };
@@ -126,7 +127,7 @@ async function startGame(api: Api, code: string, players: Session[]) {
   return started.json.snapshot;
 }
 
-test("base: create returns a server room code and non-demo snapshot; join, duplicate nickname and reconnect", async () => {
+test("base: create returns a server room code and room+nickname reconnects the same seat", async () => {
   const api = runtime();
   const host = await api.create("Host");
   assert.equal(host.response.status, 201);
@@ -144,13 +145,18 @@ test("base: create returns a server room code and non-demo snapshot; join, dupli
   assert.equal(guest.response.status, 201);
   assert.equal(guest.json.snapshot.players.length, 2);
 
+  const activeDuplicate = await api.join(code, "  guest ");
+  assert.equal(activeDuplicate.response.status, 409);
+  assert.equal(activeDuplicate.json.error.code, "SESSION_ACTIVE");
+  assert.equal((await api.disconnect(code, guest.json.sessionToken)).response.status, 200);
   const duplicate = await api.join(code, "  guest ");
-  assert.equal(duplicate.response.status, 409);
-  assert.equal(duplicate.json.error.code, "NICKNAME_TAKEN");
-  assert.equal("sessionToken" in duplicate.json, false);
+  assert.equal(duplicate.response.status, 201);
+  assert.equal(duplicate.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);
+  assert.notEqual(duplicate.json.sessionToken, guest.json.sessionToken);
+  assert.equal((await api.snapshot(code, guest.json.sessionToken)).response.status, 401);
 
   // Reload: same token → same seat, no new player.
-  const reload = await api.snapshot(code, guest.json.sessionToken);
+  const reload = await api.snapshot(code, duplicate.json.sessionToken);
   assert.equal(reload.response.status, 200);
   assert.equal(reload.json.snapshot.you.playerId, guest.json.snapshot.you.playerId);
   assert.equal(reload.json.snapshot.players.length, 2);
