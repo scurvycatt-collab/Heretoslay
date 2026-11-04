@@ -31,6 +31,10 @@ Card inspection keeps all desktop paths: hover for two seconds, Ctrl/Command-cli
 
 On the table, every player name tag shows the server-projected hand count immediately beside the name. The count is public quantity only; card identities remain private to their owner.
 
+Each Party is limited to six deployed Hero cards. Once full, Hero play is disabled with an explanation; the server rejects a direct seventh-Hero command and prevents STEAL/MOVE effects from exceeding the same limit.
+
+Every full-screen selection state—including card choice, function choice, opponent-card targeting for STEAL/DESTROY, and nested target selection—has a `TABLE` control and supports `Esc`. Returning to the table is presentation-only: it preserves the authoritative pending choice and never submits, skips, or invents a selection. If a nested target dialog was opened from a reaction/choice stage, that underlying stage is collapsed first so closing the target dialog reveals the table rather than another blocking overlay.
+
 On desktop, cards in hand overlap progressively as the hand grows, up to a 78% overlap. The deployed Party retains its own bounded region beside the hand so a large hand does not cover Hero cards.
 
 Full-card inspection supports a 2-second hover (no modifier key) and right-click on desktop, plus long-press on touch. The native context menu is suppressed only for inspectable cards.

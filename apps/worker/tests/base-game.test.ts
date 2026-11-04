@@ -189,6 +189,30 @@ test("DRAW costs 1 AP, REDRAW costs 3 AP and discards the hand, END_TURN advance
   assert.equal(game.turnOrder[game.currentPlayerIndex], "p1", "turn ends when AP reaches 0");
 });
 
+test("a Party is limited to 6 deployed Heroes and a seventh is rejected without mutation", () => {
+  const { game, players, d } = startedGame(2);
+  const activeId = game.turnOrder[game.currentPlayerIndex];
+  const activeSeat = game.seats.find((seat) => seat.playerId === activeId)!;
+  const pools = [activeSeat.hand, game.mainDeck];
+  const heroes = pools.flat().filter((card) => card.kind === "hero").slice(0, 7);
+  assert.equal(heroes.length, 7);
+  for (const hero of heroes.slice(0, 6)) {
+    for (const pool of pools) {
+      const index = pool.findIndex((card) => card.cardId === hero.cardId);
+      if (index >= 0) pool.splice(index, 1);
+    }
+    activeSeat.party.push({ card: hero, item: null });
+  }
+  const seventh = heroes[6];
+  if (!activeSeat.hand.some((card) => card.cardId === seventh.cardId)) {
+    const index = game.mainDeck.findIndex((card) => card.cardId === seventh.cardId);
+    activeSeat.hand.push(game.mainDeck.splice(index, 1)[0]);
+  }
+  const before = structuredClone(game);
+  assert.equal(applyBaseCommand(game, players, activeId, cmd("PLAY_HAND_CARD", { cardInstanceId: seventh.cardId, targets: {} }), d), "PARTY_FULL");
+  assert.deepEqual(game, before);
+});
+
 test("demo-only commands are a mode mismatch in base", () => {
   const { game, players, d } = startedGame(2);
   const before = structuredClone(game);

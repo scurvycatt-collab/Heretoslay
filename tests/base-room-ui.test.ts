@@ -103,3 +103,29 @@ test("each table name tag shows the authoritative hand count beside the player n
   assert.match(room, /className="t3-hand-count" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 \{player\.handCount\}/);
   assert.match(css, /\.t3-hand-count \{ flex: 0 0 auto;/);
 });
+
+test("playing a Hero is disabled when the Party already has 6 Heroes", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  assert.match(room, /partyFull=\{\(mySeat\?\.party\.length \?\? 0\) >= 6\}/);
+  assert.match(room, /card\.kind === "hero" && partyFull/);
+  assert.match(room, /Party is limited to 6 Heroes/);
+});
+
+test("every card/function/target selection can return to the table without submitting", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const targetDialog = room.slice(room.indexOf("function TargetDialog"), room.indexOf("/* --------------------------------------------------------------- inspector */"));
+  const reaction = room.slice(room.indexOf("function ReactionStage"), room.indexOf("/* --------------------------------------------------------------- popups */"));
+  assert.match(targetDialog, /className="t3-stage-min" onClick=\{onClose\}[^>]*>◱ TABLE<\/button>/);
+  assert.match(targetDialog, /event\.key === "Escape"\) onClose\(\)/);
+  assert.match(reaction, /className="t3-stage-min" onClick=\{\(\) => setCollapsed\(true\)\}[^>]*>◱ TABLE<\/button>/);
+  assert.match(reaction, /const openTargetDialog = \(request: TargetRequest\) => \{\s*setCollapsed\(true\);\s*askTargets\(request\);/);
+  assert.doesNotMatch(reaction, /(?<!openTargetDialog\()askTargets\(\{/);
+});
+
+test("Whiskers' STEAL/DESTROY target picker has an explicit TABLE escape", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const cards = await readFile(new URL("../apps/worker/src/content/base-cards.json", import.meta.url), "utf8");
+  assert.match(cards, /"definitionId": "hts\.base\.v1\.hero\.whiskers"[\s\S]*?"target": "two_heroes_other_party"/);
+  const targetDialog = room.slice(room.indexOf("function TargetDialog"), room.indexOf("/* --------------------------------------------------------------- inspector */"));
+  assert.match(targetDialog, /aria-label="Hide target selection to view the table">◱ TABLE<\/button>/);
+});

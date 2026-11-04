@@ -27,6 +27,7 @@ import {
 import { drawCards, type SetupTable } from "./setup-core.ts";
 
 export const LOG_LIMIT = 30;
+export const PARTY_CARD_LIMIT = 6;
 
 export interface BaseSeat extends RulesSeat {}
 
@@ -861,6 +862,10 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         log(game, `STEAL: Hero của ${whoName(game, found.seat.playerId)} không thể bị steal — bỏ qua`);
         return false;
       }
+      if (to.party.length >= PARTY_CARD_LIMIT) {
+        log(game, `STEAL: Party của ${whoName(game, step.toPlayerId)} đã đủ ${PARTY_CARD_LIMIT} Hero — bỏ qua`);
+        return false;
+      }
       found.seat.party.splice(found.index, 1);
       to.party.push(found.hero);
       log(game, `${whoName(game, step.toPlayerId)} STEAL ${cardName(found.hero.card.definitionId)} của ${whoName(game, found.seat.playerId)}`);
@@ -870,6 +875,10 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       const found = findHero(game, step.heroCardId);
       const to = seatOf(game, step.toPlayerId);
       if (!found || !to || found.seat === to) return false;
+      if (to.party.length >= PARTY_CARD_LIMIT) {
+        log(game, `Party của ${whoName(game, step.toPlayerId)} đã đủ ${PARTY_CARD_LIMIT} Hero — không chuyển thêm`);
+        return false;
+      }
       if (step.onlyIfOwns && findHero(game, step.onlyIfOwns.heroCardId)?.seat.playerId !== step.onlyIfOwns.playerId) {
         log(game, "Không STEAL được — không chuyển Hero");
         return false;
@@ -1389,11 +1398,13 @@ function closeModifierWindow(game: EngineState, deps: EngineDeps, hooks: EngineH
 function canPlaySomewhere(game: EngineState, seat: BaseSeat, card: BaseCard): boolean {
   if (card.kind === "item") return seat.party.some((hero) => !hero.item);
   if (card.kind === "cursed_item") return game.seats.some((other) => other.party.some((hero) => !hero.item));
-  return card.kind === "hero" || card.kind === "magic";
+  if (card.kind === "hero") return seat.party.length < PARTY_CARD_LIMIT;
+  return card.kind === "magic";
 }
 
 /** Validation shared by PLAY_HAND_CARD and free plays (RULE-08, Q-06, Q-08). */
 export function playTargetError(game: EngineState, seat: BaseSeat, card: BaseCard, targets: BaseTargets): string | null {
+  if (card.kind === "hero" && seat.party.length >= PARTY_CARD_LIMIT) return "PARTY_FULL";
   if (card.kind === "item" || card.kind === "cursed_item") {
     const targetId = targets.heroInstanceIds?.[0];
     const found = targetId ? findHero(game, targetId) : null;
@@ -1416,6 +1427,12 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
   const card = attempt.card;
   const continuation = attempt.continuation ?? [];
   if (card.kind === "hero") {
+    if (actor.party.length >= PARTY_CARD_LIMIT) {
+      game.discard.push(card);
+      log(game, `${cardName(card.definitionId)}: Party đã đủ ${PARTY_CARD_LIMIT} Hero — vào discard`);
+      game.queue.unshift(...continuation);
+      return;
+    }
     actor.party.push({ card, item: null });
     log(game, `${whoName(game, attempt.actorId)} đưa ${cardName(card.definitionId)} vào Party`);
     // RULE-06: optional immediate roll (free) — skip if the Hero cannot use its effect.

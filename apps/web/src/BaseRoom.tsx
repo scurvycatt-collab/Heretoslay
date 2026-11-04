@@ -181,8 +181,14 @@ type TargetRequest = { title: string; verb: string; card: CardLike; rule: PickRu
 
 function TargetDialog({ state, request, onClose }: { state: BaseGameSnapshot; request: TargetRequest; onClose: () => void }) {
   const [targets, setTargets] = useState<BaseTargets | null>(null);
+  useEffect(() => {
+    const returnToTable = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    window.addEventListener("keydown", returnToTable);
+    return () => window.removeEventListener("keydown", returnToTable);
+  }, [onClose]);
   return (
     <div className="t3-pileview t3-target-dialog" role="dialog" aria-label={request.title} onClick={onClose}>
+      <button className="t3-stage-min" onClick={onClose} aria-label="Hide target selection to view the table">◱ TABLE</button>
       <div className="t3-target-panel" onClick={(e) => e.stopPropagation()}>
         <div className="t3-target-card"><CardRenderer card={request.card} size="lg" /></div>
         <div className="t3-target-body">
@@ -650,6 +656,10 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
         ? chain.actorPlayerId === me
         : chain.playerId === me;
   const [collapsed, setCollapsed] = useState(!needsMe);
+  const openTargetDialog = (request: TargetRequest) => {
+    setCollapsed(true);
+    askTargets(request);
+  };
   useEffect(() => {
     const returnToTable = (event: KeyboardEvent) => {
       if (event.key === "Escape") setCollapsed(true);
@@ -859,7 +869,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
             const rule = card && card.kind !== "hero" ? ruleFor(card) : null;
             if (card && rule) {
               const ids = picked;
-              askTargets({ title: `Targets for ${card.name}`, verb: "PLAY", card, rule, onConfirm: (t) => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: ids, targets: t }) });
+              openTargetDialog({ title: `Targets for ${card.name}`, verb: "PLAY", card, rule, onConfirm: (t) => send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: ids, targets: t }) });
             } else {
               send("RESOLVE_CHOICE", { choiceId: chain.choiceId, cardInstanceIds: picked, ...(chain.kind === "play_card" && picked.length ? { targets: {} } : {}) });
             }
@@ -991,7 +1001,7 @@ function DiscardView({ pile, count, onClose }: { pile: BaseCardView[]; count: nu
 
 /* --------------------------------------------------------------------- hand */
 
-function Hand({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolean; onPlay: (card: BaseCardView) => void }) {
+function Hand({ hand, canPlay, partyFull, onPlay }: { hand: BaseCardView[]; canPlay: boolean; partyFull: boolean; onPlay: (card: BaseCardView) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const n = hand.length;
   const handShift = -Math.min(0.78, 0.2 + Math.max(0, n - 5) * 0.055);
@@ -1011,7 +1021,7 @@ function Hand({ hand, canPlay, onPlay }: { hand: BaseCardView[]; canPlay: boolea
             {isSel && (
               <div className="t3-hand-actions">
                 {playable ? (
-                  <button className="t3-btn t3-btn--continue" disabled={!canPlay} onClick={() => { onPlay(card); setSelected(null); }}>PLAY · 1 AP</button>
+                  <button className="t3-btn t3-btn--continue" disabled={!canPlay || (card.kind === "hero" && partyFull)} title={card.kind === "hero" && partyFull ? "Party is limited to 6 Heroes" : undefined} onClick={() => { onPlay(card); setSelected(null); }}>PLAY · 1 AP</button>
                 ) : (
                   <span className="t3-chip">{card.kind === "modifier" ? "Used on a roll" : "Used to challenge"}</span>
                 )}
@@ -1390,6 +1400,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               <Hand
                 hand={state.yourHand}
                 canPlay={!pending && free && ap >= 1}
+                    partyFull={(mySeat?.party.length ?? 0) >= 6}
                 onPlay={(card) => {
                   const rule = card.kind === "hero" ? null : ruleFor(card); // Heroes need targets only when they roll
                   if (!rule) send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets: {} });
