@@ -200,23 +200,24 @@ function TargetDialog({ state, request, onClose }: { state: BaseGameSnapshot; re
 
 /* --------------------------------------------------------------- inspector */
 
-function useModifierKey() {
-  const [held, setHeld] = useState(false);
+const INSPECT_DWELL_MS = 2000;
+
+/** True once the pointer has rested on the same card for INSPECT_DWELL_MS (no key needed). */
+function useInspectDwell(hovered: { card: CardLike; pinned: boolean } | null) {
+  const [ready, setReady] = useState(false);
+  const key = hovered ? `${hovered.card.cardId ?? hovered.card.definitionId}` : null;
   useEffect(() => {
-    const down = (e: KeyboardEvent) => { if (e.key === "Control" || e.key === "Meta") setHeld(true); };
-    const up = (e: KeyboardEvent) => { if (e.key === "Control" || e.key === "Meta") setHeld(false); };
-    const reset = () => setHeld(false);
-    window.addEventListener("keydown", down);
-    window.addEventListener("keyup", up);
-    window.addEventListener("blur", reset);
-    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("blur", reset); };
-  }, []);
-  return held;
+    setReady(false);
+    if (!key) return;
+    const timer = window.setTimeout(() => setReady(true), INSPECT_DWELL_MS);
+    return () => window.clearTimeout(timer);
+  }, [key]);
+  return ready;
 }
 
-/** Full-size card while Ctrl/⌘ is held, after right-click, or on touch long-press. */
-function Inspector({ hovered, held }: { hovered: { card: CardLike; rect: DOMRect | null; pinned: boolean } | null; held: boolean }) {
-  if (!hovered || (!held && !hovered.pinned)) return null;
+/** Full-size card after hovering one card for 2 seconds, after right-click, or on touch long-press. */
+function Inspector({ hovered, ready }: { hovered: { card: CardLike; rect: DOMRect | null; pinned: boolean } | null; ready: boolean }) {
+  if (!hovered || (!ready && !hovered.pinned)) return null;
   const tall = hovered.card.kind === "monster" || hovered.card.kind === "party_leader";
   const ratio = tall ? 1.713 : 1.396;
   const vw = window.innerWidth;
@@ -792,7 +793,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     ) : chain.kind === "confirm" ? null : chain.options ? (
       <div className="t3-choice">
         <p className="t3-muted">
-          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hold Ctrl + hover or right-click for full text.
+          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hover a card for 2s or right-click for full text.
           {chain.kind === "play_card" && <> You will choose targets after confirming.</>}
         </p>
         <div className="t3-choice-row">
@@ -958,7 +959,7 @@ function DiscardView({ pile, count, onClose }: { pile: BaseCardView[]; count: nu
         </div>
         <button className="t3-pileview-nav" onClick={() => scroll(1)} aria-label="Scroll right">▶</button>
       </div>
-      <p className="t3-pileview-hint">Newest first · hold <kbd>Ctrl</kbd> + hover or right-click to enlarge · click outside or <kbd>Esc</kbd> to close</p>
+      <p className="t3-pileview-hint">Newest first · hover a card for 2s or right-click to enlarge · click outside or <kbd>Esc</kbd> to close</p>
     </div>
   );
 }
@@ -1158,7 +1159,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
       else stackTimer.current = window.setTimeout(() => setStack(null), 260);
     },
   };
-  const held = useModifierKey();
+  const inspectReady = useInspectDwell(hovered);
   const [toasts, dismissToast] = useLogToasts(game.log);
   const yourTurn = useYourTurn(game.phase === "turn_active" ? game.currentPlayerId : null, me);
   const mySeat = state.players.find((p) => p.playerId === me);
@@ -1387,7 +1388,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                 )}
               </div>
 
-              <p className="t3-hint">Hold <kbd>Ctrl</kbd> + hover a card for full details</p>
+              <p className="t3-hint">Hover a card for 2s for full details</p>
             </section>
 
             {yourTurn && <div className="t3-yourturn" role="status" aria-live="assertive"><b>YOUR TURN</b></div>}
@@ -1434,7 +1435,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
         {panel === "help" && (
           <Popup title="CONTROLS" onClose={() => setPanel(null)}>
             <ul className="t3-help">
-              <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + hover — full card (touch: long-press)</li>
+              <li>Hover a card for 2s — full card (right-click, or touch: long-press)</li>
               <li>Click a hand card — lift it, then PLAY</li>
               <li>Effects that need a target ask for it when you play / roll</li>
               <li><kbd>D</kbd> draw · <kbd>R</kbd> redeal · <kbd>E</kbd> pass turn · <kbd>L</kbd> log · <kbd>Esc</kbd> close</li>
@@ -1462,7 +1463,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
 
         {targetRequest && <TargetDialog key={targetRequest.title} state={state} request={targetRequest} onClose={() => setTargetRequest(null)} />}
 
-        <Inspector hovered={hovered} held={held} />
+        <Inspector hovered={hovered} ready={inspectReady} />
         {preTable && <p className="sr-note" role="status">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED."}</p>}
         {!preTable && notice && <p className="t3-notice" role="status">{notice}</p>}
       </main>
