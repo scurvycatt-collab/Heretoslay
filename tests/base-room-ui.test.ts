@@ -95,3 +95,10 @@ test("the host can start a clean game from game over without replacing the room"
   assert.match(room, /send\("NEW_GAME", \{\}\)/);
   assert.match(room, /NEW GAME · SAME ROOM/);
 });
+
+test("each table name tag shows the authoritative hand count beside the player name", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
+  assert.match(room, /className="t3-hand-count" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 \{player\.handCount\}/);
+  assert.match(css, /\.t3-hand-count \{ flex: 0 0 auto;/);
+});

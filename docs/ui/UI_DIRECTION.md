@@ -29,6 +29,8 @@ In the lobby, each non-host human player chooses a Party Leader and then explici
 
 Card inspection keeps all desktop paths: hover for two seconds, Ctrl/Command-click, or right-click. Ctrl/Command-click must consume the click so it never triggers the card's gameplay action. Touch keeps long-press inspection. The lobby action footer is sticky so a non-host player's Ready control remains visible below a large Leader grid; Ready occupies the same primary-action position and style as the host's Start Game control.
 
+On the table, every player name tag shows the server-projected hand count immediately beside the name. The count is public quantity only; card identities remain private to their owner.
+
 On desktop, cards in hand overlap progressively as the hand grows, up to a 78% overlap. The deployed Party retains its own bounded region beside the hand so a large hand does not cover Hero cards.
 
 Full-card inspection supports a 2-second hover (no modifier key) and right-click on desktop, plus long-press on touch. The native context menu is suppressed only for inspectable cards.

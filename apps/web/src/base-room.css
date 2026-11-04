@@ -78,7 +78,9 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-seat--me { left: 3%; bottom: 3%; flex-direction: row; align-items: flex-end; gap: 14px; }
 
 .t3-cluster { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.t3-nametag { padding: 1px 8px; background: var(--navy); color: #8fd3ff; border: 2px solid #07111c; font-size: 12px; white-space: nowrap; max-width: 18ch; overflow: hidden; text-overflow: ellipsis; z-index: 2; }
+.t3-nametag { display: inline-flex; align-items: center; gap: 6px; padding: 1px 8px; background: var(--navy); color: #8fd3ff; border: 2px solid #07111c; font-size: 12px; white-space: nowrap; max-width: 24ch; z-index: 2; }
+.t3-player-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.t3-hand-count { flex: 0 0 auto; padding-left: 6px; border-left: 1px solid currentColor; font-weight: 900; }
 .t3-nametag.is-active { background: var(--orange); color: #07111c; }
 .t3-hexes { position: relative; width: calc(var(--hex) * 3.1); height: calc(var(--hex) * 2.9); }
 .t3-hex { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: var(--hex); height: calc(var(--hex) * 1.15); margin: calc(var(--hex) * -0.575) 0 0 calc(var(--hex) * -0.5); transform: translate(calc(var(--dx) * var(--hex) * 1.04), calc(var(--dy) * var(--hex) * 1.04)); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: #dcdde0; color: #fff; transition: background 0.3s; }
