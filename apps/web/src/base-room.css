@@ -893,3 +893,83 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-seat-leader .tcard, .t3-seat-leader .t3-leader-card { --w: calc(var(--hex) * 2.35) !important; opacity: 1; transform: none; }
   .t3-seat--left .t3-cluster .t3-seat-leader, .t3-seat--right .t3-cluster .t3-seat-leader { right: auto; left: 50%; top: auto; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; }
 }
+
+/* =====================================================================
+   UI-010 (owner 2026-11-04): Challenge / Modifier screens fit ONE frame (no scrolling),
+   Leader class glyph in the avatar, my seat as big as the others, rounded "YOUR TURN" banner.
+   ===================================================================== */
+@media (min-width: 1101px) {
+  .t3-stage { overflow: hidden; padding: 3.2vh 3.2vw 2.4vh; gap: 1.6vh clamp(20px, 3vw, 56px); }
+  .t3-stage-head { gap: 0.8vh; }
+  .t3-stage-head h2 { font-size: clamp(18px, 3.4vh, 40px); letter-spacing: 2px; line-height: 1.15; margin-bottom: 0.6vh; }
+  .t3-stage-kicker { font-size: clamp(14px, 2.2vh, 26px); }
+  .t3-stage--challenge .t3-stage-kicker { font-size: clamp(34px, 8vh, 84px); line-height: 1; }
+  .t3-countdown.is-big b { font-size: clamp(30px, 6.4vh, 72px); }
+  .t3-countdown { gap: 0.6vh; }
+  .t3-stage-feature .tcard { --w: clamp(130px, 27vh, 340px); box-shadow: 0 0 0 4px #07111c, 0 0 0 8px var(--frame), 0 16px 36px rgb(0 0 0 / 0.5); }
+  .t3-stage .t3-roster { padding: 1vh 1.2vh; border-width: 4px; }
+  .t3-roster-row { padding: 0.8vh 4px; gap: 10px; }
+  .t3-roster-face { width: clamp(30px, 4.6vh, 48px); height: clamp(30px, 4.6vh, 48px); font-size: clamp(15px, 2.2vh, 22px); }
+  .t3-roster-name { font-size: clamp(14px, 2.2vh, 22px); }
+  .t3-stage-tray { padding-top: 5vh; padding-bottom: 1.4vh; gap: clamp(10px, 1.6vw, 28px); }
+  .t3-tray-card { transform: none; }
+  .t3-tray-card .tcard { --w: clamp(80px, 11.5vh, 140px); }
+  .t3-tray-actions { top: -4.6vh; gap: 8px; }
+  .t3-tray-actions .t3-btn { font-size: clamp(13px, 2vh, 20px); padding: 0.6vh 1.2vh; }
+  .t3-tray-options { gap: 2vh; }
+  .t3-seg { font-size: clamp(12px, 1.9vh, 18px); }
+  .t3-seg button { padding: 0.6vh 1.4vh; }
+  .t3-stage-primary .t3-btn { font-size: clamp(16px, 2.6vh, 28px); padding: 1.2vh clamp(24px, 3vw, 56px); }
+  .t3-modchips { gap: 0.8vh; }
+  .t3-modchip { font-size: clamp(12px, 1.9vh, 18px); padding: 0.4vh 1vh; }
+  .t3-stage--roll, .t3-stage--versus { row-gap: 1.6vh; }
+  .t3-stage-center .t3-versus { gap: 1.4vh; }
+  .t3-versus .t3-stat strong { font-size: clamp(24px, 5vh, 56px); }
+  .t3-versus .t3-stat small { font-size: clamp(10px, 1.5vh, 15px); }
+}
+
+/* Leader class glyph is the avatar's face now (no letter). */
+.t3-avatar-glyph { width: 66%; height: 66%; color: #fff; opacity: 0.96; filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.45)); }
+
+/* Slain Monster art: 4:5 box clipped to a hex, so the art is cropped not stretched. */
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-slain-hex, .t3-slain-hex.tcard { --w: calc(var(--hex) * 0.9) !important; width: calc(var(--hex) * 0.9); height: calc(var(--hex) * 1.125); aspect-ratio: 4 / 5 !important; }
+  .t3-cluster .t3-slain { gap: 2px; }
+  /* my seat matches the other seats */
+  .t3-seat--me { --s: 0.9 !important; }
+  .t3-felt--p5 .t3-seat--me, .t3-felt--p6 .t3-seat--me { --hex: clamp(26px, 4.1cqh, 48px); }
+}
+
+/* "YOUR TURN" — centred, rounded like the table's frame. */
+.t3-yourturn { position: fixed; left: 50%; top: 50%; z-index: 120; transform: translate(-50%, -50%); pointer-events: none; padding: clamp(14px, 3vh, 32px) clamp(40px, 6vw, 110px); border-radius: clamp(24px, 5vh, 56px); background: rgb(12 22 34 / 0.9); border: 5px solid var(--orange, #ff9a2e); box-shadow: 0 0 0 6px rgb(7 17 28 / 0.8), 0 18px 60px rgb(0 0 0 / 0.5), 0 0 40px rgb(255 154 46 / 0.35); animation: t3-yourturn 1.8s ease both; }
+.t3-yourturn b { display: block; color: #fff; font-size: clamp(32px, 7vh, 84px); letter-spacing: 6px; line-height: 1; text-shadow: 0 4px 0 #07111c, 0 0 18px rgb(255 154 46 / 0.6); }
+@keyframes t3-yourturn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.7); } 14% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } 22% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { .t3-yourturn { animation: t3-fade 0.2s both; } }
+
+/* UI-010b: roll / versus screens (Modifier window, results) in ONE frame, sized by viewport height. */
+@media (min-width: 1101px) {
+  .t3-stage--roll, .t3-stage--versus {
+    grid-template-columns: minmax(150px, 21%) minmax(0, 1fr) minmax(180px, 21%);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "head head head" "feature center roster" "tray tray tray" "primary primary primary";
+    align-content: stretch; row-gap: 1.4vh;
+  }
+  .t3-stage--roll .t3-stage-feature .tcard, .t3-stage--versus .t3-stage-feature .tcard { --w: clamp(110px, 22vh, 260px); }
+  .t3-stage--roll .t3-stage-center, .t3-stage--versus .t3-stage-center { align-self: center; }
+  .t3-stage--roll .t3-stage-primary, .t3-stage--versus .t3-stage-primary { align-self: end; }
+  .t3-stage .t3-gods { font-size: clamp(22px, 5vh, 56px); max-width: none; line-height: 1.05; letter-spacing: 2px; }
+  .t3-stage .t3-dim { font-size: clamp(14px, 2.4vh, 28px) !important; }
+  .t3-stage .t3-die { --die: clamp(40px, 7.4vh, 84px); box-shadow: 0 5px 0 rgb(0 0 0 / 0.4); }
+  .t3-stage .t3-dice { gap: clamp(14px, 2.2vw, 36px); padding: 0; }
+  .t3-stage .t3-stats-row { gap: clamp(8px, 1.2vw, 22px); }
+  .t3-stage .t3-stat strong, .t3-versus .t3-stat strong { font-size: clamp(22px, 5vh, 54px); }
+  .t3-stage .t3-stat small, .t3-versus .t3-stat small { font-size: clamp(10px, 1.5vh, 15px); letter-spacing: 1px; }
+  .t3-stage .t3-side h3 { font-size: clamp(16px, 3vh, 32px); }
+  .t3-stage .t3-side { gap: 1vh; }
+  .t3-stage .t3-vs { font-size: clamp(32px, 7vh, 80px); }
+  .t3-stage .t3-versus { gap: clamp(10px, 1.6vw, 28px); }
+  .t3-stage .t3-modchips { min-height: 0; }
+  .t3-stage-center .t3-tie-note { font-size: clamp(11px, 1.6vh, 16px); }
+  .t3-stage-center .t3-stage-copy { font-size: clamp(14px, 2.2vh, 24px); }
+}
+@media (min-width: 1101px) { .t3-stage-tray .t3-tray-options { margin-bottom: 5.4vh; } .t3-stage-tray { padding-top: 0; } }

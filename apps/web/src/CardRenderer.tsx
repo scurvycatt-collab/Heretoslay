@@ -20,10 +20,25 @@ function realArtStyle(definitionId: string, kind: BaseCardKind): CSSProperties |
   if (face === CARD_FACE_PLACEHOLDER) return null;
   const size = cardSize(kind);
   const r = (layoutFor(kind) as { art: { x: number; y: number; w: number; h: number } }).art;
+  // The art token is a 4:5 box; the art window of a complete face is not (monsters: 745x824), so
+  // crop it "cover"-style instead of stretching it to the box.
+  const BOX = 4 / 5;
+  const pct = (n: number) => `${Math.round(n * 1000) / 1000}%`;
+  if (r.w / r.h >= BOX) {
+    const visW = r.h * BOX;
+    const x = r.x + (r.w - visW) / 2;
+    return {
+      backgroundImage: `url("${face}")`,
+      backgroundSize: `${pct(size.width / visW * 100)} ${pct(size.height / r.h * 100)}`,
+      backgroundPosition: `${pct(x / (size.width - visW) * 100)} ${pct(r.y / (size.height - r.h) * 100)}`,
+    };
+  }
+  const visH = r.w / BOX;
+  const y = r.y + (r.h - visH) / 2;
   return {
     backgroundImage: `url("${face}")`,
-    backgroundSize: `${(size.width / r.w) * 100}% ${(size.height / r.h) * 100}%`,
-    backgroundPosition: `${(r.x / (size.width - r.w)) * 100}% ${(r.y / (size.height - r.h)) * 100}%`,
+    backgroundSize: `${pct(size.width / r.w * 100)} ${pct(size.height / visH * 100)}`,
+    backgroundPosition: `${pct(r.x / (size.width - r.w) * 100)} ${pct(y / (size.height - visH) * 100)}`,
   };
 }
 

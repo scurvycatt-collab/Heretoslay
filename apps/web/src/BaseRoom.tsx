@@ -327,7 +327,7 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
     </>
   );
   return (
-    <div className={`t3-cluster${isActive ? " is-active" : ""}`} title={`${player.nickname} · ✋ ${player.handCount} cards in hand · ◆ ${player.partyClasses.length}/6 classes · ☠ ${player.slainMonsters.length}/3 Monsters`}>
+    <div className={`t3-cluster${isActive ? " is-active" : ""}`}>
       <span className={`t3-nametag${isActive ? " is-active" : ""}`}>{player.isBot ? "🤖 " : ""}{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
       {player.leaderId && (
         <span className="t3-seat-leader t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
