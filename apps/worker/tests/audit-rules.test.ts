@@ -172,9 +172,9 @@ test("Q-10: no Hero/Monster dice are rolled until the player sends the roll comm
 });
 
 // ---------------------------------------------------------------- Q-11
-test("Q-11: Leader passive is shown as its own labelled entry and does NOT take the Modifier slot (switch available)", () => {
-  for (const [on, expected] of [[false, "pending"], [true, "played"]] as const) {
-    const t = table(["the-cloaked-sage", "the-divine-arrow"], { leaderPassiveUsesModifierSlot: on });
+test("Q-11/C10: Leader passive is shown as its own labelled entry and never takes a Modifier slot", () => {
+  for (const expected of ["pending"] as const) {
+    const t = table(["the-cloaked-sage", "the-divine-arrow"]);
     const me = t.active(); // Divine Arrow: +1 on attack
     t.hero(me, "bad-axe");
     t.game.faceUpMonsters = [MON("terratuga")];

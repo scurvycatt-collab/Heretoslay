@@ -893,3 +893,6 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-seat-leader .tcard, .t3-seat-leader .t3-leader-card { --w: calc(var(--hex) * 2.35) !important; opacity: 1; transform: none; }
   .t3-seat--left .t3-cluster .t3-seat-leader, .t3-seat--right .t3-cluster .t3-seat-leader { right: auto; left: 50%; top: auto; bottom: 100%; transform: translateX(-50%); margin-bottom: 4px; }
 }
+
+/* C06: bounded public reveal (explicitly revealed card only) */
+.t3-reveal { position: fixed; right: 16px; bottom: 16px; z-index: 40; display: grid; gap: 6px; padding: 8px; background: #11161f; border: 4px solid #e0b84c; max-width: 220px; }

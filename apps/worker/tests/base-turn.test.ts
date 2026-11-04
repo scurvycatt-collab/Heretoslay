@@ -132,7 +132,7 @@ test("Hero roll: Modifier value/side validated, effect on success, once per Hero
   assert.equal(t.run(them, "REACT_MODIFIER", { windowId, cardInstanceId: mod.cardId, value: 4 }), "INVALID_MODIFIER_VALUE");
   assert.equal(t.run(them, "REACT_MODIFIER", { windowId, cardInstanceId: mod.cardId, value: -2, side: "defender" }), "INVALID_MODIFIER_SIDE");
   assert.equal(t.run(them, "REACT_MODIFIER", { windowId, cardInstanceId: mod.cardId, value: 2 }), "ACCEPTED");
-  assert.equal(t.run(them, "REACT_MODIFIER", { windowId, cardInstanceId: mod.cardId, value: 2 }), "ALREADY_RESPONDED");
+  assert.equal(t.run(them, "REACT_MODIFIER", { windowId, cardInstanceId: mod.cardId, value: 2 }), "CARD_NOT_PLAYABLE"); // C10: card consumed; replay never reuses it
   passAll(t);
   assert.equal(seat(t, me).hand.length, handBefore + 2);
   assert.equal(t.run(me, "USE_HERO_EFFECT", { heroInstanceId: peanut.cardId }), "HERO_ALREADY_ROLLED");

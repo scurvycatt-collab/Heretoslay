@@ -152,6 +152,7 @@ export function initialBaseGameState(): BaseGameState {
     names: {},
     collected: [],
     lastRoll: null,
+    reveals: [],
     turnDeadlineAt: null,
     turnTimerKey: null,
     leaderPickOrder: [],
@@ -164,18 +165,29 @@ function newSeat(playerId: string): BaseSeat {
   return { playerId, leaderId: null, hand: [], party: [], slain: [], protections: { noDestroy: false, noSteal: false } };
 }
 
+/** C10 migration (any schema): legacy one-card windows marked a player "played"; they may now add more until Skip. */
+function migrateModifierWindow(game: BaseGameState): void {
+  if (game.chain?.step === "modifier_window") {
+    const responders = game.chain.responders as Record<string, string>;
+    for (const [playerId, state] of Object.entries(responders)) if (state === "played") responders[playerId] = "pending";
+  }
+  delete (game.settings as unknown as Record<string, unknown>)?.leaderPassiveUsesModifierSlot; // removed (conflicts with C10)
+}
+
 /** Upgrades a persisted GAME-001 (schema 1) state in place. */
 export function normalizeBaseGame(raw: unknown): BaseGameState {
   const game = raw as BaseGameState & { schema: number };
   if (game.schema === 2) {
     game.collected ??= [];
     game.lastRoll ??= null;
+    game.reveals ??= [];
     game.turnDeadlineAt ??= null;
     game.turnTimerKey ??= null;
     game.leaderPickOrder ??= [];
     game.botNextActAt ??= null;
     game.botPaceAt ??= null;
     game.settings = { ...DEFAULT_SETTINGS, ...game.settings };
+    migrateModifierWindow(game);
     return game;
   }
   const defaults = initialBaseGameState();
@@ -190,6 +202,7 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
     seat.slain ??= [];
     seat.protections ??= { noDestroy: false, noSteal: false };
   }
+  migrateModifierWindow(game);
   game.schema = 2;
   return game;
 }
@@ -983,6 +996,13 @@ export function projectBaseGame(
                   : null,
           }
         : null,
+      reveals: (game.reveals ?? []).map((reveal) => ({
+        revealId: reveal.revealId,
+        playerId: reveal.playerId,
+        source: reveal.source,
+        card: anyCardView(reveal.card),
+        expiresAt: reveal.expiresAt,
+      })),
       heroRollsUsed: [...game.heroRollsUsed],
       turnRollBonus: game.turnRollBonus,
       chain: chainView(game, viewerPlayerId),

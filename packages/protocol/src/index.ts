@@ -397,7 +397,7 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
   };
   switch (value.kind) {
     case "CONFIGURE_GAME": {
-      const allowed = ["turnSeconds", "reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode", "leaderPassiveUsesModifierSlot"];
+      const allowed = ["turnSeconds", "reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode"];
       if (payload.turnSeconds !== undefined && payload.turnSeconds !== 30 && payload.turnSeconds !== 60 && payload.turnSeconds !== 90) {
         issues.push("payload.turnSeconds must be 30, 60 or 90");
       }
@@ -408,7 +408,7 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
           issues.push(`payload.${key} must be an integer 10..120`);
         }
       }
-      for (const key of ["leaderFillsClassSlot", "leaderPassiveUsesModifierSlot"]) {
+      for (const key of ["leaderFillsClassSlot"]) {
         if (payload[key] !== undefined && typeof payload[key] !== "boolean") issues.push(`payload.${key} must be boolean`);
       }
       if (payload.maskMode !== undefined && payload.maskMode !== "add" && payload.maskMode !== "replace") {

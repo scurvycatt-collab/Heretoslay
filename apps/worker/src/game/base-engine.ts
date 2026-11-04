@@ -151,7 +151,8 @@ export type Chain =
       windowId: string;
       deadlineAt: number;
       roll: RollState;
-      responders: Record<string, "pending" | "passed" | "played">;
+      /** C10: a Modifier play does not complete a participant; only Skip ("passed") does. */
+      responders: Record<string, "pending" | "passed">;
     }
   | { step: "immediate_roll_choice"; deadlineAt: number; actorId: string; heroCardId: string }
   | { step: "choice"; choice: PendingChoice };
@@ -167,7 +168,7 @@ export type Step =
       /** Steps after the offered card was played (Snowball: DRAW a second card). */
       offerThen?: Step[];
       /** "If at least one of those cards is a <kind> …" (Pan Chucks). */
-      ifAnyKindThen?: { kinds: BaseCardKind[]; steps: Step[] };
+      ifAnyKindThen?: { kinds: BaseCardKind[]; steps: Step[]; revealSource?: string };
       /** Internal: skip slain-Monster draw triggers (none currently). */
       quiet?: boolean;
       /** C04: compute draw-trigger steps now but run them later (`flush_draw_triggers`). */
@@ -202,6 +203,8 @@ export type Step =
   | { op: "award_monster"; playerId: string; monsterId: string }
   /** C04: release draw triggers deferred by `deferTriggers` (passives run only after award/win check). */
   | { op: "flush_draw_triggers" }
+  /** C06: publicly reveal one card from the player's hand (only if it is still there). */
+  | { op: "reveal"; playerId: string; cardId: string; source: string }
   | { op: "refill_monsters"; slot: number }
   | { op: "log"; text: string };
 
@@ -243,6 +246,27 @@ export interface EngineState extends SetupTable<BaseCard> {
   pendingMonster?: { playerId: string; monsterId: string; slot: number } | null;
   /** C04: draw-trigger steps computed at draw time, waiting for `flush_draw_triggers`. */
   deferredSteps?: Step[];
+  /** C06: bounded public reveals (selected card only; never the whole hand). */
+  reveals?: RevealEvent[];
+}
+
+/** C06: a card explicitly revealed to everyone (players and spectators). */
+export interface RevealEvent {
+  revealId: string;
+  playerId: string;
+  source: string;
+  card: BaseCard;
+  revealedAt: number;
+  expiresAt: number;
+}
+
+/** C06 lifetime: how long the UI shows a reveal, and how many are retained. */
+export const REVEAL_VISIBLE_MS = 10_000;
+export const REVEAL_KEEP = 5;
+
+export function pruneReveals(game: EngineState, now: number): void {
+  if (!game.reveals) return;
+  game.reveals = game.reveals.filter((reveal) => reveal.expiresAt > now).slice(-REVEAL_KEEP);
 }
 
 export interface EngineDeps {
@@ -373,7 +397,7 @@ export function drawTriggerSteps(game: EngineState, seat: BaseSeat, drawn: BaseC
     if (card.kind === "modifier" && slainHas(seat, "rex-major")) {
       offers.push(
         may(seat.playerId, "Rex Major: lộ Modifier vừa rút để DRAW thêm 1 lá?", [
-          { op: "log", text: `${whoName(game, seat.playerId)} lộ ${cardName(card.definitionId)} (Rex Major)` },
+          { op: "reveal", playerId: seat.playerId, cardId: card.cardId, source: "Rex Major" },
           { op: "draw", playerId: seat.playerId, n: 1 },
         ]),
       );
@@ -576,6 +600,7 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
           n: 2,
           ifAnyKindThen: {
             kinds: ["challenge"],
+            revealSource: "Pan Chucks",
             steps: [
               may(actorId, "Pan Chucks: lộ Challenge vừa rút để DESTROY 1 Hero?", [
                 { op: "choice", playerId: actorId, kind: "destroy_hero", count: 1, prompt: "Chọn Hero để DESTROY (Pan Chucks)" },
@@ -735,6 +760,19 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "refill_monsters":
       refillFaceUpMonsters(game, step.slot);
       return false;
+    case "reveal": {
+      const seat = seatOf(game, step.playerId);
+      const card = seat?.hand.find((candidate) => candidate.cardId === step.cardId);
+      if (!seat || !card) return false;
+      const now = deps.now();
+      pruneReveals(game, now);
+      game.reveals = [
+        ...(game.reveals ?? []),
+        { revealId: deps.newId(), playerId: step.playerId, source: step.source, card, revealedAt: now, expiresAt: now + REVEAL_VISIBLE_MS },
+      ].slice(-REVEAL_KEEP);
+      log(game, `${whoName(game, step.playerId)} lộ ${cardName(card.definitionId)} (${step.source})`);
+      return false;
+    }
     case "draw": {
       const seat = seatOf(game, step.playerId);
       if (!seat) return false;
@@ -746,7 +784,18 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         const playable = drawn.filter((card) => step.offerPlayIfKind!.includes(card.kind));
         if (playable.length > 0) follow.push(offerPlay(step.playerId, playable, "Chơi ngay lá vừa rút?", step.offerThen));
       }
-      if (step.ifAnyKindThen && drawn.some((card) => step.ifAnyKindThen!.kinds.includes(card.kind))) follow.push(...step.ifAnyKindThen.steps);
+      const revealed = step.ifAnyKindThen ? drawn.find((card) => step.ifAnyKindThen!.kinds.includes(card.kind)) : undefined;
+      if (step.ifAnyKindThen && revealed) {
+        // C06: accepting the "may reveal" clause publicly reveals exactly the qualifying card.
+        const label = step.ifAnyKindThen.revealSource;
+        follow.push(
+          ...step.ifAnyKindThen.steps.map((inner) =>
+            label && inner.op === "choice" && inner.kind === "confirm" && inner.then
+              ? { ...inner, then: [{ op: "reveal", playerId: step.playerId, cardId: revealed.cardId, source: label } as Step, ...inner.then] }
+              : inner,
+          ),
+        );
+      }
       game.queue.unshift(...follow);
       if (step.deferTriggers) game.deferredSteps = [...(game.deferredSteps ?? []), ...drawTriggerSteps(game, seat, drawn)];
       else afterDraw(game, seat, drawn);
@@ -1240,19 +1289,12 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
 }
 
 /**
- * Everyone may play one Modifier or Skip. Q-11 (configurable, default off): if
- * `leaderPassiveUsesModifierSlot`, a player whose Leader passive already applies
- * to this roll has used their one Modifier slot ("played").
+ * C10: every player may play any number of Modifiers on the same roll until they Skip (final) or the
+ * fixed absolute deadline passes. The window closes early only when everyone has Skipped.
+ * (The legacy one-slot option `leaderPassiveUsesModifierSlot` was removed: it conflicted with C10.)
  */
-function modifierResponders(game: EngineState, roll: RollState): Record<string, "pending" | "passed" | "played"> {
-  const result: Record<string, "pending" | "passed" | "played"> = responders(game, null, "pending");
-  if (!game.settings.leaderPassiveUsesModifierSlot) return result;
-  for (const passive of roll.passives) {
-    if (!passive.source.startsWith("hts.base.v1.party-leader.")) continue;
-    const owner = roll.kind === "challenge" && passive.side === "challenger" ? roll.challengerId : roll.rollerId;
-    if (owner in result) result[owner] = "played";
-  }
-  return result;
+function modifierResponders(game: EngineState, _roll: RollState): Record<string, "pending" | "passed"> {
+  return responders<"pending" | "passed">(game, null, "pending");
 }
 
 export function playModifier(
@@ -1266,7 +1308,8 @@ export function playModifier(
   if (!chain || chain.step !== "modifier_window") return "NO_OPEN_WINDOW";
   if (chain.windowId !== payload.windowId) return "STALE_WINDOW";
   if (deps.now() >= chain.deadlineAt) return "WINDOW_CLOSED";
-  if (chain.responders[playerId] !== "pending") return "ALREADY_RESPONDED";
+  if (!(playerId in chain.responders)) return "NOT_ELIGIBLE";
+  if (chain.responders[playerId] !== "pending") return "ALREADY_RESPONDED"; // Skip is final
   const seat = seatOf(game, playerId)!;
   const index = seat.hand.findIndex((card) => card.cardId === payload.cardInstanceId);
   if (index < 0 || seat.hand[index].kind !== "modifier") return "CARD_NOT_PLAYABLE";
@@ -1300,8 +1343,7 @@ export function playModifier(
     }
   }
   log(game, `${whoName(game, playerId)} chơi Modifier ${payload.value > 0 ? "+" : ""}${payload.value}${side ? ` (${side})` : ""}`);
-  chain.responders[playerId] = "played";
-  maybeCloseModifierWindow(game, deps, hooks);
+  // C10: playing a card keeps the player pending (may add more until Skip); the deadline is never extended.
   return "ACCEPTED";
 }
 
