@@ -34,6 +34,11 @@ export interface Attempt {
   actorId: string;
   card: BaseCard;
   targets: BaseTargets;
+  /**
+   * RA-01/C03: steps of the PARENT effect that must run only after this (nested) play fully resolved
+   * (Challenge, effect, cleanup). Serializable; also applied when a Challenge negates the card.
+   */
+  continuation?: Step[];
 }
 
 export interface ModifierEntry {
@@ -82,6 +87,8 @@ export type RollState =
 export type ChoiceKind =
   | "discard"
   | "sacrifice_hero"
+  /** Forced Exchange: pick a Hero in your Party to move to the original victim (after a successful STEAL). */
+  | "return_hero"
   | "give_card"
   | "take_from_discard"
   | "discard_from_set"
@@ -110,8 +117,13 @@ export interface ChoiceExtras {
   then?: Step[];
   /** confirm: run if declined (or timed out). */
   otherwise?: Step[];
-  /** play_card: run after a card was picked and played. */
+  /** play_card: run after a card was picked, played and fully resolved (nested play, C03). */
   thenIfPicked?: Step[];
+  /**
+   * C01: required payment. The dependent benefit runs only when the full payment was made;
+   * insufficient cards, timeout or no choice grant nothing (never auto-paid).
+   */
+  thenIfPaid?: Step[];
   /** discard: run these steps once per discarded card (Qi Bear). */
   perCardThen?: Step[];
   /** discard: remember discarded ids in game.collected (Beary Wise). */
@@ -174,7 +186,7 @@ export type Step =
       fromCollected?: boolean;
     } & ChoiceExtras)
   | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string; noStealInstead?: boolean }
-  | { op: "steal"; heroCardId: string; toPlayerId: string }
+  | { op: "steal"; heroCardId: string; toPlayerId: string; thenIfStolen?: Step[] }
   | { op: "move_hero"; heroCardId: string; toPlayerId: string; onlyIfOwns?: { heroCardId: string; playerId: string } }
   | { op: "discard_card"; card: BaseCard }
   | { op: "trade_hands"; a: string; b: string }
@@ -611,19 +623,24 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       return [{ op: "return_item", heroCardId: h[0], onlyCursed: true, toPlayerId: actorId }];
     case "magic.destructive-spell":
       return [
-        { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Destructive Spell)" },
-        { op: "destroy", heroCardId: h[0], byPlayerId: actorId },
+        { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Destructive Spell)", thenIfPaid: [{ op: "destroy", heroCardId: h[0], byPlayerId: actorId }] },
       ];
     case "magic.entangling-trap":
       return [
-        { op: "choice", playerId: actorId, kind: "discard", count: 2, prompt: "DISCARD 2 lá (Entangling Trap)" },
-        { op: "steal", heroCardId: h[0], toPlayerId: actorId },
+        { op: "choice", playerId: actorId, kind: "discard", count: 2, prompt: "DISCARD 2 lá (Entangling Trap)", thenIfPaid: [{ op: "steal", heroCardId: h[0], toPlayerId: actorId }] },
       ];
     case "magic.forced-exchange": {
       const victim = ownerOf(h[0]);
+      // C11: STEAL first; only after it succeeded pick a Hero from your Party (the stolen one included) to send back.
       return [
-        { op: "steal", heroCardId: h[0], toPlayerId: actorId },
-        { op: "move_hero", heroCardId: h[1], toPlayerId: victim, onlyIfOwns: { heroCardId: h[0], playerId: actorId } },
+        {
+          op: "steal",
+          heroCardId: h[0],
+          toPlayerId: actorId,
+          thenIfStolen: [
+            { op: "choice", playerId: actorId, kind: "return_hero", count: 1, prompt: "Chọn 1 Hero trong Party của bạn để chuyển cho người bị STEAL (Forced Exchange)", recipientId: victim },
+          ],
+        },
       ];
     }
     case "magic.forceful-winds":
@@ -652,6 +669,11 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
       return false;
     }
   }
+  // C01: a required payment must be payable in full, otherwise its dependent benefit is not granted.
+  if (step.thenIfPaid && available < step.count) {
+    log(game, `${whoName(game, step.playerId)}: không đủ bài để trả (${step.prompt}) — không nhận được hiệu ứng`);
+    return false;
+  }
   // Q-05 / RULE-20: do as much as possible; nothing available → no effect.
   if (max === 0 && step.kind !== "view_hand") {
     log(game, `${whoName(game, step.playerId)}: không có gì để chọn (${step.prompt}) — bỏ qua`);
@@ -675,7 +697,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "perCardThen", "collect"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -764,6 +786,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       found.seat.party.splice(found.index, 1);
       to.party.push(found.hero);
       log(game, `${whoName(game, step.toPlayerId)} STEAL ${cardName(found.hero.card.definitionId)} của ${whoName(game, found.seat.playerId)}`);
+      if (step.thenIfStolen) game.queue.unshift(...step.thenIfStolen);
       return false;
     }
     case "move_hero": {
@@ -952,15 +975,16 @@ export function resolveChoice(
     if (error) return error;
     seat.hand.splice(seat.hand.indexOf(card), 1);
     game.chain = null;
-    if (choice.thenIfPicked) game.queue.unshift(...choice.thenIfPicked);
     log(game, `${whoName(game, playerId)} chơi ngay ${cardName(card.definitionId)} (không tốn AP)`);
-    openChallengeWindow(game, { actorId: playerId, card, targets: targets ?? {} }, deps, hooks);
+    // C03: the parent's continuation waits for this child play (Challenge → effect → cleanup).
+    openChallengeWindow(game, { actorId: playerId, card, targets: targets ?? {}, ...(choice.thenIfPicked ? { continuation: choice.thenIfPicked } : {}) }, deps, hooks);
     advance(game, deps, hooks);
     return "ACCEPTED";
   }
   if (targets !== undefined) return "INVALID_CHOICE";
   applyChoice(game, choice, seat, cardIds, deps);
   game.chain = null;
+  if (choice.thenIfPaid) game.queue.unshift(...choice.thenIfPaid);
   advance(game, deps, hooks);
   return "ACCEPTED";
 }
@@ -970,6 +994,7 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
   if (!seat) return [];
   switch (choice.kind) {
     case "sacrifice_hero":
+    case "return_hero":
       return seat.party.map((hero) => hero.card);
     case "take_from_discard":
       return game.discard.filter(
@@ -1082,6 +1107,15 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       return;
     case "confirm":
       return;
+    case "return_hero": {
+      const recipient = choice.recipientId ? seatOf(game, choice.recipientId) : undefined;
+      const found = cardIds[0] ? findHero(game, cardIds[0]) : null;
+      if (!recipient || !found || found.seat !== seat || recipient === seat) return;
+      seat.party.splice(found.index, 1);
+      recipient.party.push(found.hero);
+      log(game, `${cardName(found.hero.card.definitionId)} chuyển sang Party của ${whoName(game, recipient.playerId)}`);
+      return;
+    }
     case "sacrifice_hero":
       for (const id of cardIds) {
         const found = findHero(game, id);
@@ -1304,11 +1338,13 @@ export function playTargetError(game: EngineState, seat: BaseSeat, card: BaseCar
 export function resolveAttempt(game: EngineState, attempt: Attempt, deps: EngineDeps, hooks: EngineHooks): void {
   const actor = seatOf(game, attempt.actorId)!;
   const card = attempt.card;
+  const continuation = attempt.continuation ?? [];
   if (card.kind === "hero") {
     actor.party.push({ card, item: null });
     log(game, `${whoName(game, attempt.actorId)} đưa ${cardName(card.definitionId)} vào Party`);
     // RULE-06: optional immediate roll (free) — skip if the Hero cannot use its effect.
     offerHeroRoll(game, attempt.actorId, card.cardId, card.definitionId, deps);
+    game.queue.unshift(...continuation); // runs once the (optional) entry roll chain is done
     return;
   }
   if (card.kind === "item" || card.kind === "cursed_item") {
@@ -1319,10 +1355,12 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     if (!ok) {
       game.discard.push(card);
       log(game, `${cardName(card.definitionId)}: mục tiêu không còn hợp lệ — vào discard`);
+      game.queue.unshift(...continuation);
       return;
     }
     found.hero.item = card;
     log(game, `${whoName(game, attempt.actorId)} gắn ${cardName(card.definitionId)} vào ${cardName(found.hero.card.definitionId)}`);
+    game.queue.unshift(...continuation);
     return;
   }
   if (card.kind === "magic") {
@@ -1337,8 +1375,11 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     if (leaderIs(actor, "the-cloaked-sage")) steps.push({ op: "draw", playerId: attempt.actorId, n: 1 });
     // PC-CB-04: the Magic card stays pending (not reshufflable) until its effect resolved.
     steps.push({ op: "discard_card", card });
-    game.queue.push(...steps);
+    // C03: a nested play resolves before the parent's remaining queue; its continuation comes last.
+    game.queue.unshift(...steps, ...continuation);
+    return;
   }
+  game.queue.unshift(...continuation);
 }
 
 /** Starts a Hero effect roll (paid or immediate). Caller validated eligibility/targets. */
@@ -1373,6 +1414,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     if ((challengerTotal ?? 0) >= total) {
       game.discard.push(roll.attempt.card);
       log(game, `Challenge thành công (${challengerTotal} ≥ ${total}): ${cardName(roll.attempt.card.definitionId)} vào discard`);
+      if (roll.attempt.continuation) game.queue.unshift(...roll.attempt.continuation);
     } else {
       log(game, `Challenge thất bại (${challengerTotal} < ${total})`);
       resolveAttempt(game, roll.attempt, deps, hooks);
@@ -1464,6 +1506,13 @@ const UNMODELLED_SLAIN = new Set<string>([]);
 
 // ---------------------------------------------------------------- deadlines
 
+const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card", "return_hero"]);
+
+/** C02: required (min > 0) penalty/return choice that is not an elective payment gating a benefit (C01). */
+export function isMandatoryChoice(choice: PendingChoice): boolean {
+  return MANDATORY_KINDS.has(choice.kind) && choice.min > 0 && !choice.thenIfPaid;
+}
+
 export function nextDeadline(game: EngineState): number | null {
   const chain = game.chain;
   if (!chain || game.phase !== "turn_active") return null;
@@ -1494,8 +1543,17 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
     } else if (chain.step === "immediate_roll_choice") {
       game.chain = null;
       log(game, "Hết giờ — bỏ qua roll ngay");
+    } else if (isMandatoryChoice(chain.choice)) {
+      // C02: a mandatory penalty/return cannot be dodged by timeout — server fallback over legal cards,
+      // in persisted eligibility order (hand / Party order), same legality as a normal pick.
+      const choice = chain.choice;
+      const seat = seatOf(game, choice.playerId);
+      const ids = eligibleChoiceCards(game, choice).slice(0, choice.min).map((card) => card.cardId);
+      game.chain = null;
+      log(game, `Hết giờ chọn — server tự chọn thay ${whoName(game, choice.playerId)} (${choice.prompt})`);
+      if (seat && ids.length > 0) applyChoice(game, choice, seat, ids, deps);
     } else {
-      // Owner 2026-11-02: timeout = skip (nothing chosen, nothing happens; "may" declined).
+      // Owner 2026-11-02 / C01: optional or gated-payment choice timeout = skip (no payment, no benefit; "may" declined).
       log(game, `Hết giờ chọn — ${whoName(game, chain.choice.playerId)} bỏ qua (${chain.choice.prompt})`);
       game.chain = null;
       if (chain.choice.kind === "confirm" && chain.choice.otherwise) game.queue.unshift(...chain.choice.otherwise);

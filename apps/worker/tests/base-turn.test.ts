@@ -354,7 +354,7 @@ test("owner 2026-11-02: \"may\" asks the player (confirm); choice timeout = skip
   assert.equal(t.run(me, "RESOLVE_CHOICE", { choiceId, cardInstanceIds: [], accept: true }), "ACCEPTED");
   assert.equal(seat(t, me).hand.length, hand + 1);
 
-  // Penalty DISCARD times out → nothing discarded.
+  // C02: a mandatory penalty times out → server fallback applies it (Hero sacrificed).
   t.game.faceUpMonsters = ["hts.base.v1.monster.terratuga#01"];
   t.game.actionPoints = 2;
   void them;
@@ -365,6 +365,6 @@ test("owner 2026-11-02: \"may\" asks the player (confirm); choice timeout = skip
   const party = seat(t, me).party.length;
   t.clock.now += 30_000;
   settleBaseGame(t.game, t.roster, t.deps);
-  assert.equal(seat(t, me).party.length, party);
+  assert.equal(seat(t, me).party.length, party - 1);
   assert.equal(t.game.chain, null);
 });

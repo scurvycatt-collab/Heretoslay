@@ -4674,7 +4674,7 @@
       "kind": "magic",
       "text": "Choose a player. STEAL a Hero card from that player's Party, then move a Hero card from your Party to that player's Party.",
       "effectId": "magic.forced-exchange",
-      "target": "hero_other_party_and_own_hero",
+      "target": "hero_other_party",
       "provenance": {
         "text": {
           "status": "corroborated",

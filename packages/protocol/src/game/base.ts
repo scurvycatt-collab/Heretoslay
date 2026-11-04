@@ -296,6 +296,7 @@ export type BaseChainView =
       kind:
         | "discard"
         | "sacrifice_hero"
+        | "return_hero"
         | "give_card"
         | "take_from_discard"
         | "discard_from_set"

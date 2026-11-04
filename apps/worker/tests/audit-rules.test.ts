@@ -188,7 +188,7 @@ test("Q-11: Leader passive is shown as its own labelled entry and does NOT take 
 });
 
 // ---------------------------------------------------------------- choice timeout = skip, may = ask
-test("CHOICE-TIMEOUT: timeout = skip (nothing chosen, nothing happens); MAY: asks, timeout = decline", () => {
+test("CHOICE-TIMEOUT: mandatory penalty falls back (C02); MAY: asks, timeout = decline", () => {
   const t = table(["the-cloaked-sage", "the-charismatic-song"]);
   const me = t.active();
   t.hero(me, "bad-axe");
@@ -202,7 +202,7 @@ test("CHOICE-TIMEOUT: timeout = skip (nothing chosen, nothing happens); MAY: ask
   assert.equal(settleBaseGame(t.game, t.roster, t.deps), false);
   t.clock.now = deadline;
   assert.equal(settleBaseGame(t.game, t.roster, t.deps), true);
-  assert.equal(t.seat(me).party.length, 1, "Hero NOT sacrificed on timeout");
+  assert.equal(t.seat(me).party.length, 0, "C02: mandatory SACRIFICE cannot be dodged by timeout (server fallback)");
   assert.equal(t.game.chain, null);
 
   // "may": Arctic Aries slain → success of a Hero roll asks the player
