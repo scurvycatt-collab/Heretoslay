@@ -1,7 +1,7 @@
 // CardRenderer (ADR-003): draws a base card from public card data + the layout
 // facts in docs/contracts/CARD_TEMPLATE_SPEC.json. No third-party frame/art:
 // frames are CSS, art is an in-house geometric placeholder.
-import { createContext, useContext, useRef, type CSSProperties, type PointerEvent, type ReactNode } from "react";
+import { createContext, useContext, useRef, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import type { BaseCardKind, CardData, HeroClass, MonsterCardData, RollCompare } from "@here-to-slay/protocol";
 import { CLASS_COLOR, PALETTE, cardData, cardSize, descriptionBox, layoutFor, pct, titleCase } from "./cardCatalog";
 import { Glyph, type GlyphName } from "./ClassIcon";
@@ -286,6 +286,13 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
   );
 
   const canInspect = inspect && setInspect;
+  const inspectModifiedClick = (e: MouseEvent<Element>) => {
+    if (!canInspect || (!e.ctrlKey && !e.metaKey)) return false;
+    e.preventDefault();
+    e.stopPropagation();
+    setInspect(card, e.currentTarget.getBoundingClientRect(), true);
+    return true;
+  };
   const clearPress = () => {
     if (pressTimer.current !== null) window.clearTimeout(pressTimer.current);
     pressTimer.current = null;
@@ -322,13 +329,13 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
 
   if (onClick) {
     return (
-      <button type="button" {...common} onClick={onClick} disabled={disabled} aria-pressed={selected ?? undefined}>
+      <button type="button" {...common} onClick={(e) => { if (!inspectModifiedClick(e)) onClick(); }} disabled={disabled} aria-pressed={selected ?? undefined}>
         {body}
       </button>
     );
   }
   return (
-    <div role="img" {...common}>
+    <div role="img" {...common} onClick={inspectModifiedClick}>
       {body}
     </div>
   );

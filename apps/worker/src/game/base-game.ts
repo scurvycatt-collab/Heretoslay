@@ -360,7 +360,7 @@ function lobbyStart(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, dep
   if (game.seats.some((candidate) => cardDataOfKind(candidate.leaderId!, "party_leader")?.bannedPlayerCounts.includes(game.seats.length))) {
     return "LEADER_NOT_AVAILABLE";
   }
-  if (game.seats.some((candidate) => !(game.readyPlayerIds ?? []).includes(candidate.playerId))) return "PLAYERS_NOT_READY";
+  if (game.seats.some((candidate) => candidate.playerId !== roster.hostPlayerId && !(game.readyPlayerIds ?? []).includes(candidate.playerId))) return "PLAYERS_NOT_READY";
   // SETUP-05 keeps working: the selection order is the lobby pick order, so the last picker goes first.
   const picks = (game.leaderPickOrder ?? []).filter((id) => game.seats.some((candidate) => candidate.playerId === id));
   const order = [...game.seats.map((candidate) => candidate.playerId).filter((id) => !picks.includes(id)), ...picks];
@@ -569,9 +569,10 @@ const configureHandler: Handler = (game, seat, command, roster) => {
   return "ACCEPTED";
 };
 
-const setReadyHandler: Handler = (game, seat, command) => {
+const setReadyHandler: Handler = (game, seat, command, roster) => {
   if (command.kind !== "SET_READY") return "MODE_MISMATCH";
   if (game.phase !== "lobby") return "INVALID_PHASE";
+  if (seat.playerId === roster.hostPlayerId) return "FORBIDDEN";
   if (command.payload.ready && !seat.leaderId) return "SELECTION_INCOMPLETE";
   const ready = new Set(game.readyPlayerIds ?? []);
   const before = ready.has(seat.playerId);

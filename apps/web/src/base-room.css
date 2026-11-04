@@ -434,7 +434,7 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-lobby-add:hover:not(:disabled) { background: #c8ecd4; }
 .t3-lobby-leaders .t3-leaders { justify-content: flex-start; }
 .t3-lobby-leaders .tcard { --w: clamp(130px, 13vw, 175px); }
-.t3-lobby-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; border-top: 3px dashed #c9ccd0; }
+.t3-lobby-foot { position: sticky; bottom: 0; z-index: 8; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 10px 8px; border-top: 3px dashed #c9ccd0; background: var(--felt); }
 .t3-btn--big { font-size: 18px; padding: 12px 28px; }
 
 .t3-target-dialog { justify-content: center; }

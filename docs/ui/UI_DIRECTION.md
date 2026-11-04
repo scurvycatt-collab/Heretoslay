@@ -25,7 +25,9 @@ Pressing `Esc` while any reaction/choice stage is open folds it to the table exa
 
 Once the authoritative phase is `game_over`, no hand play, Monster attack, Hero roll, Leader action, draw/redeal/pass button, target dialog, or keyboard gameplay shortcut remains actionable. The finished table, result, log, and navigation stay available for review. The host may start a clean game in the same room; player identities and room code remain, while Leaders, Ready state, hands, decks, turn state, and winner state reset.
 
-In the lobby, each human player chooses a Party Leader and then explicitly marks Ready. Changing that Leader clears the player's Ready state. Bots become Ready after their automatic Leader choice. The authoritative Start action remains disabled/rejected until every occupied seat is Ready, and only the host may start.
+In the lobby, each non-host human player chooses a Party Leader and then explicitly marks Ready. The host chooses a Leader but never needs or sees a Ready action. Changing a non-host player's Leader clears that player's Ready state. Bots become Ready after their automatic Leader choice. The authoritative Start action remains disabled/rejected until every non-host seat is Ready, and only the host may start.
+
+Card inspection keeps all desktop paths: hover for two seconds, Ctrl/Command-click, or right-click. Ctrl/Command-click must consume the click so it never triggers the card's gameplay action. Touch keeps long-press inspection. The lobby action footer is sticky so a non-host player's Ready control remains visible below a large Leader grid.
 
 On desktop, cards in hand overlap progressively as the hand grows, up to a 78% overlap. The deployed Party retains its own bounded region beside the hand so a large hand does not cover Hero cards.
 

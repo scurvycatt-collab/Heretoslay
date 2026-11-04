@@ -54,14 +54,15 @@ test("a growing hand keeps overlapping so it does not cover the deployed Party",
   assert.match(css, /\.t3-seat--me \.t3-party \{ max-width: 20cqw;/);
 });
 
-test("right-click opens the same full-card inspector as a 2-second hover", async () => {
+test("Ctrl/Command-click and right-click open the same inspector while 2-second hover remains", async () => {
   const card = await readFile(new URL("../apps/web/src/CardRenderer.tsx", import.meta.url), "utf8");
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   assert.match(card, /onContextMenu: canInspect/);
   assert.match(card, /e\.preventDefault\(\);\s+setInspect\(card, e\.currentTarget\.getBoundingClientRect\(\), true\)/);
+  assert.match(card, /!e\.ctrlKey && !e\.metaKey/);
+  assert.match(card, /if \(!inspectModifiedClick\(e\)\) onClick\(\)/);
   assert.match(room, /hover a card for 2s or right-click to enlarge/);
   assert.match(room, /INSPECT_DWELL_MS = 2000/);
-  assert.doesNotMatch(room, /useModifierKey|e\.key === "Control"/);
 });
 
 test("one-way Modifiers play from the card and two-way cards reveal value then target steps", async () => {
@@ -76,12 +77,16 @@ test("one-way Modifiers play from the card and two-way cards reveal value then t
   assert.match(room, /ariaLabel=\{singleValue === undefined \? `\$\{card\.name\} — choose modifier value` : `\$\{card\.name\} — play \$\{signed\(singleValue\)\}`\}/);
 });
 
-test("lobby exposes per-player Ready state and only the host can start after everyone is ready", async () => {
+test("lobby requires Ready only from non-host players", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   assert.match(room, /send\("SET_READY", \{ ready: !mine\?\.ready \}\)/);
-  assert.match(room, /const notReady = state\.players\.filter\(\(p\) => !p\.ready\)/);
+  assert.match(room, /const notReady = state\.players\.filter\(\(p\) => !p\.isHost && !p\.ready\)/);
+  assert.match(room, /!mine\?\.isBot && !mine\?\.isHost && <button/);
+  assert.match(room, /onClick=\{\(\) => send\("SET_READY", \{ ready: !mine\?\.ready \}\)\}/);
   assert.match(room, /notReady\.length === 0/);
   assert.match(room, /Waiting for.*to get ready/);
+  const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
+  assert.match(css, /\.t3-lobby-foot \{ position: sticky; bottom: 0;/);
 });
 
 test("the host can start a clean game from game over without replacing the room", async () => {

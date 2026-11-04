@@ -133,17 +133,19 @@ test("leader selection is sequential and unique; rejections do not mutate", () =
   assert.deepEqual(game, before);
 });
 
-test("lobby requires every player to be ready and host can reset a finished game in the same room", () => {
+test("lobby requires every non-host player to be ready and host can reset a finished game in the same room", () => {
   const game = initialBaseGameState();
   const players = roster(2);
   const d = deps();
   assert.equal(applyBaseCommand(game, players, "p1", cmd("SELECT_PARTY_LEADER", { leaderId: game.leaderPool[0] }), d), "ACCEPTED");
   assert.equal(applyBaseCommand(game, players, "p2", cmd("SELECT_PARTY_LEADER", { leaderId: game.leaderPool[1] }), d), "ACCEPTED");
   assert.equal(applyBaseCommand(game, players, "p1", cmd("START_GAME"), d), "PLAYERS_NOT_READY");
-  assert.equal(applyBaseCommand(game, players, "p1", cmd("SET_READY", { ready: true }), d), "ACCEPTED");
+  assert.equal(applyBaseCommand(game, players, "p1", cmd("SET_READY", { ready: true }), d), "FORBIDDEN");
   assert.equal(applyBaseCommand(game, players, "p2", cmd("SET_READY", { ready: true }), d), "ACCEPTED");
   assert.equal(applyBaseCommand(game, players, "p2", cmd("START_GAME"), d), "FORBIDDEN");
-  assert.equal(projectBaseGame(game, players, { roomCode: "KEEP-ME", revision: 1, serverNow: 1 }, "p1").players.every((player) => player.ready), true);
+  const readyView = projectBaseGame(game, players, { roomCode: "KEEP-ME", revision: 1, serverNow: 1 }, "p1");
+  assert.equal(readyView.players.find((player) => player.isHost)?.ready, false);
+  assert.equal(readyView.players.filter((player) => !player.isHost).every((player) => player.ready), true);
   assert.equal(applyBaseCommand(game, players, "p1", cmd("START_GAME"), d), "ACCEPTED");
 
   game.phase = "game_over";

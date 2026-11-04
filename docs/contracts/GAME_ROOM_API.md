@@ -171,7 +171,7 @@ Challenge rolls: `BaseRollView.attemptCard` carries the Hero/Item/Magic card bei
 | `START_GAME` | `{}` | host, `lobby` | Starts directly from the lobby when 2–6 seats all hold a Leader (`SELECTION_INCOMPLETE`, `LEADER_NOT_AVAILABLE` for Shadow Claw at 2 players). Lobby pick order = selection order, so SETUP-05 (last picker goes first) is unchanged. The old `BEGIN_LEADER_SELECTION` flow still works. |
 | `CONFIGURE_GAME` | `+ turnSeconds: 30 \| 60 \| 90` | host, before start | Turn timer (default 60). |
 | `NEW_GAME` | `{}` | host, `game_over` | Resets the game to lobby while preserving room ID, player IDs and current settings. |
-| `SET_READY` | `{ ready }` | each seat, `lobby` | Requires a selected Leader. Changing Leader or starting a new game clears readiness; host can start only when every seat is ready. Bots become ready automatically. |
+| `SET_READY` | `{ ready }` | non-host seat, `lobby` | Requires a selected Leader. Changing Leader or starting a new game clears readiness. The host never needs Ready and starts once every other seat is ready; bots become ready automatically. |
 
 Turn timer: `game.turnDeadlineAt` (snapshot) = end of the current turn. Each accepted Modifier adds 5 seconds to the
 current turn (cumulative, reset on the next turn) without changing the reaction-window deadline. It restarts when AP changes (any AP spend), is

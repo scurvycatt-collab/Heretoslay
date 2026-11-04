@@ -140,7 +140,6 @@ test("Bots and timers freeze while no human is present and resume with shifted d
   const { code, a } = await hostRoom(rt);
   await send(rt, code, a, "ADD_BOT");
   await send(rt, code, a, "SELECT_PARTY_LEADER", { leaderId: freeLeader(await snap(rt, code, a)) });
-  await send(rt, code, a, "SET_READY", { ready: true });
   const started = await send(rt, code, a, "START_GAME");
   assert.equal(started.outcome.code, "ACCEPTED");
   const before = (await snap(rt, code, a)).revision;

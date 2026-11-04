@@ -1028,7 +1028,7 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
   const mine = state.players.find((p) => p.playerId === me);
   const ownerOf = (leaderId: string) => state.players.find((p) => p.leaderId === leaderId);
   const missing = state.players.filter((p) => !p.leaderId);
-  const notReady = state.players.filter((p) => !p.ready);
+  const notReady = state.players.filter((p) => !p.isHost && !p.ready);
   const shadowBanned = state.players.length === 2;
   const blockedShadow = shadowBanned && state.players.some((p) => p.leaderId?.endsWith("the-shadow-claw"));
   const canStart = host && state.players.length >= 2 && missing.length === 0 && notReady.length === 0 && !blockedShadow;
@@ -1121,7 +1121,7 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
 
       <footer className="t3-lobby-foot">
         <span className="t3-muted">{hint}</span>
-        {!mine?.isBot && <button className="t3-btn" disabled={pending || !mine?.leaderId} onClick={() => send("SET_READY", { ready: !mine?.ready })}>{mine?.ready ? "NOT READY" : "READY"}</button>}
+        {!mine?.isBot && !mine?.isHost && <button className="t3-btn" disabled={pending || !mine?.leaderId} onClick={() => send("SET_READY", { ready: !mine?.ready })}>{mine?.ready ? "NOT READY" : "READY"}</button>}
         {host && <button className="t3-btn t3-btn--continue t3-btn--big" disabled={pending || !canStart} onClick={() => send("START_GAME", {})}>START GAME</button>}
       </footer>
     </section>
