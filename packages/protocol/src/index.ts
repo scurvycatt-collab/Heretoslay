@@ -356,6 +356,7 @@ const BASE_TURN_KINDS = new Set([
   "REACT_CHALLENGE",
   "REACT_MODIFIER",
   "REACT_PASS",
+  "REACT_SHAMAN",
   "RESOLVE_CHOICE",
   "LEADER_ACTION",
 ]);
@@ -457,6 +458,12 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
       break;
     case "REACT_PASS":
       need("windowId");
+      break;
+    case "REACT_SHAMAN":
+      need("windowId");
+      if (payload.side !== undefined && payload.side !== "challenger" && payload.side !== "defender") {
+        issues.push("payload.side must be challenger or defender");
+      }
       break;
     case "RESOLVE_CHOICE":
       need("choiceId");
@@ -947,6 +954,7 @@ export type {
   ReactChallengeCommand,
   ReactModifierCommand,
   ReactPassCommand,
+  ReactShamanCommand,
   ResolveChoiceCommand,
   UseHeroEffectCommand,
   BaseCardKind,

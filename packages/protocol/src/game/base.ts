@@ -95,6 +95,13 @@ export interface ReactModifierCommand extends BaseCommandBase {
   };
 }
 
+/** Reaction (The Noble Shaman passive, W09): -1 to one roll in an open Modifier window, once per turn. */
+export interface ReactShamanCommand extends BaseCommandBase {
+  kind: "REACT_SHAMAN";
+  /** `side` is required on Challenge rolls (which of the two rolls) and forbidden otherwise. */
+  payload: { windowId: string; side?: "challenger" | "defender" };
+}
+
 /** Reaction: Skip (completes this player's part of the window). */
 export interface ReactPassCommand extends BaseCommandBase {
   kind: "REACT_PASS";
@@ -158,6 +165,7 @@ export type BaseTurnCommand =
   | ReactChallengeCommand
   | ReactModifierCommand
   | ReactPassCommand
+  | ReactShamanCommand
   | ResolveChoiceCommand
   | LeaderActionCommand;
 

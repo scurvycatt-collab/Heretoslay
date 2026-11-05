@@ -37,6 +37,7 @@ import {
   openChallengeWindow,
   pass,
   playModifier,
+  useNobleShaman,
   resolveChoice,
   rollTotals,
   seatOf,
@@ -266,6 +267,7 @@ function onTurnStart(game: BaseGameState): void {
   game.modifierLockBy = null;
   game.silentShieldBy = null;
   game.freeDrawCredit = 0;
+  game.shamanUsed = false;
   game.noChallengeThisTurn = false;
   game.leaderActionUsed = false;
   const active = seatOf(game, activePlayerId(game) ?? "");
@@ -552,6 +554,13 @@ const reactModifierHandler: Handler = (game, seat, command, _roster, deps) => {
   return playModifier(game, seat.playerId, command.payload, deps, HOOKS);
 };
 
+const reactShamanHandler: Handler = (game, seat, command, _roster, deps) => {
+  if (command.kind !== "REACT_SHAMAN") return "MODE_MISMATCH";
+  const guard = reactGuard(game);
+  if (guard) return guard;
+  return useNobleShaman(game, seat.playerId, command.payload, deps);
+};
+
 const reactPassHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.kind !== "REACT_PASS") return "MODE_MISMATCH";
   const guard = reactGuard(game);
@@ -647,6 +656,7 @@ export const BASE_TURN_HANDLERS: Readonly<Record<BaseGameCommandKind, Handler>> 
   REACT_CHALLENGE: reactChallengeHandler,
   REACT_MODIFIER: reactModifierHandler,
   REACT_PASS: reactPassHandler,
+  REACT_SHAMAN: reactShamanHandler,
   RESOLVE_CHOICE: resolveChoiceHandler,
   LEADER_ACTION: leaderActionHandler,
 };

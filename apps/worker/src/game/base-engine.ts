@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -288,6 +288,8 @@ export interface EngineState extends SetupTable<BaseCard> {
   silentShieldBy?: string | null;
   /** Muscipula Rex (W08): free draw-only credits left this turn; absent = 0. */
   freeDrawCredit?: number;
+  /** The Noble Shaman (W09): used this turn; reset at every turn start. */
+  shamanUsed?: boolean;
   noChallengeThisTurn: boolean;
   leaderActionUsed: boolean;
   chain: Chain | null;
@@ -1774,6 +1776,37 @@ export function playModifier(
   }
   log(game, `${whoName(game, playerId)} chơi Modifier ${payload.value > 0 ? "+" : ""}${payload.value}${side ? ` (${side})` : ""}`);
   // C10: playing a card keeps the player pending (may add more until Skip); the deadline is never extended.
+  return "ACCEPTED";
+}
+
+/**
+ * W09 The Noble Shaman: a Leader passive (not a Modifier card), once per turn on every player's turn,
+ * -1 to the chosen roll of an open Modifier window. A player who already Skipped (final) cannot use it.
+ */
+export function useNobleShaman(
+  game: EngineState,
+  playerId: string,
+  payload: { windowId: string; side?: "challenger" | "defender" },
+  deps: EngineDeps,
+): string {
+  const chain = game.chain;
+  if (!chain || chain.step !== "modifier_window") return "NO_OPEN_WINDOW";
+  if (chain.windowId !== payload.windowId) return "STALE_WINDOW";
+  if (deps.now() >= chain.deadlineAt) return "WINDOW_CLOSED";
+  if (!(playerId in chain.responders)) return "NOT_ELIGIBLE";
+  if (chain.responders[playerId] !== "pending") return "ALREADY_RESPONDED";
+  const seat = seatOf(game, playerId)!;
+  if (seat.leaderId !== NOBLE_SHAMAN || game.shamanUsed) return "LEADER_ACTION_UNAVAILABLE";
+  const roll = chain.roll;
+  if (roll.kind === "challenge" ? !payload.side : payload.side !== undefined) return "INVALID_MODIFIER_SIDE";
+  game.shamanUsed = true;
+  roll.passives.push({
+    source: NOBLE_SHAMAN,
+    label: `passive của Leader: The Noble Shaman (${whoName(game, playerId)})`,
+    value: -1,
+    ...(payload.side ? { side: payload.side } : {}),
+  });
+  log(game, `${whoName(game, playerId)}: The Noble Shaman -1${payload.side ? ` (${payload.side})` : ""}`);
   return "ACCEPTED";
 }
 

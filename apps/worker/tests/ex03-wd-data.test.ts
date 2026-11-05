@@ -6,6 +6,7 @@ import { EXPANSION_FACE_DRAFTS } from "../src/content/expansion-drafts.ts";
 import { WD_CARD_DATA, WD_SOURCES, WD_UNIMPLEMENTED_EFFECTS } from "../src/content/expansion-wd.ts";
 import { GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
 import { cardName } from "../src/game/base-rules.ts";
+import { buildEffect } from "../src/game/base-engine.ts";
 
 const drafts = EXPANSION_FACE_DRAFTS.filter((face) => face.setKey === "warriorsDruids");
 const REQUIRED: Record<string, string[]> = {
@@ -73,9 +74,12 @@ test("lookup works for in-play expansion cards but this does not enable the pack
   assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"]);
 });
 
-test("pending effects are tracked explicitly, so the pack cannot be enabled by accident", () => {
-  assert.ok(WD_UNIMPLEMENTED_EFFECTS.length > 0);
-  assert.ok(!WD_UNIMPLEMENTED_EFFECTS.includes("item.bottomless-bag"));
-  assert.ok(WD_UNIMPLEMENTED_EFFECTS.includes("leader.the-noble-shaman"), "Noble Shaman still needs its handler");
-  assert.equal(new Set(WD_UNIMPLEMENTED_EFFECTS).size, WD_UNIMPLEMENTED_EFFECTS.length);
+test("every WD effect now has a handler, but the catalog stays base-only until the pack is wired", () => {
+  assert.deepEqual(WD_UNIMPLEMENTED_EFFECTS, [], "all 35 cards are implemented");
+  const game = { seats: [{ playerId: "p1", party: [], slain: [], hand: [] }] } as never;
+  for (const card of WD_CARD_DATA.filter((c) => c.kind === "hero" || c.kind === "magic")) {
+    const steps = buildEffect(game, card.effectId!, "p1", {}, "src");
+    assert.ok(!steps.some((step) => step.op === "log" && /chưa được hỗ trợ/.test(step.text)), `${card.name} falls through to the no-op default`);
+  }
+  assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"], "no pack is registered or playable yet");
 });
