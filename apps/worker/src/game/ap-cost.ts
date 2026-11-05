@@ -3,11 +3,11 @@
 // reprices PAID roll actions. Callers pass the paid flag explicitly rather than assuming it.
 
 import { hasAttachment } from "./attachments.ts";
+import { SOULBOUND_GRIMOIRE } from "./expansion-ids.ts";
 import type { PartyHero } from "./base-rules.ts";
 
 export const BASE_HERO_EFFECT_COST = 1;
 export const GRIMOIRE_HERO_EFFECT_COST = 2;
-const SOULBOUND_GRIMOIRE = "hts.berserkers-necromancers.v1.cursed-item.soulbound-grimoire";
 
 /** AP for a PAID Hero effect roll (including a Bag repeat). Printed Grimoire text sets it to two. */
 export function paidHeroEffectCost(hero: PartyHero): number {

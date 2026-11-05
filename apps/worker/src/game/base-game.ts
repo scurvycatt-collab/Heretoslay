@@ -63,6 +63,7 @@ import {
 } from "./base-rules.ts";
 import { canAttach, hasAttachment, hasCursedAttachment } from "./attachments.ts";
 import { paidHeroEffectCost } from "./ap-cost.ts";
+import { BOTTOMLESS_BAG } from "./expansion-ids.ts";
 import {
   advanceTurn,
   applySetupCommand,
@@ -470,7 +471,8 @@ const playHandCardHandler: Handler = (game, seat, command, _roster, deps) => {
 function heroRollError(game: BaseGameState, seat: BaseSeat, heroId: string, targets: BaseTargets): BaseCommandCode | null {
   const found = findHero(game, heroId);
   if (!found || found.seat !== seat) return "HERO_NOT_IN_PARTY";
-  if (game.heroRollsUsed.includes(heroId)) return "HERO_ALREADY_ROLLED"; // RG-HERO-04
+  // RG-HERO-04 / C08: one attempt per Hero per turn, unless an equipped Bottomless Bag permits paid repeats (E04).
+  if (game.heroRollsUsed.includes(heroId) && !hasAttachment(found.hero, BOTTOMLESS_BAG)) return "HERO_ALREADY_ROLLED";
   if (hasAttachment(found.hero, "hts.base.v1.cursed-item.sealing-key")) return "HERO_EFFECT_BLOCKED";
   const data = cardDataOfKind(found.hero.card.definitionId, "hero");
   if (!data) return "HERO_NOT_IN_PARTY";

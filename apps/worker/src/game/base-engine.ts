@@ -12,6 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
+import { GOBLET_OF_CAFFEINATION, TEMPORAL_HOURGLASS } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -199,6 +200,12 @@ export type Step =
   | { op: "trade_hands"; a: string; b: string }
   | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean; offerPlayIfKind?: BaseCardKind[] }
   | { op: "roll_bonus"; n: number }
+  /** E10: an explicit AP grant (Temporal Hourglass); never a retry. */
+  | { op: "gain_ap"; playerId: string; n: number }
+  /** Sacrifice-by-discard of one exact attachment (credited-sacrifice events arrive with EX-02 B3). */
+  | { op: "discard_attachment"; heroCardId: string; itemCardId: string }
+  /** E04: fresh roll + Modifier window for an already-used Hero; costs no AP here (Goblet). */
+  | { op: "retry_hero_roll"; playerId: string; heroCardId: string; targets: BaseTargets }
   | { op: "protect"; playerId: string; kind: "noDestroy" | "noSteal" }
   | { op: "no_challenge" }
   | { op: "return_item"; heroCardId: string; onlyCursed?: boolean; itemCardId?: string; toPlayerId?: string }
@@ -809,6 +816,22 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       else afterDraw(game, seat, drawn);
       return false;
     }
+    case "retry_hero_roll": return false; // handled in advance(), which owns the hooks
+    case "gain_ap": {
+      if (step.playerId === game.turnOrder[game.currentPlayerIndex]) {
+        game.actionPoints = (game.actionPoints ?? 0) + step.n;
+        log(game, `${whoName(game, step.playerId)} nhận thêm ${step.n} AP`);
+      }
+      return false;
+    }
+    case "discard_attachment": {
+      const found = findHero(game, step.heroCardId);
+      const item = found ? detach(found.hero, step.itemCardId) : null;
+      if (!item) return false;
+      game.discard.push(item);
+      log(game, `${cardName(item.definitionId)} bị hy sinh (vào discard)`);
+      return false;
+    }
     case "offer_immediate_roll": {
       const found = findHero(game, step.heroCardId);
       if (!found || found.seat.playerId !== step.playerId) return false;
@@ -1026,6 +1049,16 @@ function awardMonster(game: EngineState, step: Extract<Step, { op: "award_monste
   return hooks.afterSlay(game, seat);
 }
 
+function retryHeroRoll(game: EngineState, step: Extract<Step, { op: "retry_hero_roll" }>, deps: EngineDeps, hooks: EngineHooks): void {
+  const found = findHero(game, step.heroCardId);
+  const data = found ? cardDataOfKind(found.hero.card.definitionId, "hero") : null;
+  if (!found || !data || found.seat.playerId !== step.playerId || validateTargets(game, step.playerId, data.target, step.targets)) {
+    log(game, "Thử lại: Hero hoặc mục tiêu không còn hợp lệ — bỏ qua");
+    return;
+  }
+  startHeroRoll(game, step.playerId, step.heroCardId, step.targets, deps, hooks);
+}
+
 /** Drains the effect queue until empty or a choice opens; then auto-ends the turn if AP ≤ 0. */
 export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks): void {
   if (game.phase !== "turn_active") return;
@@ -1033,6 +1066,8 @@ export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks)
     const step = game.queue.shift()!;
     if (step.op === "award_monster") {
       if (awardMonster(game, step, hooks)) return; // C04: win → stop; no passives / refill after GAME_OVER
+    } else if (step.op === "retry_hero_roll") {
+      retryHeroRoll(game, step, deps, hooks);
     } else {
       runStep(game, step, deps);
     }
@@ -1482,7 +1517,7 @@ export function startHeroRoll(game: EngineState, actorId: string, heroCardId: st
   const seat = seatOf(game, actorId)!;
   const found = findHero(game, heroCardId)!;
   const data = cardDataOfKind(found.hero.card.definitionId, "hero")!;
-  game.heroRollsUsed.push(heroCardId); // RG-HERO: allowance consumed before dice
+  if (!game.heroRollsUsed.includes(heroCardId)) game.heroRollsUsed.push(heroCardId); // RG-HERO: allowance consumed before dice
   const dice = [...deps.rollDice()] as [number, number];
   const passives = rollPassives(seat, "hero_effect", { hero: found.hero, turnRollBonus: game.turnRollBonus });
   log(game, `${whoName(game, actorId)} roll hiệu ứng ${data.name} (cần ${data.rollThreshold}${data.rollComparator === "lte" ? "-" : "+"})`);
@@ -1523,6 +1558,19 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     rememberRoll(game, roll, success ? "success" : "fail", found?.hero.card ?? null, deps);
     log(game, `Kết quả ${total} ${roll.comparator === "lte" ? (success ? "≤" : ">") : success ? "≥" : "<"} ${roll.threshold}: ${success ? "thành công" : "thất bại"}`);
     if (!success) {
+      if (found && found.seat === roller) {
+        // E10: failure-only popups, after Modifiers and passives are final. An AP grant is not a retry.
+        if (hasAttachment(found.hero, TEMPORAL_HOURGLASS)) {
+          game.queue.push(may(roll.rollerId, "Temporal Hourglass: gain 1 AP?", [{ op: "gain_ap", playerId: roll.rollerId, n: 1 }]));
+        }
+        const goblet = found.hero.attachments.find((card) => card.definitionId === GOBLET_OF_CAFFEINATION);
+        if (goblet) {
+          game.queue.push(may(roll.rollerId, "Goblet of Caffeination: sacrifice it to attempt this Hero effect again (free)?", [
+            { op: "discard_attachment", heroCardId: found.hero.card.cardId, itemCardId: goblet.cardId },
+            { op: "retry_hero_roll", playerId: roll.rollerId, heroCardId: found.hero.card.cardId, targets: roll.targets },
+          ]));
+        }
+      }
       if (found && hasAttachment(found.hero, "hts.base.v1.item.particularly-rusty-coin") && found.seat === roller) game.queue.push({ op: "draw", playerId: roll.rollerId, n: 1 });
       return;
     }
