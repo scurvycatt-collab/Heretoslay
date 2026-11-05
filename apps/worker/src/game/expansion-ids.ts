@@ -37,3 +37,9 @@ export const SILVER_LINING = idOf("Silver Lining");
 export const DRAGONS_BILE = idOf("Dragon's Bile");
 export const BN_MODIFIER_PLUS_2_MINUS_2 = idOf("Modifier +2/-2", "berserkersNecromancers");
 export const BN_MODIFIER_PLUS_7 = idOf("Modifier +7", "berserkersNecromancers");
+
+// EX-05 (Dragon Sorcerer v2)
+export const FEARLESS_FLAME = idOf("The Fearless Flame");
+export const CALAMITY_MONGREL = idOf("Calamity Mongrel");
+export const DS_MODIFIER_PLUS_6 = idOf("Modifier +6", "dragonSorcerer");
+export const DS_MODIFIER_MINUS_6 = idOf("Modifier -6", "dragonSorcerer");

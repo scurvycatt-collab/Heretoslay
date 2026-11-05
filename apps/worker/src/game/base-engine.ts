@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { BIGGEST_RING_EVER, BN_MODIFIER_PLUS_2_MINUS_2, BN_MODIFIER_PLUS_7, DOOMBRINGER, DRAGONS_BILE, RAGING_MANTICORE, SILVER_LINING, CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { CALAMITY_MONGREL, DS_MODIFIER_MINUS_6, DS_MODIFIER_PLUS_6, FEARLESS_FLAME, BIGGEST_RING_EVER, BN_MODIFIER_PLUS_2_MINUS_2, BN_MODIFIER_PLUS_7, DOOMBRINGER, DRAGONS_BILE, RAGING_MANTICORE, SILVER_LINING, CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -229,7 +229,7 @@ export type Step =
   | { op: "move_hero"; heroCardId: string; toPlayerId: string; onlyIfOwns?: { heroCardId: string; playerId: string } }
   | { op: "discard_card"; card: BaseCard }
   | { op: "trade_hands"; a: string; b: string }
-  | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean; offerPlayIfKind?: BaseCardKind[] }
+  | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean; offerPlayIfKind?: BaseCardKind[]; ifKindThen?: { kind: BaseCardKind; steps: Step[] } }
   | { op: "roll_bonus"; n: number }
   /** +n to the active player's ATTACK rolls until the end of the turn (Critical Fang). */
   | { op: "attack_bonus"; n: number }
@@ -257,10 +257,14 @@ export type Step =
   | { op: "sacrifice_hero_card"; heroCardId: string }
   /** Vicious Wildcat (BN): "then end your turn" — no action points remain once the queue drains. */
   | { op: "end_turn_now" }
+  /** Dystortivern (DS): the two players trade Party Leader cards. */
+  | { op: "swap_leaders"; a: string; b: string }
+  /** Calamity Mongrel (DS): DISCARD one exact card from the player's hand (only if it is still there). */
+  | { op: "discard_from_hand"; playerId: string; cardId: string }
   /** Brawling Spirit (BN): every player with more than 3 cards in their Party (Heroes + equipped Items) SACRIFICEs a Hero. */
   | { op: "brawling_spirit"; actorId: string }
   /** Roaryal Guard (BN): return every Hero of this effective Class to its owner's hand (attachments follow). */
-  | { op: "return_class_heroes"; heroClass: string }
+  | { op: "return_class_heroes"; heroClass: string; exceptHeroCardId?: string }
   /** E10: an explicit AP grant (Temporal Hourglass); never a retry. */
   | { op: "gain_ap"; playerId: string; n: number }
   /** Sacrifice-by-discard of one exact attachment (credited-sacrifice events arrive with EX-02 B3). */
@@ -570,6 +574,14 @@ export function drawTriggerSteps(game: EngineState, seat: BaseSeat, drawn: BaseC
   for (const card of drawn) {
     if ((card.kind === "item" || card.kind === "cursed_item") && slainHas(seat, "malamammoth")) {
       offers.push(offerPlay(seat.playerId, [card], "Malamammoth: chơi ngay Item vừa rút?"));
+    }
+    if (card.kind === "challenge" && seat.slain.some((id) => monsterDefinitionId(id) === CALAMITY_MONGREL)) {
+      offers.push(
+        may(seat.playerId, "Calamity Mongrel: DISCARD Challenge vừa rút để DRAW 2 lá?", [
+          { op: "discard_from_hand", playerId: seat.playerId, cardId: card.cardId },
+          { op: "draw", playerId: seat.playerId, n: 2 },
+        ]),
+      );
     }
     if (card.kind === "magic" && slainHas(seat, "orthus")) {
       offers.push(offerPlay(seat.playerId, [card], "Orthus: chơi ngay Magic vừa rút?"));
@@ -967,6 +979,26 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
         { op: "choice", playerId: actorId, kind: "view_hand", count: 0, upTo: true, targetPlayerId: seat.playerId, prompt: `Xem tay bài ${whoName(game, seat.playerId)} (Gruesome Gladiator)` },
         { op: "choice", playerId: actorId, kind: "take_from_hand", count: 1, targetPlayerId: seat.playerId, prompt: `Lấy 1 lá từ tay ${whoName(game, seat.playerId)} (Gruesome Gladiator)` },
       ]);
+    case "hero.dystortivern":
+      return p ? [{ op: "swap_leaders", a: actorId, b: p }] : [{ op: "log", text: "Dystortivern: không có mục tiêu" }];
+    case "magic.egg-of-fortune":
+      return [
+        { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Egg of Fortune)" },
+        ...orderFrom(game, actorId).filter((seat) => seat.playerId !== actorId).map((seat): Step => ({ op: "pull", fromPlayerId: seat.playerId, toPlayerId: actorId, n: 1 })),
+      ];
+    case "hero.extraga":
+      return [{ op: "return_class_heroes", heroClass: "sorcerer", ...(sourceCardId ? { exceptHeroCardId: sourceCardId } : {}) }];
+    case "hero.oracon":
+      return p
+        ? [{ op: "pull", fromPlayerId: p, toPlayerId: actorId, n: 1, ifKindThen: { kind: "modifier", steps: [{ op: "choice", playerId: p, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Oracon — bị rút trúng Modifier)" }] } }]
+        : [{ op: "log", text: "Oracon: không có mục tiêu" }];
+    case "hero.renovern":
+      return [{ op: "choice", playerId: actorId, kind: "take_from_discard", count: 1, filterKinds: ["item", "cursed_item"], thenPlayTaken: true, prompt: "Chọn 1 Item trong discard, lấy về tay rồi chơi ngay (Renovern)" }];
+    case "hero.smok":
+      return [{
+        op: "draw", playerId: actorId, n: 2,
+        ifAnyKindThen: { kinds: ["magic"], revealSource: "Smok", steps: [may(actorId, "Smok: lộ Magic vừa rút để nhận thêm 1 AP?", [{ op: "gain_ap", playerId: actorId, n: 1 }])] },
+      }];
     case "hero.vicious-wildcat":
       return [{ op: "choice", playerId: actorId, kind: "slay_monster", count: 1, prompt: "Chọn 1 Monster ngửa để SLAY ngay (Vicious Wildcat) — sau đó kết thúc lượt" }];
     case "hero.meowntain":
@@ -1278,6 +1310,8 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       };
       for (let i = 0; i < step.n; i += 1) pullOne();
       if (step.extraIfKind && pulled[0]?.kind === step.extraIfKind) pullOne();
+      // Oracon (DS): a follow-up that depends on the kind of the pulled card.
+      if (step.ifKindThen && pulled.some((card) => card.kind === step.ifKindThen!.kind)) game.queue.unshift(...step.ifKindThen.steps);
       if (step.offerPlayIfKind) {
         const playable = pulled.filter((card) => step.offerPlayIfKind!.includes(card.kind));
         if (playable.length > 0) game.queue.unshift(offerPlay(step.toPlayerId, playable, "Chơi ngay lá vừa rút?"));
@@ -1335,6 +1369,22 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       loseHero(game, found, { kind: "sacrifice" }, deps);
       return false;
     }
+    case "swap_leaders": {
+      const a = seatOf(game, step.a);
+      const b = seatOf(game, step.b);
+      if (!a || !b || a === b) return false;
+      [a.leaderId, b.leaderId] = [b.leaderId, a.leaderId];
+      log(game, `${whoName(game, step.a)} và ${whoName(game, step.b)} đổi Party Leader cho nhau`);
+      return false;
+    }
+    case "discard_from_hand": {
+      const seat = seatOf(game, step.playerId);
+      const index = seat ? seat.hand.findIndex((card) => card.cardId === step.cardId) : -1;
+      if (!seat || index < 0) return false;
+      game.discard.push(seat.hand.splice(index, 1)[0]);
+      log(game, `${whoName(game, step.playerId)} DISCARD 1 lá`);
+      return false;
+    }
     case "end_turn_now":
       game.actionPoints = 0;
       log(game, "Kết thúc lượt (Vicious Wildcat)");
@@ -1358,7 +1408,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       let count = 0;
       for (const seat of game.seats) {
         for (const hero of [...seat.party]) {
-          if (!heroClasses(hero, game.settings).includes(step.heroClass as never)) continue;
+          if (hero.card.cardId === step.exceptHeroCardId || !heroClasses(hero, game.settings).includes(step.heroClass as never)) continue;
           seat.party.splice(seat.party.indexOf(hero), 1);
           seat.hand.push(hero.card, ...detachAll(hero));
           count += 1;
@@ -1879,6 +1929,14 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
     }
   }
   for (const { playerId, side } of owners) {
+    // The Fearless Flame (DS): "Each time you roll the dice, you may DISCARD a card. If you do, +1 to your roll."
+    if (seatOf(game, playerId)?.leaderId === FEARLESS_FLAME) {
+      steps.push({
+        op: "choice", playerId, kind: "discard", count: 1, upTo: true,
+        prompt: "The Fearless Flame: DISCARD 1 lá để +1 cho roll này (tùy chọn)",
+        perCardThen: [{ op: "apply_roll_swing", value: 1, source: FEARLESS_FLAME, label: "The Fearless Flame", ...(side ? { side } : {}) }],
+      });
+    }
     const swings = seatOf(game, playerId)?.rollSwings ?? 0;
     if (swings <= 0) continue;
     const magnitude = 5 * swings;
@@ -1948,6 +2006,7 @@ export function playModifier(
   if (roll.kind === "challenge" ? !payload.side : payload.side !== undefined) return "INVALID_MODIFIER_SIDE";
   if (payload.leaderBonus !== undefined && !leaderIs(seat, "the-protecting-horn")) return "INVALID_LEADER_BONUS";
   if (game.modifierLockBy && game.modifierLockBy !== playerId) return "MODIFIERS_LOCKED";
+  if ((seat.hand[index].definitionId === DS_MODIFIER_PLUS_6 || seat.hand[index].definitionId === DS_MODIFIER_MINUS_6) && seat.hand.length < 2) return "CARD_NOT_PLAYABLE"; // needs another card to DISCARD
   const [card] = seat.hand.splice(index, 1);
   game.discard.push(card);
   const side = payload.side;
@@ -1955,6 +2014,10 @@ export function playModifier(
   // BN Modifier +2/-2: "If you are attacking a Monster card, +4 to that roll instead" — only on your own ATTACK roll.
   if (card.definitionId === BN_MODIFIER_PLUS_2_MINUS_2 && value === 2 && roll.kind === "attack" && roll.rollerId === playerId) value = 4;
   roll.modifiers.push({ playerId, cardId: card.cardId, value, ...(side ? { side } : {}) });
+  // DS Modifier +6 / -6: "...rolls the dice and DISCARD a card" — a mandatory discard once the roll settles.
+  if (card.definitionId === DS_MODIFIER_PLUS_6 || card.definitionId === DS_MODIFIER_MINUS_6) {
+    game.queue.push({ op: "choice", playerId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Modifier ±6)" });
+  }
   // BN Modifier +7: "DISCARD your hand" (the played card is already in the discard pile).
   if (card.definitionId === BN_MODIFIER_PLUS_7 && seat.hand.length > 0) {
     game.discard.push(...seat.hand.splice(0));
