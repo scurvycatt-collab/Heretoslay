@@ -92,6 +92,8 @@ export interface ReactModifierCommand extends BaseCommandBase {
     side?: "challenger" | "defender";
     /** The Protecting Horn passive: extra +1 or -1 on the same roll (Q-11 display). */
     leaderBonus?: 1 | -1;
+    /** DS Modifier +6 / -6: the card to DISCARD first (required for those two cards, rejected otherwise). */
+    discardCardInstanceId?: string;
   };
 }
 
@@ -336,7 +338,11 @@ export type BaseChainView =
         | "sacrifice_item"
         | "choose_class"
         | "make_sacrifice"
-        | "slay_monster";
+        | "slay_monster"
+        | "steal_item"
+        | "equip_hero"
+        | "mirror_hero"
+        | "bring_from_discard";
       min: number;
       max: number;
       prompt: string;

@@ -101,7 +101,7 @@ export const DS_CARD_DATA: readonly CardData[] = [
 /** Effects whose engine behaviour already exists and is tested. Everything else is pending (EX-05 slices). */
 export const DS_IMPLEMENTED_EFFECTS: ReadonlySet<string> = new Set([
   "item.sorcerer-mask", // generic Mask class replacement
-  "hero.dystortivern", "hero.extraga", "hero.oracon", "hero.renovern", "hero.smok", "magic.egg-of-fortune",
+  "hero.dragalter", "hero.dystortivern", "hero.extraga", "hero.luut", "hero.mirroryu", "hero.oracon", "hero.renovern", "hero.shamanaga", "hero.smok", "magic.egg-of-fortune",
   "leader.the-fearless-flame", "monster.calamity-mongrel",
 ]);
 

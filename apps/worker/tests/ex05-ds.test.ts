@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { BaseGameCommand } from "@here-to-slay/protocol";
-import { advance, buildEffect, drawTriggerSteps, pass, playModifier, resolveChoice, startAttack, rollTotals, type EngineDeps, type EngineHooks, type Step } from "../src/game/base-engine.ts";
+import { advance, buildEffect, eligibleChoiceCards, drawTriggerSteps, pass, playModifier, resolveChoice, startAttack, rollTotals, type EngineDeps, type EngineHooks, type Step } from "../src/game/base-engine.ts";
 import { applyBaseCommand, initialBaseGameState, type BaseGameDeps, type BaseRoster } from "../src/game/base-game.ts";
 import type { BaseCard } from "../src/game/base-content.ts";
 import { EXPANSION_FACE_DRAFTS } from "../src/content/expansion-drafts.ts";
@@ -46,9 +46,9 @@ test("Hero class and threshold agree with the reviewed labels (all Sorcerers rol
   }
 });
 
-test("DS stays lookup-only; the four owner-gated Heroes are the only pending effects", () => {
+test("DS stays lookup-only (not in the live catalog) with every effect implemented", () => {
   assert.ok(!JSON.stringify(GAME_SET_CATALOG).includes("dragon-sorcerer"));
-  assert.deepEqual([...DS_UNIMPLEMENTED_EFFECTS].sort(), ["hero.dragalter", "hero.luut", "hero.mirroryu", "hero.shamanaga"]);
+  assert.deepEqual([...DS_UNIMPLEMENTED_EFFECTS], []);
 });
 
 function table(dice: [number, number] = [3, 3]) {
@@ -82,7 +82,7 @@ function table(dice: [number, number] = [3, 3]) {
   };
   const window = () => game.chain as { step: string; windowId: string; roll: Parameters<typeof rollTotals>[0] };
   const total = () => rollTotals(window().roll).total;
-  return { game, me, them, effect, pending, answer, window, total, deps: engineDeps, hooks };
+  return { game, me, them, run, effect, pending, answer, window, total, deps: engineDeps, hooks };
 }
 
 test("Dystortivern trades Party Leader cards", () => {
@@ -173,16 +173,142 @@ test("Calamity Mongrel (slain): a drawn Challenge may be discarded for 2 new car
   assert.equal(t.me.hand.length, 2);
 });
 
-test("Modifier +6 / -6 need another card to DISCARD and make the player discard one", () => {
+test("Modifier +6 / -6: the DISCARD is paid first, chosen at play time", () => {
   const t = table();
   startAttack(t.game, t.me.playerId, t.game.faceUpMonsters[0], t.deps, t.hooks);
   t.me.hand.push(card("m6", ds("Modifier +6"), "modifier"));
   const windowId = t.window().windowId;
-  assert.equal(playModifier(t.game, t.me.playerId, { windowId, cardInstanceId: "m6", value: 6 }, t.deps, t.hooks), "CARD_NOT_PLAYABLE", "no other card to discard");
+  const play = (extra: Record<string, unknown>) => playModifier(t.game, t.me.playerId, { windowId, cardInstanceId: "m6", value: 6, ...extra }, t.deps, t.hooks);
+  assert.equal(play({}), "CARD_NOT_PLAYABLE", "no discard chosen");
+  assert.equal(play({ discardCardInstanceId: "m6" }), "CARD_NOT_PLAYABLE", "cannot discard itself");
+  assert.equal(play({ discardCardInstanceId: "nope" }), "CARD_NOT_PLAYABLE", "not in hand");
+  assert.equal(t.me.hand.length, 1, "nothing consumed by rejected plays");
   t.me.hand.push(hero("fodder"));
-  assert.equal(playModifier(t.game, t.me.playerId, { windowId, cardInstanceId: "m6", value: 6 }, t.deps, t.hooks), "ACCEPTED");
+  assert.equal(play({ discardCardInstanceId: "fodder" }), "ACCEPTED");
   assert.equal(t.total(), 6 + 6);
+  assert.equal(t.me.hand.length, 0);
+  assert.ok(t.game.discard.some((c) => c.cardId === "fodder"));
+  assert.ok(!(t.pending()), "no after-the-fact discard choice");
+});
+
+test("a discard card is rejected on any other Modifier", () => {
+  const t = table();
+  startAttack(t.game, t.me.playerId, t.game.faceUpMonsters[0], t.deps, t.hooks);
+  t.me.hand.push(card("m1", ds("Modifier +6"), "modifier"));
+  const windowId = t.window().windowId;
+  t.me.hand.push(card("plain", "hts.base.v1.modifier.modifier-plus-1-minus-3", "modifier"), hero("fodder"));
+  assert.equal(playModifier(t.game, t.me.playerId, { windowId, cardInstanceId: "plain", value: 1, discardCardInstanceId: "fodder" }, t.deps, t.hooks), "CARD_NOT_PLAYABLE");
+});
+
+const PLUS1_MINUS3 = "hts.base.v1.modifier.modifier-plus-1-minus-3";
+const settle = (t: ReturnType<typeof table>) => {
+  const windowId = t.window().windowId;
   for (const playerId of Object.keys((t.game.chain as { responders: Record<string, string> }).responders)) pass(t.game, playerId, windowId, t.deps, t.hooks);
+};
+
+test("Dragalter: discard a Modifier, then each of my rolls offers that Modifier's options", () => {
+  const base = table();
+  startAttack(base.game, base.me.playerId, base.game.faceUpMonsters[0], base.deps, base.hooks);
+  const baseline = base.total();
+
+  const t = table();
+  t.me.hand.push(card("mod", PLUS1_MINUS3, "modifier"));
+  t.effect("hero.dragalter", {}, "dr");
   assert.equal(t.pending()!.kind, "discard");
-  assert.equal(t.pending()!.playerId, t.me.playerId);
+  t.answer(["mod"]);
+  assert.ok(t.game.dragalterReplay);
+  startAttack(t.game, t.me.playerId, t.game.faceUpMonsters[0], t.deps, t.hooks);
+  assert.equal(t.pending()!.kind, "confirm", "first option offered as a popup");
+  t.answer([], true);
+  assert.equal(t.window().step, "modifier_window");
+  assert.equal(t.total(), baseline + 1);
+  settle(t);
+  // second roll in the same turn: decline both options → unchanged
+  startAttack(t.game, t.me.playerId, t.game.faceUpMonsters[1], t.deps, t.hooks);
+  t.answer([], false);
+  t.answer([], false);
+  assert.ok(!t.window().roll.passives.some((passive) => passive.label.includes("Dragalter")), "declined: no Dragalter swing");
+});
+
+test("Dragalter without a Modifier in hand does nothing", () => {
+  const t = table();
+  t.effect("hero.dragalter", {}, "dr");
+  assert.ok(!t.game.dragalterReplay);
+});
+
+test("Luut steals an equipped Item from another Party onto my Hero", () => {
+  const t = table();
+  t.me.party.push({ card: hero("mine"), attachments: [] });
+  t.them.party.push({ card: hero("theirs"), attachments: [card("it", ds("Sorcerer Mask"), "item")] });
+  t.effect("hero.luut");
+  assert.equal(t.pending()!.kind, "steal_item");
+  t.answer(["it"]);
+  assert.equal(t.pending()!.kind, "equip_hero");
+  assert.equal(t.them.party[0].attachments.length, 1, "item stays put until the second pick");
+  t.answer(["mine"]);
+  assert.deepEqual(t.me.party[0].attachments.map((c) => c.cardId), ["it"]);
+  assert.equal(t.them.party[0].attachments.length, 0);
+});
+
+test("Luut offers nothing when none of my Heroes can take the Item", () => {
+  const t = table();
+  t.them.party.push({ card: hero("theirs"), attachments: [card("it", ds("Sorcerer Mask"), "item")] });
+  t.effect("hero.luut");
+  const open = t.pending();
+  assert.ok(!open || eligibleChoiceCards(t.game, (t.game.chain as { choice: never }).choice).length === 0);
+});
+
+test("Mirroryu: free +3 roll of another Hero in my Party, even one that already rolled", () => {
+  const t = table([3, 3]);
+  t.me.party.push({ card: hero("mir", ds("Mirroryu")), attachments: [] }, { card: hero("smok", ds("Smok")), attachments: [] });
+  t.game.heroRollsUsed.push("smok");
+  t.effect("hero.mirroryu", {}, "mir");
+  assert.equal(t.pending()!.kind, "mirror_hero");
+  const choice = (t.game.chain as { choice: never }).choice;
+  assert.deepEqual(eligibleChoiceCards(t.game, choice).map((c) => c.cardId), ["smok"], "not Mirroryu itself");
+  t.answer(["smok"]);
+  const chain = t.game.chain as { step: string; bonus?: number; free?: boolean };
+  assert.equal(chain.step, "immediate_roll_choice");
+  assert.equal(chain.bonus, 3);
+  assert.equal(t.run(t.me.playerId, "IMMEDIATE_ROLL", { choice: "roll" }), "ACCEPTED");
+  assert.equal(t.total(), 6 + 3);
+  assert.equal(t.game.heroRollsUsed.filter((id) => id === "smok").length, 1, "no extra use consumed");
+});
+
+test("Shamanaga: bring a Hero from discard, roll its effect, then SACRIFICE it", () => {
+  const t = table([6, 6]);
+  t.me.party.push({ card: hero("sh", ds("Shamanaga")), attachments: [] });
+  t.game.discard.push(card("d", ds("Extraga"), "hero"));
+  t.effect("hero.shamanaga", {}, "sh");
+  assert.equal(t.pending()!.kind, "bring_from_discard");
+  t.answer(["d"]);
+  assert.ok(t.me.party.some((e) => e.card.cardId === "d"));
+  assert.equal(t.run(t.me.playerId, "IMMEDIATE_ROLL", { choice: "roll" }), "ACCEPTED");
+  settle(t);
+  assert.ok(!t.me.party.some((e) => e.card.cardId === "d"), "sacrificed after the roll");
+  assert.ok(t.game.discard.some((c) => c.cardId === "d"));
+  assert.ok(t.me.hand.some((c) => c.cardId === "sh"), "Extraga effect resolved first (returned the other Sorcerer)");
+});
+
+test("Shamanaga: the Hero is sacrificed even when the roll is skipped", () => {
+  const t = table([6, 6]);
+  t.me.party.push({ card: hero("sh", ds("Shamanaga")), attachments: [] });
+  t.game.discard.push(card("d", ds("Extraga"), "hero"));
+  t.effect("hero.shamanaga", {}, "sh");
+  t.answer(["d"]);
+  assert.equal(t.run(t.me.playerId, "IMMEDIATE_ROLL", { choice: "skip" }), "ACCEPTED");
+  assert.ok(!t.me.party.some((e) => e.card.cardId === "d"));
+  assert.ok(t.game.discard.some((c) => c.cardId === "d"));
+});
+
+test("Shamanaga: the Hero is sacrificed when the roll fails", () => {
+  const t = table([1, 1]);
+  t.me.party.push({ card: hero("sh", ds("Shamanaga")), attachments: [] });
+  t.game.discard.push(card("d", ds("Extraga"), "hero"));
+  t.effect("hero.shamanaga", {}, "sh");
+  t.answer(["d"]);
+  t.run(t.me.playerId, "IMMEDIATE_ROLL", { choice: "roll" });
+  settle(t);
+  assert.ok(!t.me.party.some((e) => e.card.cardId === "d"));
+  assert.ok(t.me.party.some((e) => e.card.cardId === "sh"), "failed roll: Extraga effect did not run");
 });

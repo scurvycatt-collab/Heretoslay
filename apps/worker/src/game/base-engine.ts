@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { CALAMITY_MONGREL, DS_MODIFIER_MINUS_6, DS_MODIFIER_PLUS_6, FEARLESS_FLAME, BIGGEST_RING_EVER, BN_MODIFIER_PLUS_2_MINUS_2, BN_MODIFIER_PLUS_7, DOOMBRINGER, DRAGONS_BILE, RAGING_MANTICORE, SILVER_LINING, CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { CALAMITY_MONGREL, DS_MODIFIER_MINUS_6, DS_MODIFIER_PLUS_6, FEARLESS_FLAME, BIGGEST_RING_EVER, BN_MODIFIER_PLUS_2_MINUS_2, BN_MODIFIER_PLUS_7, DOOMBRINGER, DRAGONS_BILE, RAGING_MANTICORE, SILVER_LINING, CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MIRRORYU, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -72,6 +72,8 @@ export type RollState =
       targets: BaseTargets;
       modifiers: ModifierEntry[];
       passives: SidedPassive[];
+      /** Shamanaga: steps queued once this roll has resolved (success or fail). */
+      after?: Step[];
     }
   | {
       kind: "attack";
@@ -126,7 +128,15 @@ export type ChoiceKind =
   /** Lightning Labrys (BN): pick a Hero in any Party; its owner must SACRIFICE a Hero card. */
   | "make_sacrifice"
   /** Vicious Wildcat (BN): pick any face-up Monster to SLAY directly (no roll, no Party requirement). */
-  | "slay_monster";
+  | "slay_monster"
+  /** Luut (DS): pick an Item equipped on another player's Hero to STEAL. */
+  | "steal_item"
+  /** Luut (DS): pick a Hero in your Party to equip the stolen Item (fromCardIds = [item]). */
+  | "equip_hero"
+  /** Mirroryu (DS): pick another Hero in your Party whose effect to roll for. */
+  | "mirror_hero"
+  /** Shamanaga (DS): pick a Hero in the discard pile to bring into your Party. */
+  | "bring_from_discard";
 
 /** Extra fields shared by a choice step and the pending choice it opens. */
 export interface ChoiceExtras {
@@ -162,6 +172,8 @@ export interface ChoiceExtras {
   destroyEqual?: boolean;
   /** destroy_hero: if the chosen Hero is of this effective Class, run `steps` once it is really destroyed (Unbridled Fury). */
   thenIfClass?: { heroClass: string; steps: Step[] };
+  /** discard (Dragalter): the discarded Modifier's options may be applied to the player's rolls for the rest of the turn. */
+  armReplay?: boolean;
 }
 
 export interface PendingChoice extends ChoiceExtras {
@@ -190,7 +202,7 @@ export type Chain =
       /** C10: a Modifier play does not complete a participant; only Skip ("passed") does. */
       responders: Record<string, "pending" | "passed">;
     }
-  | { step: "immediate_roll_choice"; deadlineAt: number; actorId: string; heroCardId: string }
+  | { step: "immediate_roll_choice"; deadlineAt: number; actorId: string; heroCardId: string; bonus?: number; free?: boolean; after?: Step[] }
   | { step: "choice"; choice: PendingChoice };
 
 /** Serializable effect steps, run in order; a `choice` step suspends the queue. */
@@ -210,7 +222,8 @@ export type Step =
       /** C04: compute draw-trigger steps now but run them later (`flush_draw_triggers`). */
       deferTriggers?: boolean;
     }
-  | { op: "offer_immediate_roll"; playerId: string; heroCardId: string }
+  /** bonus: added to the roll (Mirroryu +3). free: no once-per-turn use is consumed. after: queued when the roll resolves or is skipped (Shamanaga). */
+  | { op: "offer_immediate_roll"; playerId: string; heroCardId: string; bonus?: number; free?: boolean; after?: Step[] }
   | { op: "draw_to"; playerId: string; n: number }
   /** DISCARD every card in the player's hand (Rapid Refresh); no-op on an empty hand. */
   | { op: "discard_hand"; playerId: string }
@@ -312,6 +325,8 @@ export interface EngineState extends SetupTable<BaseCard> {
   modifierLockBy?: string | null;
   /** Silent Shield (W03): the active player whose sacrifices/destroys may recover a Hero this turn; absent/null = off. */
   silentShieldBy?: string | null;
+  /** Dragalter (DS): the discarded Modifier whose options the player may apply to their rolls this turn; absent/null = off. */
+  dragalterReplay?: { playerId: string; definitionId: string } | null;
   /** Muscipula Rex (W08): free draw-only credits left this turn; absent = 0. */
   freeDrawCredit?: number;
   /** The Noble Shaman (W09): used this turn; reset at every turn start. */
@@ -674,13 +689,17 @@ export function hasValidTargets(game: EngineState, actorId: string, rule: Target
 }
 
 /** Opens the free roll offer for a Hero that just entered, unless its effect has no valid target. */
-function offerHeroRoll(game: EngineState, actorId: string, heroCardId: string, heroDefinitionId: string, deps: EngineDeps): boolean {
+function offerHeroRoll(game: EngineState, actorId: string, heroCardId: string, heroDefinitionId: string, deps: EngineDeps, opts: { bonus?: number; free?: boolean; after?: Step[] } = {}): boolean {
   const rule = cardDataOfKind(heroDefinitionId, "hero")?.target ?? "none";
   if (!hasValidTargets(game, actorId, rule)) {
     log(game, `${cardName(heroDefinitionId)}: không có mục tiêu hợp lệ — bỏ qua hiệu ứng`);
+    if (opts.after) game.queue.unshift(...opts.after);
     return false;
   }
-  game.chain = { step: "immediate_roll_choice", deadlineAt: deps.now() + game.settings.choiceSeconds * 1000, actorId, heroCardId };
+  game.chain = {
+    step: "immediate_roll_choice", deadlineAt: deps.now() + game.settings.choiceSeconds * 1000, actorId, heroCardId,
+    ...(opts.bonus ? { bonus: opts.bonus } : {}), ...(opts.free ? { free: true } : {}), ...(opts.after ? { after: opts.after } : {}),
+  };
   return true;
 }
 
@@ -986,6 +1005,14 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
         { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Egg of Fortune)" },
         ...orderFrom(game, actorId).filter((seat) => seat.playerId !== actorId).map((seat): Step => ({ op: "pull", fromPlayerId: seat.playerId, toPlayerId: actorId, n: 1 })),
       ];
+    case "hero.dragalter":
+      return [{ op: "choice", playerId: actorId, kind: "discard", count: 1, filterKinds: ["modifier"], armReplay: true, thenIfPaid: [{ op: "log", text: "Dragalter: Modifier áp dụng được cho roll của bạn đến hết lượt" }], prompt: "DISCARD 1 Modifier (Dragalter)" }];
+    case "hero.luut":
+      return [{ op: "choice", playerId: actorId, kind: "steal_item", count: 1, prompt: "STEAL 1 Item đang gắn trên Hero của người khác (Luut)" }];
+    case "hero.mirroryu":
+      return [{ op: "choice", playerId: actorId, kind: "mirror_hero", count: 1, ...(sourceCardId ? { excludeCardIds: [sourceCardId] } : {}), prompt: "Chọn 1 Hero khác trong Party để roll hiệu ứng ngay (+3) (Mirroryu)" }];
+    case "hero.shamanaga":
+      return [{ op: "choice", playerId: actorId, kind: "bring_from_discard", count: 1, prompt: "Chọn 1 Hero trong discard để đưa vào Party (Shamanaga)" }];
     case "hero.extraga":
       return [{ op: "return_class_heroes", heroClass: "sorcerer", ...(sourceCardId ? { exceptHeroCardId: sourceCardId } : {}) }];
     case "hero.oracon":
@@ -1098,7 +1125,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "thenOfferPlayTaken", "destroyEqual", "thenIfClass", "excludeCardIds", "onTimeout"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "thenOfferPlayTaken", "destroyEqual", "thenIfClass", "armReplay", "excludeCardIds", "onTimeout"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -1184,8 +1211,11 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     }
     case "offer_immediate_roll": {
       const found = findHero(game, step.heroCardId);
-      if (!found || found.seat.playerId !== step.playerId) return false;
-      return offerHeroRoll(game, step.playerId, step.heroCardId, found.hero.card.definitionId, deps);
+      if (!found || found.seat.playerId !== step.playerId) {
+        if (step.after) game.queue.unshift(...step.after);
+        return false;
+      }
+      return offerHeroRoll(game, step.playerId, step.heroCardId, found.hero.card.definitionId, deps, { bonus: step.bonus, free: step.free, after: step.after });
     }
     case "discard_hand": {
       const seat = seatOf(game, step.playerId);
@@ -1631,6 +1661,17 @@ export function resolveChoice(
   return "ACCEPTED";
 }
 
+/** An Item equipped on any Hero, with the Hero entry that holds it. */
+function findAttachedItem(game: EngineState, itemId: string): { card: BaseCard; holder: EngineState["seats"][number]["party"][number] } | null {
+  for (const seat of game.seats) {
+    for (const holder of seat.party) {
+      const card = holder.attachments.find((entry) => entry.cardId === itemId);
+      if (card) return { card, holder };
+    }
+  }
+  return null;
+}
+
 export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): BaseCard[] {
   const seat = seatOf(game, choice.playerId);
   if (!seat) return [];
@@ -1678,6 +1719,19 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       return (seatOf(game, choice.targetPlayerId ?? "")?.hand ?? []).filter((card) => !choice.filterKinds || choice.filterKinds.includes(card.kind));
     case "sacrifice_item":
       return seat.party.flatMap((hero) => hero.attachments);
+    case "steal_item":
+      return game.seats
+        .filter((other) => other !== seat)
+        .flatMap((other) => other.party.flatMap((hero) => hero.attachments))
+        .filter((item) => seat.party.some((own) => canAttach(own, item)));
+    case "equip_hero": {
+      const item = findAttachedItem(game, choice.fromCardIds?.[0] ?? "");
+      return item ? seat.party.filter((own) => canAttach(own, item.card)).map((own) => own.card) : [];
+    }
+    case "mirror_hero":
+      return seat.party.filter((own) => !choice.excludeCardIds?.includes(own.card.cardId) && !hasAttachment(own, "hts.base.v1.cursed-item.sealing-key")).map((own) => own.card);
+    case "bring_from_discard":
+      return seat.party.length >= PARTY_CARD_LIMIT ? [] : game.discard.filter((card) => card.kind === "hero");
     case "choose_class":
     case "make_sacrifice":
       return game.seats.flatMap((other) => other.party.map((hero) => hero.card));
@@ -1699,6 +1753,7 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
         if (card) {
           game.discard.push(card);
           if (choice.collect) game.collected.push(card.cardId);
+          if (choice.armReplay && card.kind === "modifier") game.dragalterReplay = { playerId: seat.playerId, definitionId: card.definitionId };
         }
       }
       log(game, `${whoName(game, seat.playerId)} DISCARD ${cardIds.length} lá`);
@@ -1735,6 +1790,32 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       const found = cardIds[0] ? findHero(game, cardIds[0]) : null;
       const heroClass = found ? heroClasses(found.hero, game.settings)[0] : undefined;
       if (heroClass) game.queue.unshift({ op: "return_class_heroes", heroClass });
+      return;
+    }
+    case "steal_item": {
+      const item = cardIds[0] ? findAttachedItem(game, cardIds[0]) : null;
+      if (item) game.queue.unshift({ op: "choice", playerId: seat.playerId, kind: "equip_hero", count: 1, fromCardIds: [item.card.cardId], prompt: `Chọn Hero trong Party để gắn ${cardName(item.card.definitionId)} (Luut)` });
+      return;
+    }
+    case "equip_hero": {
+      const item = choice.fromCardIds?.[0] ? findAttachedItem(game, choice.fromCardIds[0]) : null;
+      const target = cardIds[0] ? findHero(game, cardIds[0]) : null;
+      if (!item || !target || target.seat !== seat || !canAttach(target.hero, item.card)) return;
+      item.holder.attachments.splice(item.holder.attachments.indexOf(item.card), 1);
+      target.hero.attachments.push(item.card);
+      log(game, `${whoName(game, seat.playerId)} STEAL ${cardName(item.card.definitionId)} và gắn vào ${cardName(target.hero.card.definitionId)} (Luut)`);
+      return;
+    }
+    case "mirror_hero":
+      if (cardIds[0]) game.queue.unshift({ op: "offer_immediate_roll", playerId: seat.playerId, heroCardId: cardIds[0], bonus: 3, free: true });
+      return;
+    case "bring_from_discard": {
+      const index = game.discard.findIndex((card) => card.cardId === cardIds[0]);
+      if (index < 0 || seat.party.length >= PARTY_CARD_LIMIT) return;
+      const [card] = game.discard.splice(index, 1);
+      seat.party.push({ card, attachments: [] });
+      log(game, `${whoName(game, seat.playerId)} đưa ${cardName(card.definitionId)} từ discard vào Party (Shamanaga)`);
+      game.queue.unshift({ op: "offer_immediate_roll", playerId: seat.playerId, heroCardId: card.cardId, after: [{ op: "sacrifice_hero_card", heroCardId: card.cardId }] });
       return;
     }
     case "make_sacrifice": {
@@ -1937,6 +2018,23 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
         perCardThen: [{ op: "apply_roll_swing", value: 1, source: FEARLESS_FLAME, label: "The Fearless Flame", ...(side ? { side } : {}) }],
       });
     }
+    // Dragalter (DS): "You may apply that Modifier card's effect to all of your rolls for the rest of this turn."
+    const replay = game.dragalterReplay;
+    if (replay && replay.playerId === playerId) {
+      const options = cardDataOfKind(replay.definitionId, "modifier")?.options ?? [];
+      const valueOf = (option: number) => (replay.definitionId === BN_MODIFIER_PLUS_2_MINUS_2 && option === 2 && roll.kind === "attack" && roll.rollerId === playerId ? 4 : option);
+      const offer = (index: number): Step[] => {
+        if (index >= options.length) return [];
+        const value = valueOf(options[index]);
+        return [{
+          op: "choice", playerId, kind: "confirm", count: 1, onTimeout: [],
+          prompt: `Dragalter: áp dụng ${cardName(replay.definitionId)} ${value > 0 ? "+" : ""}${value} cho roll này?`,
+          then: [{ op: "apply_roll_swing", value, source: replay.definitionId, label: "Dragalter", ...(side ? { side } : {}) }],
+          otherwise: offer(index + 1),
+        }];
+      };
+      steps.push(...offer(0));
+    }
     const swings = seatOf(game, playerId)?.rollSwings ?? 0;
     if (swings <= 0) continue;
     const magnitude = 5 * swings;
@@ -1987,7 +2085,7 @@ function modifierResponders(game: EngineState, _roll: RollState): Record<string,
 export function playModifier(
   game: EngineState,
   playerId: string,
-  payload: { windowId: string; cardInstanceId: string; value: number; side?: "challenger" | "defender"; leaderBonus?: 1 | -1 },
+  payload: { windowId: string; cardInstanceId: string; value: number; side?: "challenger" | "defender"; leaderBonus?: 1 | -1; discardCardInstanceId?: string },
   deps: EngineDeps,
   hooks: EngineHooks,
 ): string {
@@ -1998,7 +2096,7 @@ export function playModifier(
   if (!(playerId in chain.responders)) return "NOT_ELIGIBLE";
   if (chain.responders[playerId] !== "pending") return "ALREADY_RESPONDED"; // Skip is final
   const seat = seatOf(game, playerId)!;
-  const index = seat.hand.findIndex((card) => card.cardId === payload.cardInstanceId);
+  let index = seat.hand.findIndex((card) => card.cardId === payload.cardInstanceId);
   if (index < 0 || seat.hand[index].kind !== "modifier") return "CARD_NOT_PLAYABLE";
   const data = cardDataOfKind(seat.hand[index].definitionId, "modifier");
   if (!data || !data.options.includes(payload.value)) return "INVALID_MODIFIER_VALUE";
@@ -2006,7 +2104,21 @@ export function playModifier(
   if (roll.kind === "challenge" ? !payload.side : payload.side !== undefined) return "INVALID_MODIFIER_SIDE";
   if (payload.leaderBonus !== undefined && !leaderIs(seat, "the-protecting-horn")) return "INVALID_LEADER_BONUS";
   if (game.modifierLockBy && game.modifierLockBy !== playerId) return "MODIFIERS_LOCKED";
-  if ((seat.hand[index].definitionId === DS_MODIFIER_PLUS_6 || seat.hand[index].definitionId === DS_MODIFIER_MINUS_6) && seat.hand.length < 2) return "CARD_NOT_PLAYABLE"; // needs another card to DISCARD
+  // DS Modifier +6 / -6: "DISCARD a card" is the cost — paid BEFORE the Modifier activates (owner ruling).
+  const needsDiscard = seat.hand[index].definitionId === DS_MODIFIER_PLUS_6 || seat.hand[index].definitionId === DS_MODIFIER_MINUS_6;
+  let costIndex = -1;
+  if (needsDiscard) {
+    costIndex = seat.hand.findIndex((c) => c.cardId === payload.discardCardInstanceId);
+    if (costIndex < 0 || costIndex === index) return "CARD_NOT_PLAYABLE"; // needs another card to DISCARD
+  } else if (payload.discardCardInstanceId !== undefined) {
+    return "CARD_NOT_PLAYABLE";
+  }
+  if (costIndex >= 0) {
+    const [paid] = seat.hand.splice(costIndex, 1);
+    game.discard.push(paid);
+    log(game, `${whoName(game, playerId)} DISCARD 1 lá (chi phí Modifier ±6)`);
+    if (costIndex < index) index -= 1;
+  }
   const [card] = seat.hand.splice(index, 1);
   game.discard.push(card);
   const side = payload.side;
@@ -2014,10 +2126,6 @@ export function playModifier(
   // BN Modifier +2/-2: "If you are attacking a Monster card, +4 to that roll instead" — only on your own ATTACK roll.
   if (card.definitionId === BN_MODIFIER_PLUS_2_MINUS_2 && value === 2 && roll.kind === "attack" && roll.rollerId === playerId) value = 4;
   roll.modifiers.push({ playerId, cardId: card.cardId, value, ...(side ? { side } : {}) });
-  // DS Modifier +6 / -6: "...rolls the dice and DISCARD a card" — a mandatory discard once the roll settles.
-  if (card.definitionId === DS_MODIFIER_PLUS_6 || card.definitionId === DS_MODIFIER_MINUS_6) {
-    game.queue.push({ op: "choice", playerId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Modifier ±6)" });
-  }
   // BN Modifier +7: "DISCARD your hand" (the played card is already in the discard pile).
   if (card.definitionId === BN_MODIFIER_PLUS_7 && seat.hand.length > 0) {
     game.discard.push(...seat.hand.splice(0));
@@ -2194,15 +2302,16 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
 }
 
 /** Starts a Hero effect roll (paid or immediate). Caller validated eligibility/targets. */
-export function startHeroRoll(game: EngineState, actorId: string, heroCardId: string, targets: BaseTargets, deps: EngineDeps, hooks: EngineHooks): void {
+export function startHeroRoll(game: EngineState, actorId: string, heroCardId: string, targets: BaseTargets, deps: EngineDeps, hooks: EngineHooks, opts: { bonus?: number; free?: boolean; after?: Step[] } = {}): void {
   const seat = seatOf(game, actorId)!;
   const found = findHero(game, heroCardId)!;
   const data = cardDataOfKind(found.hero.card.definitionId, "hero")!;
-  if (!game.heroRollsUsed.includes(heroCardId)) game.heroRollsUsed.push(heroCardId); // RG-HERO: allowance consumed before dice
+  if (!opts.free && !game.heroRollsUsed.includes(heroCardId)) game.heroRollsUsed.push(heroCardId); // RG-HERO: allowance consumed before dice
   const dice = [...deps.rollDice()] as [number, number];
   const passives = rollPassives(seat, "hero_effect", { hero: found.hero, turnRollBonus: game.turnRollBonus });
+  if (opts.bonus) passives.push({ source: MIRRORYU, label: `Mirroryu (+${opts.bonus})`, value: opts.bonus });
   log(game, `${whoName(game, actorId)} roll hiệu ứng ${data.name} (cần ${data.rollThreshold}${data.rollComparator === "lte" ? "-" : "+"})`);
-  openModifierWindow(game, { kind: "hero_effect", rollerId: actorId, dice, heroCardId, threshold: data.rollThreshold, comparator: data.rollComparator ?? "gte", targets, modifiers: [], passives }, deps, hooks);
+  openModifierWindow(game, { kind: "hero_effect", rollerId: actorId, dice, heroCardId, threshold: data.rollThreshold, comparator: data.rollComparator ?? "gte", targets, modifiers: [], passives, ...(opts.after ? { after: opts.after } : {}) }, deps, hooks);
 }
 
 export function startAttack(game: EngineState, actorId: string, monsterId: string, deps: EngineDeps, hooks: EngineHooks): void {
@@ -2248,6 +2357,7 @@ function modifierFollowUps(roll: RollState): Step[] {
 
 function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
   resolveRollOutcome(game, roll, deps, hooks);
+  if (roll.kind === "hero_effect" && roll.after) game.queue.push(...roll.after);
   game.queue.push(...modifierFollowUps(roll));
 }
 
@@ -2425,6 +2535,7 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
     } else if (chain.step === "immediate_roll_choice") {
       game.chain = null;
       log(game, "Hết giờ — bỏ qua roll ngay");
+      if (chain.after) game.queue.unshift(...chain.after);
     } else if (isMandatoryChoice(chain.choice)) {
       // C02: a mandatory penalty/return cannot be dodged by timeout — server fallback over legal cards,
       // in persisted eligibility order (hand / Party order), same legality as a normal pick.

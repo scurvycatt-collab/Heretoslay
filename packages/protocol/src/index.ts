@@ -455,6 +455,9 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
       if (payload.leaderBonus !== undefined && payload.leaderBonus !== 1 && payload.leaderBonus !== -1) {
         issues.push("payload.leaderBonus must be 1 or -1");
       }
+      if (payload.discardCardInstanceId !== undefined && typeof payload.discardCardInstanceId !== "string") {
+        issues.push("payload.discardCardInstanceId must be a string");
+      }
       break;
     case "REACT_PASS":
       need("windowId");

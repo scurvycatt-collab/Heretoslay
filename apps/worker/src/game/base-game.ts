@@ -267,6 +267,7 @@ function onTurnStart(game: BaseGameState): void {
   game.turnAttackBonus = 0;
   game.modifierLockBy = null;
   game.silentShieldBy = null;
+  game.dragalterReplay = null;
   game.freeDrawCredit = 0;
   game.shamanUsed = false;
   game.noChallengeThisTurn = false;
@@ -481,11 +482,11 @@ const playHandCardHandler: Handler = (game, seat, command, _roster, deps) => {
   return "ACCEPTED";
 };
 
-function heroRollError(game: BaseGameState, seat: BaseSeat, heroId: string, targets: BaseTargets): BaseCommandCode | null {
+function heroRollError(game: BaseGameState, seat: BaseSeat, heroId: string, targets: BaseTargets, free = false): BaseCommandCode | null {
   const found = findHero(game, heroId);
   if (!found || found.seat !== seat) return "HERO_NOT_IN_PARTY";
   // RG-HERO-04 / C08: one attempt per Hero per turn, unless an equipped Bottomless Bag permits paid repeats (E04).
-  if (game.heroRollsUsed.includes(heroId) && !hasAttachment(found.hero, BOTTOMLESS_BAG)) return "HERO_ALREADY_ROLLED";
+  if (!free && game.heroRollsUsed.includes(heroId) && !hasAttachment(found.hero, BOTTOMLESS_BAG)) return "HERO_ALREADY_ROLLED";
   if (hasAttachment(found.hero, "hts.base.v1.cursed-item.sealing-key")) return "HERO_EFFECT_BLOCKED";
   const data = cardDataOfKind(found.hero.card.definitionId, "hero");
   if (!data) return "HERO_NOT_IN_PARTY";
@@ -516,14 +517,17 @@ const immediateRollHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.payload.choice === "skip") {
     game.chain = null;
     log(game, `${game.names[seat.playerId] ?? seat.playerId} bỏ qua roll ngay`);
+    if (chain.after) game.queue.unshift(...chain.after);
     advance(game, deps, HOOKS);
     return "ACCEPTED";
   }
   const targets = command.payload.targets ?? {};
-  const error = heroRollError(game, seat, chain.heroCardId, targets);
+  const error = heroRollError(game, seat, chain.heroCardId, targets, chain.free === true);
   if (error) return error;
   game.chain = null;
-  startHeroRoll(game, seat.playerId, chain.heroCardId, targets, deps, HOOKS);
+  startHeroRoll(game, seat.playerId, chain.heroCardId, targets, deps, HOOKS, {
+    ...(chain.bonus ? { bonus: chain.bonus } : {}), ...(chain.free ? { free: true } : {}), ...(chain.after ? { after: chain.after } : {}),
+  });
   return "ACCEPTED";
 };
 
