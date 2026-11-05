@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { BIGGEST_RING_EVER, BN_MODIFIER_PLUS_2_MINUS_2, BN_MODIFIER_PLUS_7, DOOMBRINGER, DRAGONS_BILE, RAGING_MANTICORE, SILVER_LINING, CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -124,7 +124,9 @@ export type ChoiceKind =
   /** Roaryal Guard (BN): name a Class by picking a Hero in play; every Hero of its (effective) Class returns to hand. */
   | "choose_class"
   /** Lightning Labrys (BN): pick a Hero in any Party; its owner must SACRIFICE a Hero card. */
-  | "make_sacrifice";
+  | "make_sacrifice"
+  /** Vicious Wildcat (BN): pick any face-up Monster to SLAY directly (no roll, no Party requirement). */
+  | "slay_monster";
 
 /** Extra fields shared by a choice step and the pending choice it opens. */
 export interface ChoiceExtras {
@@ -244,7 +246,7 @@ export type Step =
   /** Majestelk (W01): one more ±5 activation for the player until their next turn. */
   | { op: "add_roll_swing"; playerId: string }
   /** Majestelk popup result: add a ±value passive to the roll waiting in the queue's `open_modifier_window` step. */
-  | { op: "apply_roll_swing"; value: number; source: string; side?: "challenger" | "defender" }
+  | { op: "apply_roll_swing"; value: number; source: string; label?: string; side?: "challenger" | "defender" }
   /** Opens the Modifier window of a roll once its Majestelk popups are settled. */
   | { op: "open_modifier_window"; roll: RollState }
   /** Big Buckley (W04): ATTACK `monsterId` now with no AP (handled in advance(), which owns the hooks). */
@@ -253,6 +255,8 @@ export type Step =
   | { op: "tether_sacrifice"; heroCardId: string }
   /** SACRIFICE one specific Hero (Perfect Vessel sacrifices itself); credited like any sacrifice (E06). */
   | { op: "sacrifice_hero_card"; heroCardId: string }
+  /** Vicious Wildcat (BN): "then end your turn" — no action points remain once the queue drains. */
+  | { op: "end_turn_now" }
   /** Brawling Spirit (BN): every player with more than 3 cards in their Party (Heroes + equipped Items) SACRIFICEs a Hero. */
   | { op: "brawling_spirit"; actorId: string }
   /** Roaryal Guard (BN): return every Hero of this effective Class to its owner's hand (attachments follow). */
@@ -492,6 +496,11 @@ function resolveHeroLoss(game: EngineState, step: Extract<Step, { op: "resolve_h
   if (step.cause.thenIfReal) game.queue.unshift(...step.cause.thenIfReal);
 }
 
+/** Doombringer (BN, slain): "Each time you SACRIFICE a card, you may choose a card from the discard pile and add it to your hand." */
+function doombringerPrompt(playerId: string): Step {
+  return { op: "choice", playerId, kind: "take_from_discard", count: 1, upTo: true, prompt: "Doombringer: lấy 1 lá bất kỳ trong discard về tay (tùy chọn)" };
+}
+
 /**
  * Triggers after a Hero loss, released right after it in order: Soul Tether, Feral Dragon, Silent Shield.
  * A credited SACRIFICE (E06) fires Soul Tether even when Decoy Doll/Maegisty replaced the movement (W11/T2); Feral
@@ -508,6 +517,7 @@ function afterHeroLost(game: EngineState, owner: BaseSeat, cause: HeroLossCause,
     return;
   }
   if (cause.kind === "sacrifice") {
+    if (owner.slain.some((id) => monsterDefinitionId(id) === DOOMBRINGER)) follow.push(doombringerPrompt(owner.playerId));
     for (const seat of game.seats) {
       if (seat.slain.some((id) => monsterDefinitionId(id) === FERAL_DRAGON)) follow.push({ op: "draw", playerId: seat.playerId, n: 1 });
     }
@@ -950,15 +960,15 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
         { op: "choice", playerId: actorId, kind: "take_from_hand", count: 1, targetPlayerId: p, filterKinds: ["magic"], thenOfferPlayTaken: true, prompt: "Chọn 1 Magic lấy về tay (Hollow Husk)" },
       ];
     case "hero.shadow-saint":
-      return [
-        { op: "choice", playerId: actorId, kind: "discard", count: 1, filterKinds: ["modifier"], prompt: "DISCARD 1 Modifier (Shadow Saint)" },
-        { op: "lock_modifiers", playerId: actorId },
-      ];
+      // Owner: a Modifier must be discarded to activate; without one the effect ends (C01 required payment).
+      return [{ op: "choice", playerId: actorId, kind: "discard", count: 1, filterKinds: ["modifier"], prompt: "DISCARD 1 Modifier (Shadow Saint)", thenIfPaid: [{ op: "lock_modifiers", playerId: actorId }] }];
     case "hero.gruesome-gladiator":
       return orderFrom(game, actorId).filter((seat) => seat.playerId !== actorId).flatMap((seat): Step[] => [
         { op: "choice", playerId: actorId, kind: "view_hand", count: 0, upTo: true, targetPlayerId: seat.playerId, prompt: `Xem tay bài ${whoName(game, seat.playerId)} (Gruesome Gladiator)` },
         { op: "choice", playerId: actorId, kind: "take_from_hand", count: 1, targetPlayerId: seat.playerId, prompt: `Lấy 1 lá từ tay ${whoName(game, seat.playerId)} (Gruesome Gladiator)` },
       ]);
+    case "hero.vicious-wildcat":
+      return [{ op: "choice", playerId: actorId, kind: "slay_monster", count: 1, prompt: "Chọn 1 Monster ngửa để SLAY ngay (Vicious Wildcat) — sau đó kết thúc lượt" }];
     case "hero.meowntain":
       return [
         { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Meowntain)" },
@@ -1137,6 +1147,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       if (!item) return false;
       game.discard.push(item);
       log(game, `${cardName(item.definitionId)} bị hy sinh (vào discard)`);
+      if (found && found.seat.slain.some((id) => monsterDefinitionId(id) === DOOMBRINGER)) game.queue.unshift(doombringerPrompt(found.seat.playerId));
       return false;
     }
     case "offer_immediate_roll": {
@@ -1303,7 +1314,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "apply_roll_swing": {
       const pending = game.queue.find((queued): queued is Extract<Step, { op: "open_modifier_window" }> => queued.op === "open_modifier_window");
       if (!pending) return false;
-      pending.roll.passives.push({ source: step.source, label: `Majestelk (${step.value > 0 ? "+" : ""}${step.value})`, value: step.value, ...(step.side ? { side: step.side } : {}) });
+      pending.roll.passives.push({ source: step.source, label: `${step.label ?? "Majestelk"} (${step.value > 0 ? "+" : ""}${step.value})`, value: step.value, ...(step.side ? { side: step.side } : {}) });
       return false;
     }
     case "attack_monster_now": return false; // handled in advance(), which owns the hooks
@@ -1324,6 +1335,10 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       loseHero(game, found, { kind: "sacrifice" }, deps);
       return false;
     }
+    case "end_turn_now":
+      game.actionPoints = 0;
+      log(game, "Kết thúc lượt (Vicious Wildcat)");
+      return false;
     case "sacrifice_hero_card": {
       const found = findHero(game, step.heroCardId);
       if (!found) return false;
@@ -1603,6 +1618,8 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       return game.faceUpMonsters
         .filter((id) => meetsRequirement(seat, monsterData(id), game.settings))
         .map((id) => ({ cardId: id, definitionId: monsterDefinitionId(id), kind: "monster" as const }));
+    case "slay_monster":
+      return game.faceUpMonsters.map((id) => ({ cardId: id, definitionId: monsterDefinitionId(id), kind: "monster" as const }));
     case "take_from_top":
       return game.mainDeck.slice(0, 3);
     case "order_top":
@@ -1648,6 +1665,16 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
         return { op: "destroy", heroCardId: id, byPlayerId: seat.playerId, ...(matches ? { thenIfReal: choice.thenIfClass!.steps } : {}) };
       }));
       return;
+    case "slay_monster": {
+      const id = cardIds[0];
+      const index = id ? game.faceUpMonsters.indexOf(id) : -1;
+      if (index < 0) return;
+      game.faceUpMonsters.splice(index, 1);
+      game.pendingMonster = { playerId: seat.playerId, monsterId: id, slot: index };
+      log(game, `${whoName(game, seat.playerId)} SLAY ${cardName(monsterData(id).definitionId)} (Vicious Wildcat — không roll)`);
+      game.queue.unshift(...slaySteps(game, seat.playerId, id, index), { op: "end_turn_now" });
+      return;
+    }
     case "sacrifice_item":
       for (const id of cardIds) {
         const holder = seat.party.find((hero) => hero.attachments.some((card) => card.cardId === id));
@@ -1840,6 +1867,17 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
       ? [{ playerId: roll.rollerId, side: "defender" }, { playerId: roll.challengerId, side: "challenger" }]
       : [{ playerId: roll.rollerId }];
   const steps: Step[] = [];
+  // Biggest Ring Ever (BN): "Each time you roll to use the equipped Hero card's effect, you may DISCARD up to 3 cards. For each, +2."
+  if (roll.kind === "hero_effect") {
+    const rolled = findHero(game, roll.heroCardId);
+    if (rolled && rolled.seat.playerId === roll.rollerId && rolled.hero.attachments.some((card) => card.definitionId === BIGGEST_RING_EVER)) {
+      steps.push({
+        op: "choice", playerId: roll.rollerId, kind: "discard", count: 3, upTo: true,
+        prompt: "Biggest Ring Ever: DISCARD tối đa 3 lá, mỗi lá +2 cho roll này (tùy chọn)",
+        perCardThen: [{ op: "apply_roll_swing", value: 2, source: BIGGEST_RING_EVER, label: "Biggest Ring Ever" }],
+      });
+    }
+  }
   for (const { playerId, side } of owners) {
     const swings = seatOf(game, playerId)?.rollSwings ?? 0;
     if (swings <= 0) continue;
@@ -1913,7 +1951,15 @@ export function playModifier(
   const [card] = seat.hand.splice(index, 1);
   game.discard.push(card);
   const side = payload.side;
-  roll.modifiers.push({ playerId, cardId: card.cardId, value: payload.value, ...(side ? { side } : {}) });
+  let value = payload.value;
+  // BN Modifier +2/-2: "If you are attacking a Monster card, +4 to that roll instead" — only on your own ATTACK roll.
+  if (card.definitionId === BN_MODIFIER_PLUS_2_MINUS_2 && value === 2 && roll.kind === "attack" && roll.rollerId === playerId) value = 4;
+  roll.modifiers.push({ playerId, cardId: card.cardId, value, ...(side ? { side } : {}) });
+  // BN Modifier +7: "DISCARD your hand" (the played card is already in the discard pile).
+  if (card.definitionId === BN_MODIFIER_PLUS_7 && seat.hand.length > 0) {
+    game.discard.push(...seat.hand.splice(0));
+    log(game, `${whoName(game, playerId)} DISCARD cả tay (Modifier +7)`);
+  }
   hooks.afterModifierPlayed?.(game);
   if (payload.leaderBonus !== undefined) {
     roll.passives.push({
@@ -2177,6 +2223,11 @@ function resolveRollOutcome(game: EngineState, roll: RollState, deps: EngineDeps
           ]));
         }
       }
+      if (found && found.seat === roller) {
+        // Silver Lining: +2 to all rolls for the rest of the turn. Dragon's Bile: the roller SACRIFICEs a Hero.
+        if (hasAttachment(found.hero, SILVER_LINING)) game.queue.push({ op: "roll_bonus", n: 2 });
+        if (hasAttachment(found.hero, DRAGONS_BILE)) game.queue.push({ op: "choice", playerId: roll.rollerId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Dragon's Bile)" });
+      }
       if (found && hasAttachment(found.hero, "hts.base.v1.item.particularly-rusty-coin") && found.seat === roller) game.queue.push({ op: "draw", playerId: roll.rollerId, n: 1 });
       return;
     }
@@ -2215,14 +2266,7 @@ function resolveRollOutcome(game: EngineState, roll: RollState, deps: EngineDeps
     // C04: printed reward DRAW → award (pending zone until then) → win check → passives → refill.
     // Draw-trigger eligibility is fixed at draw time; the trigger steps are only released after the award.
     game.pendingMonster = { playerId: roll.rollerId, monsterId: roll.monsterId, slot: index };
-    const sequence: Step[] = [];
-    if (monster.slayReward) sequence.push({ op: "draw", playerId: roll.rollerId, n: monster.slayReward.draw, deferTriggers: true });
-    sequence.push(
-      { op: "award_monster", playerId: roll.rollerId, monsterId: roll.monsterId },
-      { op: "flush_draw_triggers" },
-      { op: "refill_monsters", slot: index }, // DECK-03; Q-09: no refill when the Monster deck is empty
-    );
-    game.queue.unshift(...sequence);
+    game.queue.unshift(...slaySteps(game, roll.rollerId, roll.monsterId, index));
     return;
   }
   if (outcome === "penalty") {
@@ -2235,6 +2279,24 @@ function resolveRollOutcome(game: EngineState, roll: RollState, deps: EngineDeps
           : { op: "choice", playerId: roll.rollerId, kind: "discard", count: penalty.count, prompt: `DISCARD ${penalty.count} lá (${monster.name})` },
     );
   }
+}
+
+/**
+ * C04 slay sequence: printed reward / Leader DRAW (triggers deferred) → award (pending zone until then) → win check →
+ * passives → refill. Shared by a rolled SLAY and by Vicious Wildcat's direct SLAY.
+ */
+function slaySteps(game: EngineState, playerId: string, monsterId: string, slot: number): Step[] {
+  const monster = monsterData(monsterId);
+  const sequence: Step[] = [];
+  if (monster.slayReward) sequence.push({ op: "draw", playerId, n: monster.slayReward.draw, deferTriggers: true });
+  // The Raging Manticore: "Each time you SLAY a Monster card, DRAW 2 cards."
+  if (seatOf(game, playerId)?.leaderId === RAGING_MANTICORE) sequence.push({ op: "draw", playerId, n: 2, deferTriggers: true });
+  sequence.push(
+    { op: "award_monster", playerId, monsterId },
+    { op: "flush_draw_triggers" },
+    { op: "refill_monsters", slot }, // DECK-03; Q-09: no refill when the Monster deck is empty
+  );
+  return sequence;
 }
 
 /** Table size of the face-up Monster row (DECK-03). */
@@ -2263,7 +2325,7 @@ const UNMODELLED_SLAIN = new Set<string>([]);
 
 // ---------------------------------------------------------------- deadlines
 
-const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card", "sacrifice_item", "choose_class", "make_sacrifice"]);
+const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card", "sacrifice_item", "choose_class", "make_sacrifice", "slay_monster"]);
 
 /** C02: required (min > 0) penalty choice that is not an elective payment gating a benefit (C01). */
 export function isMandatoryChoice(choice: PendingChoice): boolean {

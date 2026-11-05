@@ -51,7 +51,7 @@ Envelope: `{ commandId: string, expectedRevision: number, kind, payload }`.
 | `REACT_SHAMAN` | `{ windowId, side? }` | The Noble Shaman holder, open Modifier window, once per turn | -1 passive on the chosen roll (`side` required on Challenge rolls). Not a Modifier card: Stagguard and Skip-finality of Modifier plays do not apply, but a player who already Skipped cannot act (W09) |
 | `REACT_PASS` | `{ windowId }` | eligible responder | Skip; window closes early when all responded |
 | `RESOLVE_CHOICE` | `{ choiceId, cardInstanceIds, accept? }` | chooser | discard / sacrifice / give / take-from-discard: ids, count in `[min,max]`; `confirm` (a "may" clause): `cardInstanceIds: []` + `accept: true\|false` |
-| `LEADER_ACTION` | `{ targetPlayerId }` | The Shadow Claw holder, 1 AP, once per turn | pull 1 random card from target's hand |
+| `LEADER_ACTION` | `{ targetPlayerId? }` | The Shadow Claw (1 AP, `targetPlayerId` required) or The Gnawing Dread (BN, 2 AP, no target), once per turn | Shadow Claw: pull 1 random card from target's hand · Gnawing Dread: opens a `take_from_discard` choice |
 
 While `game.chain` is non-null or effect steps are queued, turn commands return `CHAIN_PENDING` (G-02). AP may reach 0 during a chain; the turn ends automatically once it closes (G-03). Empty main deck on draw: discard is reshuffled in (RG-DEPL); deck+discard empty → draw 0, AP still spent.
 
@@ -119,7 +119,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
 | `NO_OPEN_WINDOW` / `STALE_WINDOW` / `WINDOW_CLOSED` / `NOT_ELIGIBLE` / `ALREADY_RESPONDED` | reaction guards |
 | `INVALID_MODIFIER_VALUE` / `INVALID_MODIFIER_SIDE` / `INVALID_LEADER_BONUS` | Modifier guards |
 | `NO_PENDING_CHOICE` / `STALE_CHOICE` / `NOT_YOUR_CHOICE` / `INVALID_CHOICE` / `NO_PENDING_ROLL_CHOICE` | choice guards |
-| `LEADER_ACTION_UNAVAILABLE` | not The Shadow Claw, or already used this turn |
+| `LEADER_ACTION_UNAVAILABLE` | not a Leader with an action, already used this turn, or Gnawing Dread with an empty discard pile |
 | `GAME_OVER` | game finished (GAME-003) |
 
 ## HTTP errors

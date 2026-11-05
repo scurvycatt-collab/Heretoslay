@@ -74,10 +74,9 @@ test("Masks, class Challenges, Monsters and Leaders are encoded as printed", () 
   assert.equal((byName("The Raging Manticore") as { heroClass: string }).heroClass, "berserker");
 });
 
-test("BN is lookup-only: registered for lookup, never in the selectable catalog; pending effects are tracked", () => {
+test("BN is lookup-only: registered for lookup, never in the selectable catalog", () => {
   for (const card of BN_CARD_DATA) assert.equal(lookupCard(card.definitionId), EXPANSION_CARDS_BY_ID.get(card.definitionId));
   assert.equal(cardDataOfKind(BN_CARD_DATA.find((c) => c.name === "Berserker Mask")!.definitionId, "item")?.maskClass, "berserker");
   assert.ok(!JSON.stringify(GAME_SET_CATALOG).includes("berserkers-necromancers"));
-  assert.ok(BN_UNIMPLEMENTED_EFFECTS.includes("hero.vicious-wildcat"));
-  assert.ok(!BN_UNIMPLEMENTED_EFFECTS.includes("item.soulbound-grimoire") && !BN_UNIMPLEMENTED_EFFECTS.includes("hero.grim-pupper"));
+    assert.deepEqual(BN_UNIMPLEMENTED_EFFECTS, [], "every BN effect has a handler; the pack stays unregistered until EX-06");
 });

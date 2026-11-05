@@ -175,6 +175,9 @@ export const BN_IMPLEMENTED_EFFECTS: ReadonlySet<string> = new Set([
   "hero.grim-pupper", "hero.boston-terror", "hero.bark-hexer", "hero.perfect-vessel", "hero.bone-collector", "hero.hollow-husk", "hero.shadow-saint", "hero.beholden-retriever", // EX-04 N1 (necromancers)
   "hero.roaryal-guard", "hero.brawling-spirit", "hero.unbridled-fury", "hero.annihilator", "hero.meowntain", "hero.rabid-beast", "hero.gruesome-gladiator", // EX-04 N2 (berserkers)
   "magic.mass-sacrifice", "magic.lightning-labrys",
+  "hero.vicious-wildcat", // EX-04 N3 (direct SLAY + end turn)
+  "leader.the-gnawing-dread", "leader.the-raging-manticore", "monster.reptilian-ripper", "monster.doombringer", // EX-04 N3
+  "item.biggest-ring-ever", "item.silver-lining", "item.dragons-bile", // EX-04 N3
   "item.goblet-of-caffeination", // retry after failed hero roll (EX-02 B2)
   "item.soulbound-grimoire", // 2 AP hero-effect cost (EX-02 B2 / E10)
 ]);

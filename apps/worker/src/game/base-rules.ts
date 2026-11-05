@@ -4,7 +4,7 @@
 import type { AnyHeroClass as HeroClass, BaseGameSettings, MonsterCardData } from "@here-to-slay/protocol";
 import { cardDataOfKind, lookupCard } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { EVEN_BIGGER_RING, PIERCING_HOWL } from "./expansion-ids.ts";
+import { EVEN_BIGGER_RING, PIERCING_HOWL, REPTILIAN_RIPPER } from "./expansion-ids.ts";
 
 export interface PartyHero {
   card: BaseCard;
@@ -166,6 +166,8 @@ export function rollPassives(
       if (item === "hts.base.v1.cursed-item.curse-of-the-snakes-eyes") add(item, "Curse of the Snake's Eyes", -2);
     }
   }
+  // Reptilian Ripper (BN, slain): "Each time you roll to ATTACK a Monster card, +2 to your roll."
+  if (kind === "attack" && seat.slain.some((id) => monsterDefinitionId(id) === REPTILIAN_RIPPER)) add(REPTILIAN_RIPPER, "Reptilian Ripper (đã slay)", 2);
   if (kind === "attack" && leaderIs(seat, "the-divine-arrow")) {
     add("hts.base.v1.party-leader.the-divine-arrow", "passive của Leader: The Divine Arrow", 1);
   }

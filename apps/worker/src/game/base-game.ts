@@ -14,6 +14,7 @@ import type {
   BaseTargets,
   RoomSliceCommand,
 } from "@here-to-slay/protocol";
+import { GNAWING_DREAD } from "./expansion-ids.ts";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import {
   baseLeaderPool,
@@ -575,15 +576,31 @@ const resolveChoiceHandler: Handler = (game, seat, command, _roster, deps) => {
   return resolveChoice(game, seat.playerId, command.payload.choiceId, command.payload.cardInstanceIds, deps, HOOKS, command.payload.accept, command.payload.targets);
 };
 
-/** The Shadow Claw: "Once per turn on your turn, you may spend an action point to pull a card from another player's hand." */
+/** The Gnawing Dread (BN): "Once per turn on your turn, you may spend 2 action points to search the discard pile for a card and add it to your hand." */
+const GNAWING_DREAD_COST = 2;
+
+/**
+ * Leader skills that cost AP, once per turn.
+ *  - The Shadow Claw: 1 AP, pull a card from another player's hand (payload.targetPlayerId required).
+ *  - The Gnawing Dread: 2 AP, search the discard pile for any card (no target).
+ */
 const leaderActionHandler: Handler = (game, seat, command, _roster, deps) => {
   if (command.kind !== "LEADER_ACTION") return "MODE_MISMATCH";
   const blocked = turnGuard(game, seat);
   if (blocked) return blocked;
+  if (seat.leaderId === GNAWING_DREAD) {
+    if (game.leaderActionUsed || game.discard.length === 0) return "LEADER_ACTION_UNAVAILABLE";
+    if ((game.actionPoints ?? 0) < GNAWING_DREAD_COST) return "INSUFFICIENT_AP";
+    game.leaderActionUsed = true;
+    spendAp(game, GNAWING_DREAD_COST);
+    game.queue.push({ op: "choice", playerId: seat.playerId, kind: "take_from_discard", count: 1, prompt: "The Gnawing Dread: chọn 1 lá trong discard để lấy về tay" });
+    advance(game, deps, HOOKS);
+    return "ACCEPTED";
+  }
   if (!leaderIs(seat, "the-shadow-claw") || game.leaderActionUsed) return "LEADER_ACTION_UNAVAILABLE";
   if ((game.actionPoints ?? 0) < SHADOW_CLAW_COST) return "INSUFFICIENT_AP";
   const target = command.payload.targetPlayerId;
-  if (target === seat.playerId || !seatOf(game, target)) return "INVALID_TARGET";
+  if (!target || target === seat.playerId || !seatOf(game, target)) return "INVALID_TARGET";
   game.leaderActionUsed = true;
   spendAp(game, SHADOW_CLAW_COST);
   game.queue.push({ op: "pull", fromPlayerId: target, toPlayerId: seat.playerId, n: 1 });

@@ -478,7 +478,8 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
       validateBaseTargets(payload.targets, issues);
       break;
     case "LEADER_ACTION":
-      need("targetPlayerId");
+      if (payload.targetPlayerId !== undefined && (typeof payload.targetPlayerId !== "string" || payload.targetPlayerId === "")) issues.push("payload.targetPlayerId must be a non-empty string");
+      for (const key of Object.keys(payload)) if (key !== "targetPlayerId") issues.push(`payload.${key} is not allowed`);
       break;
     case "ADD_BOT":
       for (const key of Object.keys(payload)) issues.push(`payload.${key} is not allowed`);

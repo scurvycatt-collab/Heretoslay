@@ -116,10 +116,10 @@ export interface ResolveChoiceCommand extends BaseCommandBase {
   payload: { choiceId: string; cardInstanceIds: string[]; accept?: boolean; targets?: BaseTargets };
 }
 
-/** Leader skill that costs AP (base: The Shadow Claw, 1 AP, once per turn). */
+/** Leader skill that costs AP, once per turn (The Shadow Claw: 1 AP, needs a target; The Gnawing Dread: 2 AP, no target). */
 export interface LeaderActionCommand extends BaseCommandBase {
   kind: "LEADER_ACTION";
-  payload: { targetPlayerId: string };
+  payload: { targetPlayerId?: string };
 }
 
 /** Host-only, before START_GAME: per-room rule settings (reaction time, Q-01/Q-04/Q-11 switches). */
@@ -335,7 +335,8 @@ export type BaseChainView =
         | "attack_monster"
         | "sacrifice_item"
         | "choose_class"
-        | "make_sacrifice";
+        | "make_sacrifice"
+        | "slay_monster";
       min: number;
       max: number;
       prompt: string;

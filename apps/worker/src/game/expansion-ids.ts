@@ -26,3 +26,14 @@ export const FERAL_DRAGON = idOf("Feral Dragon");
 export const MUSCIPULA_REX = idOf("Muscipula Rex");
 export const NOBLE_SHAMAN = idOf("The Noble Shaman");
 export const MAJESTELK = idOf("Majestelk");
+
+// EX-04 (Berserkers & Necromancers)
+export const GNAWING_DREAD = idOf("The Gnawing Dread");
+export const RAGING_MANTICORE = idOf("The Raging Manticore");
+export const REPTILIAN_RIPPER = idOf("Reptilian Ripper");
+export const DOOMBRINGER = idOf("Doombringer");
+export const BIGGEST_RING_EVER = idOf("Biggest Ring Ever");
+export const SILVER_LINING = idOf("Silver Lining");
+export const DRAGONS_BILE = idOf("Dragon's Bile");
+export const BN_MODIFIER_PLUS_2_MINUS_2 = idOf("Modifier +2/-2", "berserkersNecromancers");
+export const BN_MODIFIER_PLUS_7 = idOf("Modifier +7", "berserkersNecromancers");
