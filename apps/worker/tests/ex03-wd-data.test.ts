@@ -70,7 +70,7 @@ test("lookup works for in-play expansion cards but this does not enable the pack
   const maegisty = drafts.find((d) => d.canonicalName === "Maegisty")!.definitionId;
   assert.equal(cardDataOfKind(maegisty, "hero")?.rollComparator, "lte");
   assert.equal(cardName(maegisty), "Maegisty");
-  assert.equal(EXPANSION_CARDS_BY_ID.size, 35);
+  assert.ok(WD_CARD_DATA.every((card) => EXPANSION_CARDS_BY_ID.has(card.definitionId)));
   assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"]);
 });
 

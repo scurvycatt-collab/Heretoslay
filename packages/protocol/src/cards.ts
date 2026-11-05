@@ -54,7 +54,9 @@ export type MonsterRequirementSlot = { kind: "any" } | { kind: "class"; heroClas
 /** Penalty kinds present in the base Monsters. */
 export type MonsterPenalty =
   | { effectId: "penalty.sacrifice_hero"; count: number }
-  | { effectId: "penalty.discard"; count: number };
+  | { effectId: "penalty.discard"; count: number }
+  /** Doombringer (BN): the whole hand, however many cards it holds. */
+  | { effectId: "penalty.discard_hand" };
 
 interface CardCommon {
   definitionId: string;

@@ -2069,7 +2069,9 @@ function resolveRollOutcome(game: EngineState, roll: RollState, deps: EngineDeps
     game.queue.push(
       penalty.effectId === "penalty.sacrifice_hero"
         ? { op: "choice", playerId: roll.rollerId, kind: "sacrifice_hero", count: penalty.count, prompt: `SACRIFICE ${penalty.count} Hero (${monster.name})` }
-        : { op: "choice", playerId: roll.rollerId, kind: "discard", count: penalty.count, prompt: `DISCARD ${penalty.count} lá (${monster.name})` },
+        : penalty.effectId === "penalty.discard_hand"
+          ? { op: "discard_hand", playerId: roll.rollerId }
+          : { op: "choice", playerId: roll.rollerId, kind: "discard", count: penalty.count, prompt: `DISCARD ${penalty.count} lá (${monster.name})` },
     );
   }
 }

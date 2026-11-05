@@ -4,6 +4,7 @@
 // rights are UNVERIFIED. No artwork here (ADR-003).
 
 import { WD_CARD_DATA } from "./expansion-wd.ts";
+import { BN_CARD_DATA } from "./expansion-bn.ts";
 import type {
   CardData,
   CardDataFile,
@@ -256,7 +257,7 @@ export const BASE_CARDS_BY_ID: ReadonlyMap<string, CardData> = new Map(
  * Whether a pack can be selected is decided by GAME_SET_CATALOG, never by this map.
  */
 export const EXPANSION_CARDS_BY_ID: ReadonlyMap<string, CardData> = new Map(
-  WD_CARD_DATA.map((card) => [card.definitionId, card]),
+  [...WD_CARD_DATA, ...BN_CARD_DATA].map((card) => [card.definitionId, card]),
 );
 
 export function lookupCard(definitionId: string): CardData | undefined {
