@@ -360,13 +360,6 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
             </span>
           );
         })}
-        {EXPANSION_CLASSES.some((c) => player.partyClasses.includes(c)) && (
-          <span className="t3-xhexes" aria-label="Expansion classes in Party">
-            {EXPANSION_CLASSES.filter((c) => player.partyClasses.includes(c)).map((c) => (
-              <span key={c} style={{ background: CLASS_COLOR[c] }} title={`${titleCase(c)} — in Party`}><Glyph name={c} /></span>
-            ))}
-          </span>
-        )}
         {targetable ? (
           <button type="button" className={`t3-avatar is-targetable${targeted ? " is-targeted" : ""}`} onClick={() => target.togglePlayer(player.playerId)} aria-pressed={targeted} aria-label={`Target ${player.nickname}`}>
             {avatar}
@@ -377,6 +370,13 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
         {/* Anchored to the hex ring, not the cluster: a long nickname must not push the Monster slots around. */}
         <SlainHexes monsters={player.slainMonsters} />
       </div>
+      {EXPANSION_CLASSES.some((c) => player.partyClasses.includes(c)) && (
+        <span className="t3-xhexes" aria-label="Expansion classes in Party">
+          {EXPANSION_CLASSES.filter((c) => player.partyClasses.includes(c)).map((c) => (
+            <span key={c} style={{ background: CLASS_COLOR[c] }} title={`${titleCase(c)} — in Party`}><Glyph name={c} /></span>
+          ))}
+        </span>
+      )}
       {player.protections.length > 0 && (
         <span className="t3-protect">{player.protections.map((p) => PROTECTION_LABEL[p].toUpperCase()).join(" · ")}</span>
       )}
@@ -960,8 +960,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
       <div className="t3-stage-center">{center}</div>
       {roster}
       {tray && <div className={`t3-stage-tray${trayCardCount >= 4 ? " is-dense" : ""}`} style={{ "--tray-count": Math.max(1, trayCardCount) } as CSSProperties}>{tray}</div>}
-      {shamanButton && <div className="t3-stage-primary t3-stage-shaman">{shamanButton}</div>}
-      {primary && <div className="t3-stage-primary">{primary}</div>}
+      {(primary || shamanButton) && <div className="t3-stage-primary">{shamanButton}{primary}</div>}
     </div>
     </RevealContext.Provider>
   );

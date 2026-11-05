@@ -1033,8 +1033,8 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 }
 
 /* Expansion class chips (E01): lit-only row under the base hex ring. */
-.t3-xhexes { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 70%); display: inline-flex; gap: 2px; z-index: 2; }
-.t3-xhexes span { display: grid; place-items: center; width: calc(var(--hex) * 0.55); height: calc(var(--hex) * 0.55); color: #fff; border-radius: 3px; }
+.t3-xhexes { display: inline-flex; gap: 2px; justify-content: center; margin-top: 2px; }
+.t3-xhexes span { display: grid; place-items: center; width: 18px; height: 18px; color: #fff; border-radius: 3px; }
 .t3-xhexes svg { width: 70%; height: 70%; }
 
 /* 2-slot Heroes (EX-06): the second Item sits on the opposite corner. */
@@ -1042,5 +1042,4 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-stack-item--2 { transform: translate(-14%, 6%) rotate(-7deg); }
 .t3-stack.is-split .t3-stack-item--2 { transform: translateX(-56%) rotate(-2deg); }
 
-.t3-stage-shaman { margin-bottom: 6px; }
 .t3-shaman { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
