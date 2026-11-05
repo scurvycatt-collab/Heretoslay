@@ -322,6 +322,10 @@ export type BaseChainView =
       deadlineAt: number;
       actorPlayerId: string;
       hero: BaseCardView;
+      /** Flat bonus added to this roll (Mirroryu +3). Absent = none. */
+      bonus?: number;
+      /** True when the Hero is sacrificed after the roll, win or lose (Shamanaga). */
+      sacrificesAfter?: boolean;
     }
   | {
       step: "choice";

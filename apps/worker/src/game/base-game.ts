@@ -1030,6 +1030,8 @@ function chainView(game: BaseGameState, viewerId: string): BaseChainView | null 
         deadlineAt: chain.deadlineAt,
         actorPlayerId: chain.actorId,
         hero: found ? anyCardView(found.hero.card) : { cardId: chain.heroCardId, definitionId: "", kind: "hero", name: "" },
+        ...(chain.bonus ? { bonus: chain.bonus } : {}),
+        ...(chain.after?.some((step) => step.op === "sacrifice_hero_card") ? { sacrificesAfter: true } : {}),
       };
     }
     case "choice": {

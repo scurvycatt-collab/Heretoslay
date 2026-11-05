@@ -33,3 +33,29 @@ test("Maegisty shows as return_to_hand; party entries expose Item slots", () => 
   assert.deepEqual(seat.protections, ["no_destroy", "return_to_hand"]);
   assert.equal(seat.party[0].slots, 1);
 });
+
+test("immediate_roll_choice view carries the Mirroryu bonus and the Shamanaga sacrifice flag", () => {
+  const { game, view } = started();
+  game.seats[0].party = [{ card: { cardId: "h1", definitionId: "hts.base.v1.hero.bad-axe", kind: "hero" }, attachments: [] }] as never;
+  game.chain = { step: "immediate_roll_choice", deadlineAt: 1, actorId: "p1", heroCardId: "h1", bonus: 3, free: true } as never;
+  let chain = view("p2").game.chain as { bonus?: number; sacrificesAfter?: boolean };
+  assert.equal(chain.bonus, 3);
+  assert.equal(chain.sacrificesAfter, undefined);
+  game.chain = { step: "immediate_roll_choice", deadlineAt: 1, actorId: "p1", heroCardId: "h1", after: [{ op: "sacrifice_hero_card", heroCardId: "h1" }] } as never;
+  chain = view("p2").game.chain as { bonus?: number; sacrificesAfter?: boolean };
+  assert.equal(chain.bonus, undefined);
+  assert.equal(chain.sacrificesAfter, true);
+});
+
+test("spectator view: no hand, no choice options, no shaman, no private roll targets", () => {
+  const { game, view } = started();
+  game.seats[0].hand = [{ cardId: "c1", definitionId: "hts.base.v1.hero.bad-axe", kind: "hero" }] as never;
+  game.seats[0].party = [{ card: { cardId: "h1", definitionId: "hts.base.v1.hero.bad-axe", kind: "hero" }, attachments: [] }] as never;
+  game.chain = { step: "choice", choice: { choiceId: "x", kind: "mirror_hero", playerId: "p1", min: 1, max: 1, deadlineAt: 1, prompt: "pick" } } as never;
+  const spectator = view("watcher", true);
+  assert.deepEqual(spectator.yourHand, []);
+  assert.equal((spectator.game.chain as { options?: unknown }).options, undefined, "options only go to the chooser");
+  assert.equal(spectator.game.shamanAvailable, false);
+  assert.ok(!JSON.stringify(spectator).includes("c1"), "hand card id never leaks to a spectator");
+  assert.ok((view("p1").game.chain as { options?: unknown[] }).options, "the chooser does get options");
+});

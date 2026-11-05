@@ -858,7 +858,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     center =
       chain.actorPlayerId === me ? (
         <div className="t3-stage-copy">
-          <p>Roll the effect now (free){threshold ? <> — needs <b>{threshold}+</b></> : null}, or skip.</p>
+          <p>Roll the effect now (free){chain.bonus ? <> with <b>{chain.bonus > 0 ? `+${chain.bonus}` : chain.bonus}</b></> : null}{threshold ? <> — needs <b>{threshold}+</b></> : null}, or skip.{chain.sacrificesAfter ? <> This Hero is sacrificed afterwards, win or lose.</> : null}</p>
           {rule && <TargetOptions state={state} rule={rule} onChange={setRollTargets} />}
         </div>
       ) : <p className="t3-stage-copy">Waiting for {name(chain.actorPlayerId)}…</p>;
