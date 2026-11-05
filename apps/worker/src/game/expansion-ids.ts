@@ -23,3 +23,5 @@ export const PIERCING_HOWL = idOf("The Piercing Howl");
 export const SOUL_TETHER = idOf("Soul Tether");
 export const CURSED_GLOVE = idOf("Cursed Glove");
 export const FERAL_DRAGON = idOf("Feral Dragon");
+export const MUSCIPULA_REX = idOf("Muscipula Rex");
+export const NOBLE_SHAMAN = idOf("The Noble Shaman");

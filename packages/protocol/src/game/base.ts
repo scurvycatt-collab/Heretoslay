@@ -321,7 +321,10 @@ export type BaseChainView =
         | "take_from_top"
         | "order_top"
         | "view_hand"
-        | "take_from_hand";
+        | "take_from_hand"
+        | "steal_hero"
+        | "bring_hero"
+        | "attack_monster";
       min: number;
       max: number;
       prompt: string;

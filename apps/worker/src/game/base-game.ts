@@ -58,12 +58,13 @@ import {
   leaderIs,
   meetsRequirement,
   monsterData,
+  monsterDefinitionId,
   partyClasses,
   slainHas,
 } from "./base-rules.ts";
 import { canAttach, hasAttachment, hasCursedAttachment } from "./attachments.ts";
 import { paidHeroEffectCost } from "./ap-cost.ts";
-import { BOTTOMLESS_BAG } from "./expansion-ids.ts";
+import { BOTTOMLESS_BAG, MUSCIPULA_REX } from "./expansion-ids.ts";
 import {
   advanceTurn,
   applySetupCommand,
@@ -264,6 +265,7 @@ function onTurnStart(game: BaseGameState): void {
   game.turnAttackBonus = 0;
   game.modifierLockBy = null;
   game.silentShieldBy = null;
+  game.freeDrawCredit = 0;
   game.noChallengeThisTurn = false;
   game.leaderActionUsed = false;
   const active = seatOf(game, activePlayerId(game) ?? "");
@@ -271,6 +273,8 @@ function onTurnStart(game: BaseGameState): void {
   active.protections = { noDestroy: false, noSteal: false };
   // Mega Slime: "You may spend an extra action point on each of your turns."
   if (slainHas(active, "mega-slime")) game.actionPoints = TURN_ACTION_POINTS + 1;
+  // Muscipula Rex (W08): "once per turn on your turn, DRAW a card without spending an action point".
+  if (active.slain.some((id) => monsterDefinitionId(id) === MUSCIPULA_REX)) game.freeDrawCredit = 1;
 }
 
 /** TL-END / TL-AUTO-END: class-win check for the actor, then advance (WIN-CLASS-T). */
@@ -421,10 +425,12 @@ const reactGuard = (game: BaseGameState): BaseCommandCode | null =>
 const drawHandler: Handler = (game, seat, _command, _roster, deps) => {
   const blocked = turnGuard(game, seat);
   if (blocked) return blocked;
-  if ((game.actionPoints ?? 0) < DRAW_COST) return "INSUFFICIENT_AP";
+  const freeDraw = (game.freeDrawCredit ?? 0) > 0; // W08: the credit is spent before AP
+  if (!freeDraw && (game.actionPoints ?? 0) < DRAW_COST) return "INSUFFICIENT_AP";
   const drawn = drawCards(game, game, 1, deps.shuffle);
   seat.hand.push(...drawn);
-  spendAp(game, DRAW_COST);
+  if (freeDraw) game.freeDrawCredit = 0;
+  else spendAp(game, DRAW_COST);
   afterDraw(game, seat, drawn);
   log(game, `${game.names[seat.playerId] ?? seat.playerId} DRAW ${drawn.length} lá`);
   advance(game, deps, HOOKS);

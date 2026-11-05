@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { CURSED_GLOVE, FERAL_DRAGON, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { CURSED_GLOVE, FERAL_DRAGON, MUSCIPULA_REX, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -21,6 +21,7 @@ import {
   heroClasses,
   leaderIs,
   monsterData,
+  meetsRequirement,
   monsterDefinitionId,
   rollMeets,
   rollPassives,
@@ -111,7 +112,13 @@ export type ChoiceKind =
   /** Sharp Fox: look at another player's hand (private); resolve with []. */
   | "view_hand"
   /** Silent Shadow: take 1 card from another player's hand (seen). */
-  | "take_from_hand";
+  | "take_from_hand"
+  /** Tenacious Timber (W06): pick Heroes in other Parties to STEAL, all at once. */
+  | "steal_hero"
+  /** Buck Omens (W05): pick a Hero in another player's hand to bring straight into your Party. */
+  | "bring_hero"
+  /** Big Buckley (W04): pick a face-up Monster whose Party requirement you meet, to ATTACK now. */
+  | "attack_monster";
 
 /** Extra fields shared by a choice step and the pending choice it opens. */
 export interface ChoiceExtras {
@@ -218,6 +225,10 @@ export type Step =
   | { op: "lock_modifiers"; playerId: string }
   /** Silent Shield: arm the sacrifice/destroy Hero-recovery trigger for `playerId` until the end of the turn (W03). */
   | { op: "arm_silent_shield"; playerId: string }
+  /** Beast Call (W07): face-up Monsters to the bottom of the deck, flip the top 3 face up. */
+  | { op: "rotate_monsters" }
+  /** Big Buckley (W04): ATTACK `monsterId` now with no AP (handled in advance(), which owns the hooks). */
+  | { op: "attack_monster_now"; playerId: string; monsterId: string }
   /** Soul Tether: SACRIFICE the equipped Hero because another Hero in the Party was lost (W11). */
   | { op: "tether_sacrifice"; heroCardId: string }
   /** E10: an explicit AP grant (Temporal Hourglass); never a retry. */
@@ -267,6 +278,8 @@ export interface EngineState extends SetupTable<BaseCard> {
   modifierLockBy?: string | null;
   /** Silent Shield (W03): the active player whose sacrifices/destroys may recover a Hero this turn; absent/null = off. */
   silentShieldBy?: string | null;
+  /** Muscipula Rex (W08): free draw-only credits left this turn; absent = 0. */
+  freeDrawCredit?: number;
   noChallengeThisTurn: boolean;
   leaderActionUsed: boolean;
   chain: Chain | null;
@@ -803,6 +816,21 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       const others = (seatOf(game, actorId)?.party ?? []).filter((entry) => entry.card.cardId !== sourceCardId).length;
       return others > 0 ? [{ op: "roll_bonus", n: others }] : [{ op: "log", text: "Wolfgang Pack: không có Hero khác — +0" }];
     }
+    case "hero.big-buckley":
+      return [{ op: "choice", playerId: actorId, kind: "attack_monster", count: 1, prompt: "Chọn Monster để ATTACK ngay (Big Buckley)" }];
+    case "hero.buck-omens":
+      return [
+        { op: "choice", playerId: actorId, kind: "view_hand", count: 0, upTo: true, targetPlayerId: p, prompt: "Xem tay bài (Buck Omens) — bấm xác nhận để đóng" },
+        { op: "choice", playerId: actorId, kind: "bring_hero", count: 1, targetPlayerId: p, prompt: "Chọn 1 Hero trong tay để đưa vào Party (Buck Omens)" },
+      ];
+    case "hero.tenacious-timber": {
+      const monsters = seatOf(game, actorId)?.slain.length ?? 0; // counted once, now (W06)
+      return monsters > 0
+        ? [{ op: "choice", playerId: actorId, kind: "steal_hero", count: monsters, prompt: `STEAL tối đa ${monsters} Hero (Tenacious Timber)` }]
+        : [{ op: "log", text: "Tenacious Timber: không có Monster trong Party — không STEAL" }];
+    }
+    case "magic.beast-call":
+      return [{ op: "rotate_monsters" }, { op: "gain_ap", playerId: actorId, n: 1 }];
     case "hero.silent-shield":
       return [{ op: "arm_silent_shield", playerId: actorId }];
     case "hero.stagguard":
@@ -1154,6 +1182,13 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       game.turnAttackBonus = (game.turnAttackBonus ?? 0) + step.n;
       log(game, `+${step.n} cho mọi lần ATTACK đến hết lượt`);
       return false;
+    case "attack_monster_now": return false; // handled in advance(), which owns the hooks
+    case "rotate_monsters": {
+      game.monsterDeck.push(...game.faceUpMonsters.splice(0));
+      game.faceUpMonsters.push(...game.monsterDeck.splice(0, FACE_UP_MONSTER_COUNT));
+      log(game, "Beast Call: Monster ngửa xuống đáy deck, lật 3 lá mới");
+      return false;
+    }
     case "arm_silent_shield":
       game.silentShieldBy = step.playerId;
       log(game, `${whoName(game, step.playerId)}: Silent Shield có hiệu lực đến hết lượt`);
@@ -1297,12 +1332,28 @@ export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks)
       if (awardMonster(game, step, hooks)) return; // C04: win → stop; no passives / refill after GAME_OVER
     } else if (step.op === "retry_hero_roll") {
       retryHeroRoll(game, step, deps, hooks);
+    } else if (step.op === "attack_monster_now") {
+      const seat = seatOf(game, step.playerId);
+      if (seat && game.faceUpMonsters.includes(step.monsterId) && meetsRequirement(seat, monsterData(step.monsterId), game.settings)) {
+        startAttack(game, step.playerId, step.monsterId, deps, hooks);
+      } else {
+        log(game, "Big Buckley: Monster không còn hợp lệ — không ATTACK");
+      }
     } else {
       runStep(game, step, deps);
     }
     if (game.phase !== "turn_active") return;
   }
   if (game.chain === null && game.queue.length === 0 && (game.actionPoints ?? 0) <= 0) {
+    // W08: an unused Muscipula Rex draw credit is spent now (AP is gone and the credit would be lost with the turn).
+    const active = game.turnOrder[game.currentPlayerIndex];
+    if ((game.freeDrawCredit ?? 0) > 0 && active) {
+      game.freeDrawCredit = 0;
+      log(game, `${whoName(game, active)}: Muscipula Rex — rút miễn AP`);
+      game.queue.push({ op: "draw", playerId: active, n: 1 });
+      advance(game, deps, hooks);
+      return;
+    }
     hooks.autoEndTurn(game, deps);
   }
 }
@@ -1388,6 +1439,16 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       );
     case "destroy_hero":
       return game.seats.filter((other) => other !== seat).flatMap((other) => other.party.map((hero) => hero.card));
+    case "steal_hero":
+      return game.seats.filter((other) => other !== seat && !other.protections.noSteal).flatMap((other) => other.party.map((hero) => hero.card));
+    case "bring_hero":
+      return seat.party.length >= PARTY_CARD_LIMIT
+        ? []
+        : (seatOf(game, choice.targetPlayerId ?? "")?.hand ?? []).filter((card) => card.kind === "hero");
+    case "attack_monster":
+      return game.faceUpMonsters
+        .filter((id) => meetsRequirement(seat, monsterData(id), game.settings))
+        .map((id) => ({ cardId: id, definitionId: monsterDefinitionId(id), kind: "monster" as const }));
     case "take_from_top":
       return game.mainDeck.slice(0, 3);
     case "order_top":
@@ -1423,6 +1484,22 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       return;
     case "destroy_hero":
       if (cardIds[0]) game.queue.unshift({ op: "destroy", heroCardId: cardIds[0], byPlayerId: seat.playerId });
+      return;
+    case "steal_hero":
+      game.queue.unshift(...cardIds.map((id): Step => ({ op: "steal", heroCardId: id, toPlayerId: seat.playerId })));
+      return;
+    case "bring_hero": {
+      const source = seatOf(game, choice.targetPlayerId ?? "");
+      const index = source ? source.hand.findIndex((card) => card.cardId === cardIds[0]) : -1;
+      if (source && index >= 0 && seat.party.length < PARTY_CARD_LIMIT) {
+        const [card] = source.hand.splice(index, 1);
+        seat.party.push({ card, attachments: [] });
+        log(game, `${whoName(game, seat.playerId)} đưa ${cardName(card.definitionId)} từ tay ${whoName(game, source.playerId)} vào Party`);
+      }
+      return;
+    }
+    case "attack_monster":
+      if (cardIds[0]) game.queue.unshift({ op: "attack_monster_now", playerId: seat.playerId, monsterId: cardIds[0] });
       return;
     case "take_from_top":
       for (const id of cardIds) {
