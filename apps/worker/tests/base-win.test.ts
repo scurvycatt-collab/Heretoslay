@@ -39,7 +39,7 @@ function table(leaders: string[]) {
   };
   const hero = (playerId: string, slug: string) => {
     const card = take(`hts.base.v1.hero.${slug}`);
-    seat(playerId).party.push({ card, item: null });
+    seat(playerId).party.push({ card, attachments: [] });
     return card;
   };
   const passAll = () => {
@@ -133,14 +133,14 @@ test("WIN-CLASS with a Mask (owner: replace): the Mask class replaces the Hero's
   const me = t.active(); // Bard leader
   for (const slug of [FIGHTER, GUARDIAN, RANGER, THIEF, "bear-claw"]) t.hero(me, slug);
   // Second Fighter wears a Wizard Mask → counts as Wizard only → 6 classes.
-  t.seat(me).party[4].item = t.take("hts.base.v1.item.wizard-mask");
+  t.seat(me).party[4].attachments = [t.take("hts.base.v1.item.wizard-mask")];
   assert.equal(t.run(me, "END_TURN"), "ACCEPTED");
   assert.equal(t.game.winReason, "six_classes");
 
   const t2 = table(["the-cloaked-sage", "the-charismatic-song"]);
   const me2 = t2.active();
   for (const slug of [FIGHTER, GUARDIAN, RANGER, THIEF]) t2.hero(me2, slug);
-  t2.seat(me2).party[0].item = t2.take("hts.base.v1.item.wizard-mask"); // Fighter → Wizard: still 5
+  t2.seat(me2).party[0].attachments = [t2.take("hts.base.v1.item.wizard-mask")]; // Fighter → Wizard: still 5
   assert.equal(t2.run(me2, "END_TURN"), "ACCEPTED");
   assert.equal(t2.game.phase, "turn_active");
 });

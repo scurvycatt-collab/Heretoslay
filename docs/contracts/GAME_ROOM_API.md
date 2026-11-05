@@ -133,7 +133,7 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
   you: { playerId; nickname; isHost };
   players: Array<{ playerId; nickname; joinIndex; isHost;
                    handCount; leaderId: string | null; leaderClass: string | null;
-    party: Array<{ hero: BaseCardView; item: BaseCardView | null; classes: string[] }>;
+    party: Array<{ hero: BaseCardView; item: BaseCardView | null; /* first attachment, legacy */ attachments: BaseCardView[]; classes: string[] }>;
     slainMonsters: BaseCardView[]; partyClasses: string[]; protections: ("no_destroy"|"no_steal")[] }>;
   yourHand: BaseCardView[];              // viewer-private
   game: {

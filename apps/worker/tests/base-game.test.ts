@@ -201,7 +201,7 @@ test("a Party is limited to 6 deployed Heroes and a seventh is rejected without 
       const index = pool.findIndex((card) => card.cardId === hero.cardId);
       if (index >= 0) pool.splice(index, 1);
     }
-    activeSeat.party.push({ card: hero, item: null });
+    activeSeat.party.push({ card: hero, attachments: [] });
   }
   const seventh = heroes[6];
   if (!activeSeat.hand.some((card) => card.cardId === seventh.cardId)) {

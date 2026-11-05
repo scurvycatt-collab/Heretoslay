@@ -124,7 +124,7 @@ function independentClasses(game: BaseGameState, playerId: string): Set<string> 
   if (leader) set.add(leader);
   for (const entry of seat.party) {
     const own = (BASE_CARDS_BY_ID.get(entry.card.definitionId) as Any).heroClass as string;
-    const mask = entry.item ? maskClassOf(entry.item.definitionId) : null;
+    const mask = entry.attachments[0] ? maskClassOf(entry.attachments[0].definitionId) : null;
     if (mask && game.settings.maskMode === "replace") set.add(mask);
     else {
       set.add(own);
@@ -218,7 +218,7 @@ function playGame(seed: number, nPlayers: number): GameResult {
       for (const c of s.hand) put(c.cardId, `hand:${s.playerId}`);
       for (const h of s.party) {
         put(h.card.cardId, `party:${s.playerId}`);
-        if (h.item) put(h.item.cardId, `item:${s.playerId}`);
+        for (const a of h.attachments) put(a.cardId, `item:${s.playerId}`);
       }
       for (const m of s.slain) put(m, `slain:${s.playerId}`);
     }
@@ -521,11 +521,11 @@ function playGame(seed: number, nPlayers: number): GameResult {
       case "own_hero":
         return own.length ? { heroInstanceIds: [rng.pick(own)] } : null;
       case "own_hero_with_cursed_item": {
-        const ok = game.seats.find((s) => s.playerId === actor)!.party.filter((h) => h.item?.kind === "cursed_item");
+        const ok = game.seats.find((s) => s.playerId === actor)!.party.filter((h) => h.attachments[0]?.kind === "cursed_item");
         return ok.length ? { heroInstanceIds: [rng.pick(ok).card.cardId] } : null;
       }
       case "any_hero_with_item": {
-        const ok = game.seats.flatMap((s) => s.party.filter((h) => h.item));
+        const ok = game.seats.flatMap((s) => s.party.filter((h) => h.attachments.length));
         return ok.length ? { heroInstanceIds: [rng.pick(ok).card.cardId] } : null;
       }
     }
@@ -534,11 +534,11 @@ function playGame(seed: number, nPlayers: number): GameResult {
   function playTargets(card: { kind: string; definitionId: string }, actor: string): Any | null {
     if (card.kind === "hero") return {};
     if (card.kind === "item") {
-      const ok = game.seats.find((s) => s.playerId === actor)!.party.filter((h) => !h.item);
+      const ok = game.seats.flatMap((s) => s.party.filter((h) => !h.attachments.length)); // E02: any Hero
       return ok.length ? { heroInstanceIds: [rng.pick(ok).card.cardId] } : null;
     }
     if (card.kind === "cursed_item") {
-      const ok = game.seats.flatMap((s) => s.party.filter((h) => !h.item));
+      const ok = game.seats.flatMap((s) => s.party.filter((h) => !h.attachments.length));
       return ok.length ? { heroInstanceIds: [rng.pick(ok).card.cardId] } : null;
     }
     if (card.kind === "magic") return genTargets(cardDataOfKind(card.definitionId, "magic")!.target, actor);
@@ -757,7 +757,7 @@ function playGame(seed: number, nPlayers: number): GameResult {
         cands.push({ w: card.kind === "hero" ? (style === "builder" ? 14 : 7) : 3, run: () => send(active, "PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets }) });
       }
       for (const h of seat.party) {
-        if (game.heroRollsUsed.includes(h.card.cardId) || h.item?.definitionId.endsWith("sealing-key")) continue;
+        if (game.heroRollsUsed.includes(h.card.cardId) || h.attachments.some((a) => a.definitionId.endsWith("sealing-key"))) continue;
         const targets = genTargets(cardDataOfKind(h.card.definitionId, "hero")!.target, active);
         if (!targets) continue;
         cands.push({ w: 5, run: () => send(active, "USE_HERO_EFFECT", { heroInstanceId: h.card.cardId, targets }) });
@@ -832,7 +832,7 @@ function playGame(seed: number, nPlayers: number): GameResult {
 
   function immediateRoll(chain: Any): void {
     const hero = game.seats.flatMap((s) => s.party).find((h) => h.card.cardId === chain.heroCardId);
-    if (hero && rng.chance(0.65) && !hero.item?.definitionId.endsWith("sealing-key") && !game.heroRollsUsed.includes(chain.heroCardId)) {
+    if (hero && rng.chance(0.65) && !hero.attachments.some((a) => a.definitionId.endsWith("sealing-key")) && !game.heroRollsUsed.includes(chain.heroCardId)) {
       const targets = genTargets(cardDataOfKind(hero.card.definitionId, "hero")!.target, chain.actorId);
       if (targets) {
         const code = send(chain.actorId, "IMMEDIATE_ROLL", { choice: "roll", targets });

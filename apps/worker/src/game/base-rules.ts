@@ -7,7 +7,8 @@ import type { BaseCard } from "./base-content.ts";
 
 export interface PartyHero {
   card: BaseCard;
-  item: BaseCard | null;
+  /** Equipped Items (E02): capacity per `slotCapacity`; base Heroes hold at most one. */
+  attachments: BaseCard[];
 }
 
 export interface Protections {
@@ -60,7 +61,7 @@ export function leaderClass(seat: { leaderId: string | null }): HeroClass | null
 /** Classes a Party Hero counts as (owner 2026-11-02: Mask replaces the class; `add` kept as a setting). */
 export function heroClasses(hero: PartyHero, settings: BaseGameSettings): HeroClass[] {
   const own = cardDataOfKind(hero.card.definitionId, "hero")?.heroClass;
-  const mask = hero.item ? cardDataOfKind(hero.item.definitionId, "item")?.maskClass ?? null : null;
+  const mask = hero.attachments.map((card) => cardDataOfKind(card.definitionId, "item")?.maskClass ?? null).find(Boolean) ?? null;
   if (mask && settings.maskMode === "replace") return [mask];
   const classes = own ? [own] : [];
   if (mask && !classes.includes(mask)) classes.push(mask);
@@ -141,9 +142,10 @@ export function rollPassives(
   if (kind === "hero_effect") {
     if (leaderIs(seat, "the-charismatic-song")) add("hts.base.v1.party-leader.the-charismatic-song", "passive của Leader: The Charismatic Song", 1);
     if (slainHas(seat, "dark-dragon-king")) add("hts.base.v1.monster.dark-dragon-king", "Dark Dragon King (đã slay)", 1);
-    const item = opts.hero?.item?.definitionId;
-    if (item === "hts.base.v1.item.really-big-ring") add(item, "Really Big Ring", 2);
-    if (item === "hts.base.v1.cursed-item.curse-of-the-snakes-eyes") add(item, "Curse of the Snake's Eyes", -2);
+    for (const { definitionId: item } of opts.hero?.attachments ?? []) {
+      if (item === "hts.base.v1.item.really-big-ring") add(item, "Really Big Ring", 2);
+      if (item === "hts.base.v1.cursed-item.curse-of-the-snakes-eyes") add(item, "Curse of the Snake's Eyes", -2);
+    }
   }
   if (kind === "attack" && leaderIs(seat, "the-divine-arrow")) {
     add("hts.base.v1.party-leader.the-divine-arrow", "passive của Leader: The Divine Arrow", 1);

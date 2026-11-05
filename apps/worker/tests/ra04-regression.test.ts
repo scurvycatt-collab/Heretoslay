@@ -45,7 +45,7 @@ function table(leaders = ["the-charismatic-song", "the-fist-of-reason"]) {
   };
   const toParty = (playerId: string, slug: string) => {
     const card = take(`hts.base.v1.hero.${slug}`);
-    seat(playerId).party.push({ card, item: null });
+    seat(playerId).party.push({ card, attachments: [] });
     return card;
   };
   const toDeckTop = (definitionId: string) => {
@@ -138,14 +138,14 @@ test("C08 skipping the free roll does not consume the allowance", () => {
   assert.equal(t.run(t.me, "USE_HERO_EFFECT", { heroInstanceId: hero.cardId }), "ACCEPTED");
 });
 
-test("C09 ordinary Item → own Hero only; equipped Item follows the Hero on STEAL and is discarded on DESTROY", () => {
+test("C09 ordinary Item (any Hero since E02); equipped Item follows the Hero on STEAL and is discarded on DESTROY", () => {
   const t = table();
   const mine = t.toParty(t.me, "bad-axe");
   const theirs = t.toParty(t.them, "peanut");
   const ring = t.toHand(t.me, "hts.base.v1.item.really-big-ring");
-  assert.notEqual(t.run(t.me, "PLAY_HAND_CARD", { cardInstanceId: ring.cardId, targets: { heroInstanceIds: [theirs.cardId] } }), "ACCEPTED");
-  play(t, ring.cardId, { heroInstanceIds: [mine.cardId] });
-  assert.equal(t.seat(t.me).party[0].item?.cardId, ring.cardId);
+  void mine;
+  play(t, ring.cardId, { heroInstanceIds: [theirs.cardId] }); // E02: an opposing Hero is a legal target
+  assert.equal(t.seat(t.them).party[0].attachments[0]?.cardId, ring.cardId);
 
 });
 
@@ -153,20 +153,20 @@ test("C09 STEAL moves Hero + equipped Item once; DESTROY discards both once", ()
   const stolen = table();
   const hero = stolen.toParty(stolen.them, "peanut");
   const ring = stolen.take("hts.base.v1.item.really-big-ring");
-  stolen.seat(stolen.them).party[0].item = ring;
+  stolen.seat(stolen.them).party[0].attachments = [ring];
   const trap = stolen.toHand(stolen.me, "hts.base.v1.magic.entangling-trap");
   const [x, y] = [stolen.toHand(stolen.me, "hts.base.v1.hero.bad-axe"), stolen.toHand(stolen.me, "hts.base.v1.hero.fluffy")];
   play(stolen, trap.cardId, { heroInstanceIds: [hero.cardId] });
   const c = stolen.choice() as { choiceId: string };
   stolen.run(stolen.me, "RESOLVE_CHOICE", { choiceId: c.choiceId, cardInstanceIds: [x.cardId, y.cardId] });
   const mine = stolen.seat(stolen.me).party.find((h) => h.card.cardId === hero.cardId);
-  assert.equal(mine?.item?.cardId, ring.cardId, "Item followed the stolen Hero");
+  assert.equal(mine?.attachments[0]?.cardId, ring.cardId, "Item followed the stolen Hero");
   assert.equal(stolen.seat(stolen.them).party.length, 0);
 
   const destroyed = table();
   const victim = destroyed.toParty(destroyed.them, "peanut");
   const coin = destroyed.take("hts.base.v1.item.really-big-ring");
-  destroyed.seat(destroyed.them).party[0].item = coin;
+  destroyed.seat(destroyed.them).party[0].attachments = [coin];
   const spell = destroyed.toHand(destroyed.me, "hts.base.v1.magic.destructive-spell");
   const fodder = destroyed.toHand(destroyed.me, "hts.base.v1.hero.bad-axe");
   play(destroyed, spell.cardId, { heroInstanceIds: [victim.cardId] });

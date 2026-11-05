@@ -45,7 +45,7 @@ function table(leaders = ["the-charismatic-song", "the-fist-of-reason"]) {
   };
   const toParty = (playerId: string, slug: string) => {
     const card = take(`hts.base.v1.hero.${slug}`);
-    seat(playerId).party.push({ card, item: null });
+    seat(playerId).party.push({ card, attachments: [] });
     return card;
   };
   const toDeckTop = (definitionId: string) => {

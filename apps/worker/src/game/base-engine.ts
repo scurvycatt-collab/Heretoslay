@@ -12,6 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
+import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
   classifyAttack,
@@ -196,7 +197,7 @@ export type Step =
   | { op: "roll_bonus"; n: number }
   | { op: "protect"; playerId: string; kind: "noDestroy" | "noSteal" }
   | { op: "no_challenge" }
-  | { op: "return_item"; heroCardId: string; onlyCursed?: boolean; toPlayerId?: string }
+  | { op: "return_item"; heroCardId: string; onlyCursed?: boolean; itemCardId?: string; toPlayerId?: string }
   | { op: "return_all_items" }
   | { op: "pull_from_class"; toPlayerId: string; heroClass: "thief" }
   | { op: "each_other_choice"; actorId: string; kind: "discard" | "sacrifice_hero" | "give_card"; count: number; requireClass?: "fighter"; collect?: boolean }
@@ -339,18 +340,18 @@ export function rollTotals(roll: RollState): { total: number; challengerTotal?: 
 function moveHeroToDiscard(game: EngineState, found: { seat: BaseSeat; index: number; hero: PartyHero }, itemToPlayerId?: string): void {
   found.seat.party.splice(found.index, 1);
   game.discard.push(found.hero.card);
-  if (found.hero.item) {
-    const itemOwner = itemToPlayerId ? seatOf(game, itemToPlayerId) : undefined;
-    if (itemOwner) itemOwner.hand.push(found.hero.item);
-    else game.discard.push(found.hero.item);
+  const itemOwner = itemToPlayerId ? seatOf(game, itemToPlayerId) : undefined;
+  for (const attachment of detachAll(found.hero)) {
+    if (itemOwner) itemOwner.hand.push(attachment);
+    else game.discard.push(attachment);
   }
 }
 
 /** Decoy Doll: "If the equipped Hero card would be sacrificed or destroyed, move this card to the discard pile instead." */
 function decoyDollSaves(game: EngineState, hero: PartyHero): boolean {
-  if (hero.item?.definitionId !== "hts.base.v1.item.decoy-doll") return false;
-  game.discard.push(hero.item);
-  hero.item = null;
+  const doll = hero.attachments.find((card) => card.definitionId === "hts.base.v1.item.decoy-doll");
+  if (!doll) return false;
+  game.discard.push(detach(hero, doll.cardId)!);
   log(game, `Decoy Doll bảo vệ ${cardName(hero.card.definitionId)} (Decoy Doll vào discard)`);
   return true;
 }
@@ -449,11 +450,11 @@ export function validateTargets(game: EngineState, actorId: string, rule: Target
       return ownHero(heroes[0]) ? null : "INVALID_TARGET";
     case "own_hero_with_cursed_item": {
       const found = ownHero(heroes[0]);
-      return found?.hero.item?.kind === "cursed_item" ? null : "INVALID_TARGET";
+      return found && hasCursedAttachment(found.hero) ? null : "INVALID_TARGET";
     }
     case "any_hero_with_item": {
       const found = heroes[0] ? findHero(game, heroes[0]) : null;
-      return found?.hero.item ? null : "INVALID_TARGET";
+      return found?.hero.attachments.length ? null : "INVALID_TARGET";
     }
   }
 }
@@ -476,8 +477,8 @@ export function hasValidTargets(game: EngineState, actorId: string, rule: Target
     case "two_heroes_other_party": return otherHeroes >= 2;
     case "hero_other_party_and_own_hero": return otherHeroes >= 1 && ownHeroes.length >= 1;
     case "own_hero": return ownHeroes.length >= 1;
-    case "own_hero_with_cursed_item": return ownHeroes.some((entry) => entry.item?.kind === "cursed_item");
-    case "any_hero_with_item": return game.seats.some((seat) => seat.party.some((entry) => entry.item));
+    case "own_hero_with_cursed_item": return ownHeroes.some(hasCursedAttachment);
+    case "any_hero_with_item": return game.seats.some((seat) => seat.party.some((entry) => entry.attachments.length));
   }
 }
 
@@ -954,13 +955,14 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       return false;
     case "return_item": {
       const found = findHero(game, step.heroCardId);
-      const item = found?.hero.item;
-      if (!found || !item || (step.onlyCursed && item.kind !== "cursed_item")) {
+      const item = found?.hero.attachments.find((card) =>
+        step.itemCardId ? card.cardId === step.itemCardId : !step.onlyCursed || card.kind === "cursed_item");
+      if (!found || !item) {
         log(game, "Trả Item: mục tiêu không còn hợp lệ — bỏ qua");
         return false;
       }
       const owner = seatOf(game, step.toPlayerId ?? found.seat.playerId) ?? found.seat;
-      found.hero.item = null;
+      detach(found.hero, item.cardId);
       owner.hand.push(item);
       log(game, `${cardName(item.definitionId)} trở về tay ${whoName(game, owner.playerId)}`);
       return false;
@@ -969,10 +971,9 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       let count = 0;
       for (const seat of game.seats) {
         for (const hero of seat.party) {
-          if (!hero.item) continue;
-          seat.hand.push(hero.item);
-          hero.item = null;
-          count += 1;
+          const removed = detachAll(hero);
+          seat.hand.push(...removed);
+          count += removed.length;
         }
       }
       log(game, `${count} Item trở về tay chủ Party`);
@@ -1396,8 +1397,7 @@ function closeModifierWindow(game: EngineState, deps: EngineDeps, hooks: EngineH
 
 /** An Item needs a legal Hero to equip; other playable kinds are always offered (targets checked on play). */
 function canPlaySomewhere(game: EngineState, seat: BaseSeat, card: BaseCard): boolean {
-  if (card.kind === "item") return seat.party.some((hero) => !hero.item);
-  if (card.kind === "cursed_item") return game.seats.some((other) => other.party.some((hero) => !hero.item));
+  if (isAttachable(card)) return game.seats.some((other) => other.party.some((hero) => canAttach(hero, card)));
   if (card.kind === "hero") return seat.party.length < PARTY_CARD_LIMIT;
   return card.kind === "magic";
 }
@@ -1408,9 +1408,7 @@ export function playTargetError(game: EngineState, seat: BaseSeat, card: BaseCar
   if (card.kind === "item" || card.kind === "cursed_item") {
     const targetId = targets.heroInstanceIds?.[0];
     const found = targetId ? findHero(game, targetId) : null;
-    if (!found || found.hero.item) return "INVALID_TARGET";
-    if (card.kind === "item" && found.seat !== seat) return "INVALID_TARGET";
-    return null;
+    return found && canAttach(found.hero, card) ? null : "INVALID_TARGET";
   }
   if (card.kind === "magic") {
     const data = cardDataOfKind(card.definitionId, "magic");
@@ -1433,7 +1431,7 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
       game.queue.unshift(...continuation);
       return;
     }
-    actor.party.push({ card, item: null });
+    actor.party.push({ card, attachments: [] });
     log(game, `${whoName(game, attempt.actorId)} đưa ${cardName(card.definitionId)} vào Party`);
     // RULE-06: optional immediate roll (free) — skip if the Hero cannot use its effect.
     offerHeroRoll(game, attempt.actorId, card.cardId, card.definitionId, deps);
@@ -1444,14 +1442,14 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
     // Q-07: revalidate the locked target; invalid → discard, AP not refunded.
     const targetId = attempt.targets.heroInstanceIds?.[0];
     const found = targetId ? findHero(game, targetId) : null;
-    const ok = found && !found.hero.item && (card.kind === "cursed_item" || found.seat.playerId === attempt.actorId);
+    const ok = found && canAttach(found.hero, card);
     if (!ok) {
       game.discard.push(card);
       log(game, `${cardName(card.definitionId)}: mục tiêu không còn hợp lệ — vào discard`);
       game.queue.unshift(...continuation);
       return;
     }
-    found.hero.item = card;
+    found.hero.attachments.push(card);
     log(game, `${whoName(game, attempt.actorId)} gắn ${cardName(card.definitionId)} vào ${cardName(found.hero.card.definitionId)}`);
     game.queue.unshift(...continuation);
     return;
@@ -1520,9 +1518,8 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     const success = total >= roll.threshold;
     rememberRoll(game, roll, success ? "success" : "fail", found?.hero.card ?? null, deps);
     log(game, `Kết quả ${total} ${success ? "≥" : "<"} ${roll.threshold}: ${success ? "thành công" : "thất bại"}`);
-    const item = found?.hero.item?.definitionId;
     if (!success) {
-      if (item === "hts.base.v1.item.particularly-rusty-coin" && found?.seat === roller) game.queue.push({ op: "draw", playerId: roll.rollerId, n: 1 });
+      if (found && hasAttachment(found.hero, "hts.base.v1.item.particularly-rusty-coin") && found.seat === roller) game.queue.push({ op: "draw", playerId: roll.rollerId, n: 1 });
       return;
     }
     // Hero must still be in the roller's Party (Q-07 revalidation); targets re-checked.
@@ -1537,7 +1534,7 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
     } else {
       game.queue.push(...buildEffect(game, data.effectId, roll.rollerId, roll.targets, found.hero.card.cardId));
     }
-    if (item === "hts.base.v1.cursed-item.suspiciously-shiny-coin") {
+    if (hasAttachment(found.hero, "hts.base.v1.cursed-item.suspiciously-shiny-coin")) {
       game.queue.push({ op: "choice", playerId: roll.rollerId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Suspiciously Shiny Coin)" });
     }
     // Arctic Aries: "Each time you successfully roll to use a Hero card's effect, you may DRAW a card."

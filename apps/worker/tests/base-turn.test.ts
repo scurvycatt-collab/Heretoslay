@@ -69,7 +69,7 @@ function placeHero(t: Table, playerId: string, slug: string): BaseCard {
   const card = give(t, playerId, HERO(slug));
   const hand = seat(t, playerId).hand;
   hand.splice(hand.indexOf(card), 1);
-  seat(t, playerId).party.push({ card, item: null });
+  seat(t, playerId).party.push({ card, attachments: [] });
   return card;
 }
 
@@ -182,7 +182,7 @@ test("ATTACK penalty: SACRIFICE choice; last AP → auto END_TURN only after the
   assert.deepEqual(t.game.faceUpMonsters, ["hts.base.v1.monster.terratuga#01"]);
 });
 
-test("Items: own Hero only for Item (Q-06), any Hero for Cursed, one Item per Hero; Mask replaces the class (owner 2026-11-02)", () => {
+test("Items: any Hero for Item and Cursed (E02), one Item per base Hero; Mask replaces the class (owner 2026-11-02)", () => {
   const t = table();
   const me = active(t);
   const them = other(t);
@@ -190,16 +190,15 @@ test("Items: own Hero only for Item (Q-06), any Hero for Cursed, one Item per He
   const theirs = placeHero(t, them, "bad-axe");
   const mask = give(t, me, "hts.base.v1.item.wizard-mask");
   const curse = give(t, me, "hts.base.v1.cursed-item.sealing-key");
-  assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: mask.cardId, targets: { heroInstanceIds: [theirs.cardId] } }), "INVALID_TARGET");
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: mask.cardId, targets: { heroInstanceIds: [mine.cardId] } }), "ACCEPTED");
   passAll(t);
-  assert.equal(seat(t, me).party[0].item?.cardId, mask.cardId);
+  assert.equal(seat(t, me).party[0].attachments[0]?.cardId, mask.cardId);
   const view = projectBaseGame(t.game, t.roster, { roomCode: "X", revision: 1, serverNow: 0 }, me);
   assert.deepEqual(view.players.find((p) => p.playerId === me)!.party[0].classes, ["wizard"]);
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: curse.cardId, targets: { heroInstanceIds: [mine.cardId] } }), "INVALID_TARGET");
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: curse.cardId, targets: { heroInstanceIds: [theirs.cardId] } }), "ACCEPTED");
   passAll(t);
-  assert.equal(seat(t, them).party[0].item?.cardId, curse.cardId);
+  assert.equal(seat(t, them).party[0].attachments[0]?.cardId, curse.cardId);
 });
 
 test("Sealing Key blocks the Hero effect; Mighty Blade stops DESTROY; Decoy Doll absorbs it", () => {
@@ -222,16 +221,16 @@ test("Sealing Key blocks the Hero effect; Mighty Blade stops DESTROY; Decoy Doll
   const target2 = placeHero(t2, them2, "peanut");
   const doll = give(t2, them2, "hts.base.v1.item.decoy-doll");
   seat(t2, them2).hand.splice(seat(t2, them2).hand.indexOf(doll), 1);
-  seat(t2, them2).party[0].item = doll;
+  seat(t2, them2).party[0].attachments = [doll];
   t2.dice.push([6, 6]);
   t2.run(me2, "USE_HERO_EFFECT", { heroInstanceId: axe2.cardId, targets: { heroInstanceIds: [target2.cardId] } });
   passAll(t2);
   assert.equal(seat(t2, them2).party[0].card.cardId, target2.cardId);
-  assert.equal(seat(t2, them2).party[0].item, null);
+  assert.equal(seat(t2, them2).party[0].attachments.length, 0);
 
   const key = give(t2, them2, "hts.base.v1.cursed-item.sealing-key");
   seat(t2, them2).hand.splice(seat(t2, them2).hand.indexOf(key), 1);
-  seat(t2, me2).party[0].item = key;
+  seat(t2, me2).party[0].attachments = [key];
   t2.game.heroRollsUsed = [];
   assert.equal(t2.run(me2, "USE_HERO_EFFECT", { heroInstanceId: axe2.cardId, targets: { heroInstanceIds: [target2.cardId] } }), "HERO_EFFECT_BLOCKED");
 });
@@ -332,7 +331,7 @@ test("owner 2026-11-02: Leader fills a class slot (retail rulebook); a Mask repl
   placeHero(t2, me2, "bad-axe");
   const mask = give(t2, me2, "hts.base.v1.item.fighter-mask");
   seat(t2, me2).hand.splice(seat(t2, me2).hand.indexOf(mask), 1);
-  seat(t2, me2).party.find((h) => h.card.cardId === bard.cardId)!.item = mask;
+  seat(t2, me2).party.find((h) => h.card.cardId === bard.cardId)!.attachments = [mask];
   assert.equal(t2.run(me2, "ATTACK_MONSTER", { monsterInstanceId: "hts.base.v1.monster.dark-dragon-king#01" }), "REQUIREMENT_NOT_MET");
   void fighter;
 });

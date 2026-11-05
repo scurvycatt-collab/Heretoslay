@@ -193,7 +193,7 @@ export interface BaseGameSnapshot {
     /** Leader class (for the 6-class win; Leader counts, RULE-23). */
     leaderClass: string | null;
     /** Heroes in Party with their equipped Item (if any). */
-    party: Array<{ hero: BaseCardView; item: BaseCardView | null; classes: string[] }>;
+    party: Array<{ hero: BaseCardView; /** First attachment (legacy UI field). */ item: BaseCardView | null; attachments: BaseCardView[]; classes: string[] }>;
     slainMonsters: BaseCardView[];
     /** Distinct classes in Party incl. Leader (6 = class win at end of own turn). */
     partyClasses: string[];

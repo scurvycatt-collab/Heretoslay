@@ -44,7 +44,7 @@ function table(leaders = ["the-charismatic-song", "the-cloaked-sage"]) {
   };
   const toParty = (playerId: string, slug: string) => {
     const card = take(`hts.base.v1.hero.${slug}`);
-    seat(playerId).party.push({ card, item: null });
+    seat(playerId).party.push({ card, attachments: [] });
     return card;
   };
   const toDeckTop = (definitionId: string) => {
@@ -102,7 +102,7 @@ test("Hook: play an Item from hand immediately (targets via RESOLVE_CHOICE), the
   const hand = t.seat(t.me).hand.length;
   assert.equal(t.run(t.me, "RESOLVE_CHOICE", { choiceId: c.choiceId, cardInstanceIds: [ring.cardId], targets: { heroInstanceIds: [hook.cardId] } }), "ACCEPTED");
   t.passAll();
-  assert.equal(t.seat(t.me).party[0].item?.cardId, ring.cardId);
+  assert.equal(t.seat(t.me).party[0].attachments[0]?.cardId, ring.cardId);
   assert.equal(t.seat(t.me).hand.length, hand); // −Ring +1 drawn
 });
 
@@ -231,7 +231,7 @@ test("review: hidden drawn card is never named in public prompt/log unless revea
 
   const t2 = table();
   const hook = t2.toParty(t2.me, "hook");
-  t2.seat(t2.me).party[0].item = t2.take("hts.base.v1.item.decoy-doll"); // only Hero already equipped
+  t2.seat(t2.me).party[0].attachments = [t2.take("hts.base.v1.item.decoy-doll")]; // only Hero already equipped
   for (const card of [...t2.seat(t2.me).hand]) if (card.kind !== "item") t2.game.discard.push(t2.seat(t2.me).hand.splice(t2.seat(t2.me).hand.indexOf(card), 1)[0]);
   t2.toHand(t2.me, "hts.base.v1.item.really-big-ring");
   t2.roll(hook);

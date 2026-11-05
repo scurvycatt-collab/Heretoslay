@@ -97,7 +97,7 @@ type TargetOption = { key: string; player: Player; entry?: PartyEntry };
 type TargetStep = { label: string; options: TargetOption[]; count: number };
 
 function ruleFor(card: CardLike): PickRule | null {
-  if (card.kind === "item") return "equip_own";
+  if (card.kind === "item") return "equip_any";
   if (card.kind === "cursed_item") return "equip_any";
   const data = cardData(card.definitionId);
   const rule = data && (data.kind === "hero" || data.kind === "magic") ? data.target : "none";
@@ -123,7 +123,7 @@ function targetSteps(state: BaseGameSnapshot, rule: PickRule): TargetStep[] {
     case "own_hero": return [{ label: "Choose one of your Heroes", options: heroes(own), count: 1 }];
     case "own_hero_with_cursed_item": return [{ label: "Choose your Hero with a Cursed Item", options: heroes(own, (e) => e.item?.kind === "cursed_item"), count: 1 }];
     case "any_hero_with_item": return [{ label: "Choose a Hero with an Item", options: heroes(state.players, (e) => Boolean(e.item)), count: 1 }];
-    case "equip_own": return [{ label: "Equip to one of your Heroes (without an Item)", options: heroes(own, (e) => !e.item), count: 1 }];
+    case "equip_own": return [{ label: "Equip to any Hero (without an Item)", options: heroes(own, (e) => !e.item), count: 1 }];
     case "equip_any": return [{ label: "Equip to any Hero (without an Item)", options: heroes(state.players, (e) => !e.item), count: 1 }];
     default: return [];
   }

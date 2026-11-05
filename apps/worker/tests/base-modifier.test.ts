@@ -59,7 +59,7 @@ function startAttack(t: ReturnType<typeof table>, dice: [number, number]) {
   const me = t.active();
   const hero = t.give(me, "hts.base.v1.hero.bad-axe");
   t.seat(me).hand.splice(t.seat(me).hand.indexOf(hero), 1);
-  t.seat(me).party.push({ card: hero, item: null });
+  t.seat(me).party.push({ card: hero, attachments: [] });
   t.game.faceUpMonsters = ["hts.base.v1.monster.terratuga#01"]; // slay 11+, penalty 7-
   t.dice.push(dice);
   assert.equal(t.run(me, "ATTACK_MONSTER", { monsterInstanceId: "hts.base.v1.monster.terratuga#01" }), "ACCEPTED");

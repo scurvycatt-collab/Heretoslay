@@ -61,6 +61,7 @@ import {
   partyClasses,
   slainHas,
 } from "./base-rules.ts";
+import { canAttach, hasAttachment, hasCursedAttachment } from "./attachments.ts";
 import {
   advanceTurn,
   applySetupCommand,
@@ -180,6 +181,16 @@ function migrateModifierWindow(game: BaseGameState): void {
   delete (game.settings as unknown as Record<string, unknown>)?.leaderPassiveUsesModifierSlot; // removed (conflicts with C10)
 }
 
+/** EX-02: legacy `{ card, item }` Party entries become `{ card, attachments }` (any schema). */
+function migrateParty(game: BaseGameState): void {
+  for (const seat of game.seats) {
+    for (const entry of seat.party as Array<{ card: BaseCard; attachments?: BaseCard[]; item?: BaseCard | null }>) {
+      entry.attachments ??= entry.item ? [entry.item] : [];
+      delete entry.item;
+    }
+  }
+}
+
 /** Upgrades a persisted GAME-001 (schema 1) state in place. */
 export function normalizeBaseGame(raw: unknown): BaseGameState {
   const game = raw as BaseGameState & { schema: number };
@@ -196,6 +207,7 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
     game.botPaceAt ??= null;
     game.settings = { ...DEFAULT_SETTINGS, ...game.settings };
     migrateModifierWindow(game);
+    migrateParty(game);
     return game;
   }
   const defaults = initialBaseGameState();
@@ -205,12 +217,13 @@ export function normalizeBaseGame(raw: unknown): BaseGameState {
   for (const seat of game.seats) {
     const legacy = seat as unknown as Partial<BaseSeat> & { party?: unknown[] };
     seat.party = Array.isArray(legacy.party)
-      ? (legacy.party as Array<BaseCard | { card: BaseCard }>).map((entry) => ("card" in entry ? (entry as BaseSeat["party"][number]) : { card: entry, item: null }))
+      ? (legacy.party as Array<BaseCard | { card: BaseCard }>).map((entry) => ("card" in entry ? (entry as BaseSeat["party"][number]) : { card: entry, attachments: [] }))
       : [];
     seat.slain ??= [];
     seat.protections ??= { noDestroy: false, noSteal: false };
   }
   migrateModifierWindow(game);
+  migrateParty(game);
   game.schema = 2;
   return game;
 }
@@ -457,7 +470,7 @@ function heroRollError(game: BaseGameState, seat: BaseSeat, heroId: string, targ
   const found = findHero(game, heroId);
   if (!found || found.seat !== seat) return "HERO_NOT_IN_PARTY";
   if (game.heroRollsUsed.includes(heroId)) return "HERO_ALREADY_ROLLED"; // RG-HERO-04
-  if (found.hero.item?.definitionId === "hts.base.v1.cursed-item.sealing-key") return "HERO_EFFECT_BLOCKED";
+  if (hasAttachment(found.hero, "hts.base.v1.cursed-item.sealing-key")) return "HERO_EFFECT_BLOCKED";
   const data = cardDataOfKind(found.hero.card.definitionId, "hero");
   if (!data) return "HERO_NOT_IN_PARTY";
   return validateTargets(game, seat.playerId, data.target, targets);
@@ -717,12 +730,12 @@ function botTargets(game: BaseGameState, botId: string, rule: Parameters<typeof 
     case "hero_other_party_and_own_hero": targets = otherHeroes[0] && ownHeroes[0] ? { heroInstanceIds: [otherHeroes[0], ownHeroes[0]] } : null; break;
     case "own_hero": targets = ownHeroes[0] ? { heroInstanceIds: [ownHeroes[0]] } : null; break;
     case "own_hero_with_cursed_item": {
-      const hero = own?.party.find((entry) => entry.item?.kind === "cursed_item");
+      const hero = own?.party.find(hasCursedAttachment);
       targets = hero ? { heroInstanceIds: [hero.card.cardId] } : null;
       break;
     }
     case "any_hero_with_item": {
-      const hero = game.seats.flatMap((seat) => seat.party).find((entry) => entry.item);
+      const hero = game.seats.flatMap((seat) => seat.party).find((entry) => entry.attachments.length);
       targets = hero ? { heroInstanceIds: [hero.card.cardId] } : null;
       break;
     }
@@ -813,7 +826,7 @@ function botTurnAction(game: BaseGameState, roster: BaseRoster, deps: BaseGameDe
   }
   if (!acted && ap >= PLAY_COST) {
     const item = seat.hand.find((card) => card.kind === "item");
-    const bare = seat.party.find((entry) => !entry.item);
+    const bare = item ? seat.party.find((entry) => canAttach(entry, item)) : undefined;
     if (item && bare) acted = tryRun(botCommand("PLAY_HAND_CARD", { cardInstanceId: item.cardId, targets: { heroInstanceIds: [bare.card.cardId] } }));
   }
   if (!acted && ap >= HERO_EFFECT_COST) {
@@ -999,7 +1012,8 @@ export function projectBaseGame(
         leaderClass: seat ? leaderClass(seat) : null,
         party: (seat?.party ?? []).map((hero) => ({
           hero: cardView(hero.card),
-          item: hero.item ? cardView(hero.item) : null,
+          item: hero.attachments[0] ? cardView(hero.attachments[0]) : null,
+          attachments: hero.attachments.map(cardView),
           classes: heroClasses(hero, game.settings),
         })),
         slainMonsters: (seat?.slain ?? []).map(monsterView),

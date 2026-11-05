@@ -54,7 +54,7 @@ function table(leaders: string[], settings: Record<string, unknown> = {}) {
   };
   const hero = (pid: string, slug: string) => {
     const c = take(HERO(slug));
-    seat(pid).party.push({ card: c, item: null });
+    seat(pid).party.push({ card: c, attachments: [] });
     return c;
   };
   const passAll = () => {
@@ -87,7 +87,7 @@ test("Q-04 (lần 2): Mask REPLACES the class (requirement + projection); maskMo
     const me = t.active();
     const fighter = t.hero(me, "bad-axe");
     t.hero(me, "dodgy-dealer"); // Bard → 'any'
-    t.seat(me).party[0].item = t.take("hts.base.v1.item.wizard-mask");
+    t.seat(me).party[0].attachments = [t.take("hts.base.v1.item.wizard-mask")];
     t.game.faceUpMonsters = [MON("titan-wyvern")]; // 1 Fighter + 1 any
     const classes = t.view(me).players.find((p) => p.playerId === me)!.party[0].classes;
     assert.deepEqual(classes, mode === "replace" ? ["wizard"] : ["fighter", "wizard"], `${mode}: ${fighter.cardId}`);
@@ -301,19 +301,18 @@ test("G-03: AP→0 mid-chain does not end the turn until the chain (window + imm
 });
 
 // ---------------------------------------------------------------- Q-06 / Q-07 / Q-12
-test("Q-06/Q-07/Q-12: Item→own Hero only, Cursed→any; target lost before resolve → discard, no AP refund; requirement checked only at ATTACK", () => {
+test("Q-07/Q-12 (Q-06 superseded by E02): target lost before resolve → discard, no AP refund; requirement checked only at ATTACK", () => {
   const t = table(["the-cloaked-sage", "the-charismatic-song"]);
   const me = t.active();
   const foe = t.others()[0];
   const mine = t.hero(me, "bad-axe");
   const theirs = t.hero(foe, "kit-napper");
   const item = t.give(me, "hts.base.v1.item.bard-mask");
-  assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: item.cardId, targets: { heroInstanceIds: [theirs.cardId] } }), "INVALID_TARGET");
   assert.equal(t.game.actionPoints, 3);
   const cursed = t.give(me, "hts.base.v1.cursed-item.sealing-key");
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: cursed.cardId, targets: { heroInstanceIds: [theirs.cardId] } }), "ACCEPTED");
   t.passAll();
-  assert.equal(t.seat(foe).party[0].item?.cardId, cursed.cardId);
+  assert.equal(t.seat(foe).party[0].attachments[0]?.cardId, cursed.cardId);
   // Q-07
   assert.equal(t.run(me, "PLAY_HAND_CARD", { cardInstanceId: item.cardId, targets: { heroInstanceIds: [mine.cardId] } }), "ACCEPTED");
   t.seat(me).party.length = 0; // target vanishes while the Challenge window is open
