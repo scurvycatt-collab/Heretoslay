@@ -1,3 +1,5 @@
+> **Superseded 2026-11-05** → đọc [HANDOFF_2026-11-05.md](HANDOFF_2026-11-05.md).
+
 # RESUME — role migrated, 2026-11-03
 Owner restructured roles: Gemini management, Claude code/architecture, Codex card-asset rendering only. This old PM chat stops orchestration; no previous worker fleet/task backlog is migrated or reactivated.
 New chat:01a19fa0-3f59-7372-b895-99dba0548c71, local Here to Slay project, GPT-6.1Sol/medium preserved. New chat completed initialization and saved docs/handoff/agents/card-render.md; ready for asset ticket. Missinginputs: artwork file/URL mapped to definitionId+provenance; frames/icons/fonts task not settled. No assets rendered/acquired yet.

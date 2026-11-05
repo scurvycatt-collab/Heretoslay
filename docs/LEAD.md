@@ -61,20 +61,14 @@ Chưa setup. Cần: wrangler secret, domain, Cloudflare account của owner.
 ---
 
 ## Trạng thái
-**2026-11-02 (cloud)** — GAME-004 DONE: `packages/protocol/src/cards.ts` + `apps/worker/src/content/base-cards.{json,ts}` + `docs/contracts/CARD_TEMPLATE_SPEC.json`; nguồn/sai lệch ở `docs/content/BASE_CARD_DATA.md`. GAME-002 DONE: engine `apps/worker/src/game/base-engine.ts` (+ base-rules.ts), contract GAME_ROOM_API.md. GAME-003 DONE (win + GAME_OVER). MOD-005 DONE (Modifier picker + Q-11 switch + CONFIGURE_GAME). QA-001 DONE (e2e 2–3 người). UI-001 DONE (wiring tối thiểu, chưa style). Hàng đợi cloud session đã xong. Sau đó: quyết định owner lần 2 (cebe3f9), GAME-005 mọi effect (0bf26a7), smoke test trình duyệt 2 client PASS (Playwright: tạo/vào phòng → Leader → start → play Hero → Skip Challenge → attack bị từ chối đúng REQUIREMENT_NOT_MET; 0 lỗi console).
-
-**2026-11-02 12:50** — main đã push GitHub. Merged: T00, RULES-001, GAME-001 (base room thật, logic ở apps/worker/src/game/).
-Owner đã chốt Q-01..Q-12 (docs/decisions/product-decisions.md, mục cuối). Q-11: đã làm switch `leaderPassiveUsesModifierSlot` (default false) — owner xác nhận thì xong.
-Owner đổi: engine side nhập luôn data cơ chế/effect của thẻ; art do Codex sau.
-Code chạy trên cloud session (credit); chat Lead chỉ duyệt/quyết.
+**2026-11-05** — main `309c58b`. `npm run verify` PASS: worker 113, protocol 11, integration 109 pass / 1 skip (live). Base game chơi trọn ván 2–6 người kèm bot, reconnect, spectator, VI/EN, art thật; Party tối đa 6 Hero. Chi tiết + bản đồ code: [handoff/HANDOFF_2026-11-05.md](handoff/HANDOFF_2026-11-05.md).
 
 ## Việc tiếp theo (theo thứ tự)
-1. AUDIT-001 — fuzz nhiều ván ngẫu nhiên + đối chiếu luật với quyết định owner (đang chạy, chat Lead 2026-11-03).
-2. Sửa bug do AUDIT-001 tìm ra (nếu có).
-3. Browser review 3–6 người.
-4. Codex: giao diện BaseRoom + CardRenderer theo docs/contracts/CARD_TEMPLATE_SPEC.json.
-5. DEPL-001 Cloudflare — khi sản phẩm xong và owner có account_id + domain.
+1. Owner deploy 309c58b lên production và xác minh.
+2. Browser review 3–6 người trên production.
+3. `rules`: xác minh slay reward các Monster (chỉ Corrupted Sabretooth đã có nguồn) và setup depletion.
+4. Asset: chạy workbench với sheet Kickstarter thật trên máy owner.
+5. Dọn docs lỗi thời (README, RESUME, agents/{architecture,ui}.md).
 
 ## Chờ owner quyết
-- Deploy infra (Cloudflare account, domain).
-- Đã chốt 2026-11-02 (lần 2): Q-01 theo rulebook, Mask thay class, timeout choice = skip, "may" hỏi người chơi (product-decisions.md cuối file).
+- Có deploy 309c58b không; ưu tiên giữa mục 2–4 ở trên.

@@ -34,6 +34,8 @@
 | TURN-MODIFIER-BONUS | Codex | done | Mỗi Modifier được server chấp nhận cộng dồn 5 giây cho lượt hiện tại; reset ở lượt mới, không đổi deadline reaction. Engine, contract, decision và test đồng bộ. |
 | UI-MODIFIER-ONE-WAY | Codex | done | Modifier một chiều (+4/-4) bỏ qua bước chọn giá trị nhưng vẫn chọn người nhận khi Challenge; roll một người thì dùng ngay. Modifier hai chiều đi tuần tự bấm thẻ → chọn +/- → chọn người nhận nếu là Challenge. Horn giữ nguyên, UI direction và test đồng bộ. |
 | GAME-NEW-SAME-ROOM | Codex | done | Sau game over, host có thể tạo ván mới trong cùng room ID; giữ player IDs/settings, reset state và readiness. Người không phải host chọn Leader → Ready; host không cần Ready và Start khi các ghế còn lại sẵn sàng. Protocol, engine, UI, contract và test đồng bộ. |
+| GAME-PARTY-CAP | Codex | done | Party tối đa 6 Hero (`PARTY_FULL`, STEAL/MOVE bỏ qua khi đầy); dialog chọn có `TABLE`/`Esc`. main 309c58b. |
+| HANDOFF-20261105 | lead | done | [handoff](handoff/HANDOFF_2026-11-05.md): verify PASS worker 113 / protocol 11 / integ 109+1skip; việc mở + bản đồ code. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.
