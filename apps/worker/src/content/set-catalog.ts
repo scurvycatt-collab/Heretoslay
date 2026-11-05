@@ -9,6 +9,12 @@ export const EXPANSION_SET_IDS = {
   dragonSorcerer: "hts.dragon-sorcerer.v2",
 } as const;
 
+export const EXPANSION_DISPLAY_NAMES: Readonly<Record<string, string>> = {
+  [EXPANSION_SET_IDS.warriorsDruids]: "Warriors & Druids",
+  [EXPANSION_SET_IDS.berserkersNecromancers]: "Berserkers & Necromancers",
+  [EXPANSION_SET_IDS.dragonSorcerer]: "Dragon & Sorcerer",
+};
+
 export interface CatalogCopy {
   readonly setId: string;
   readonly definitionId: string;
@@ -139,6 +145,8 @@ export function createSetCatalog<Rules extends object>(modules: readonly Expansi
   }
 
   return {
+    /** Registered expansion pack ids (base excluded), in registry order. */
+    expansionSetIds: [...registered.keys()].filter((id) => id !== BASE_SET_ID),
     compose(enabledExpansionIds: readonly string[] = []) {
       const selection = new Set(enabledExpansionIds);
       if (selection.size !== enabledExpansionIds.length || selection.has(BASE_SET_ID)) {

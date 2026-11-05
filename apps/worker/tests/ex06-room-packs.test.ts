@@ -107,3 +107,13 @@ test("E01: class win needs six classes in base rooms and seven with a pack", asy
   packed.settings = { ...packed.settings, expansionIds: [ids[0]] };
   assert.equal(classWinCount(packed), 7);
 });
+
+test("views: the live catalog advertises no pack; ±6 Modifiers carry their discard cost", async () => {
+  const { cardView } = await import("../src/game/base-content.ts");
+  const { DS_MODIFIER_PLUS_6 } = await import("../src/game/expansion-ids.ts");
+  const { GAME_SET_CATALOG } = await import("../src/content/set-catalog.ts");
+  assert.deepEqual(GAME_SET_CATALOG.expansionSetIds, []);
+  assert.deepEqual(catalog.expansionSetIds, ids.slice().sort((a, b) => ids.indexOf(a) - ids.indexOf(b)).filter((id) => catalog.expansionSetIds.includes(id)));
+  assert.equal(cardView({ cardId: "m", definitionId: DS_MODIFIER_PLUS_6, kind: "modifier" }).discardCost, 1);
+  assert.equal(cardView({ cardId: "m", definitionId: "hts.base.v1.modifier.modifier-plus-4", kind: "modifier" }).discardCost, undefined);
+});

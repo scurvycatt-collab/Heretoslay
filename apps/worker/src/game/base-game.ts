@@ -15,7 +15,7 @@ import type {
   RoomSliceCommand,
 } from "@here-to-slay/protocol";
 import { GNAWING_DREAD } from "./expansion-ids.ts";
-import { GAME_SET_CATALOG } from "../content/set-catalog.ts";
+import { EXPANSION_DISPLAY_NAMES, GAME_SET_CATALOG } from "../content/set-catalog.ts";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import {
   baseLeaderPool,
@@ -1102,6 +1102,7 @@ export function projectBaseGame(
       phase: game.phase,
       selectionPlayerId: selectionPlayerId(game),
       leaderPool: [...game.leaderPool],
+      availableExpansions: GAME_SET_CATALOG.expansionSetIds.map((id) => ({ id, name: EXPANSION_DISPLAY_NAMES[id] ?? id })),
       selectedLeaderIds: game.seats
         .map((seat) => seat.leaderId)
         .filter((leaderId): leaderId is string => typeof leaderId === "string"),

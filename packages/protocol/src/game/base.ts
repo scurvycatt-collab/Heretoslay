@@ -28,6 +28,8 @@ export interface BaseCardView {
   name: string;
   /** Modifier cards only: the values REACT_MODIFIER accepts. */
   modifierOptions?: number[];
+  /** Modifier cards only: cards that must be DISCARDED (chosen via REACT_MODIFIER.discardCardInstanceId) before it activates. */
+  discardCost?: number;
 }
 
 export type BaseGamePhase = "lobby" | "leader_selection" | "turn_active" | "game_over";
@@ -216,6 +218,8 @@ export interface BaseGameSnapshot {
     selectionPlayerId: string | null;
     /** All Party Leader definitionIds in the base set. */
     leaderPool: string[];
+    /** Expansion packs this server can enable (empty while none is registered). Lobby UI offers only these. */
+    availableExpansions: Array<{ id: string; name: string }>;
     selectedLeaderIds: string[];
     turnOrder: string[];
     currentPlayerId: string | null;

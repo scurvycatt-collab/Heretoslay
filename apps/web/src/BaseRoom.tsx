@@ -648,6 +648,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
   const [picked, setPicked] = useState<string[]>([]);
   const [focusCard, setFocusCard] = useState<string | null>(null);
   const [modifierValue, setModifierValue] = useState<number | null>(null);
+  const [discardFor, setDiscardFor] = useState<{ cardId: string; value: number; side: "challenger" | "defender" } | null>(null);
   const phase = useRevealPhase();
   const needsMe =
     chain.step === "challenge_window" || chain.step === "modifier_window"
@@ -736,13 +737,16 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
           {modifierCards.map((card) => {
             const options = card.modifierOptions ?? [];
             const singleValue = options.length === 1 ? options[0] : undefined;
-            const play = (value: number, chosenSide: "challenger" | "defender" = "defender") => send("REACT_MODIFIER", {
+            const play = (value: number, chosenSide: "challenger" | "defender" = "defender") => {
+              if (card.discardCost) { setDiscardFor({ cardId: card.cardId, value, side: chosenSide }); return; } // pay the DISCARD first
+              send("REACT_MODIFIER", {
               windowId: chain.windowId,
               cardInstanceId: card.cardId,
               value,
               ...(roll.kind === "challenge" ? { side: chosenSide } : {}),
               ...(hornBonus ? { leaderBonus: hornBonus } : {}),
-            });
+              });
+            };
             return (
             <div key={card.cardId} className={`t3-tray-card${focusCard === card.cardId ? " is-up" : ""}`}>
               <CardRenderer
@@ -790,6 +794,33 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
             </div>
             );
           })}
+          {discardFor && (
+            <div className="t3-tray-options" role="group" aria-label="Choose a card to discard">
+              <span className="t3-tray-step">DISCARD 1 CARD FIRST</span>
+              {state.yourHand.filter((c) => c.cardId !== discardFor.cardId).map((c) => (
+                <CardRenderer
+                  key={c.cardId}
+                  card={c}
+                  size="md"
+                  disabled={pending}
+                  ariaLabel={`Discard ${c.name}`}
+                  onClick={() => {
+                    send("REACT_MODIFIER", {
+                      windowId: chain.windowId,
+                      cardInstanceId: discardFor.cardId,
+                      value: discardFor.value,
+                      discardCardInstanceId: c.cardId,
+                      ...(roll.kind === "challenge" ? { side: discardFor.side } : {}),
+                      ...(hornBonus ? { leaderBonus: hornBonus } : {}),
+                    });
+                    setDiscardFor(null);
+                  }}
+                />
+              ))}
+              {state.yourHand.length < 2 && <span className="t3-tray-step">No other card to discard</span>}
+              <button className="t3-btn" onClick={() => setDiscardFor(null)}>CANCEL</button>
+            </div>
+          )}
         </>
       );
       primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP{modifierCards.length ? ` (${modifierCards.length})` : ""}</button>;
@@ -1001,7 +1032,7 @@ function DiscardView({ pile, count, onClose }: { pile: BaseCardView[]; count: nu
 
 /* --------------------------------------------------------------------- hand */
 
-function Hand({ hand, canPlay, partyFull, onPlay }: { hand: BaseCardView[]; canPlay: boolean; partyFull: boolean; onPlay: (card: BaseCardView) => void }) {
+function Hand({ hand, canPlay, partyFull, partyCap, onPlay }: { hand: BaseCardView[]; canPlay: boolean; partyFull: boolean; partyCap: number; onPlay: (card: BaseCardView) => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const n = hand.length;
   const handShift = -Math.min(0.78, 0.2 + Math.max(0, n - 5) * 0.055);
@@ -1021,7 +1052,7 @@ function Hand({ hand, canPlay, partyFull, onPlay }: { hand: BaseCardView[]; canP
             {isSel && (
               <div className="t3-hand-actions">
                 {playable ? (
-                  <button className="t3-btn t3-btn--continue" disabled={!canPlay || (card.kind === "hero" && partyFull)} title={card.kind === "hero" && partyFull ? "Party is limited to 6 Heroes" : undefined} onClick={() => { onPlay(card); setSelected(null); }}>PLAY · 1 AP</button>
+                  <button className="t3-btn t3-btn--continue" disabled={!canPlay || (card.kind === "hero" && partyFull)} title={card.kind === "hero" && partyFull ? `Party is limited to ${partyCap} Heroes` : undefined} onClick={() => { onPlay(card); setSelected(null); }}>PLAY · 1 AP</button>
                 ) : (
                   <span className="t3-chip">{card.kind === "modifier" ? "Used on a roll" : "Used to challenge"}</span>
                 )}
@@ -1049,6 +1080,7 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
   const notReady = state.players.filter((p) => !p.isHost && !p.ready);
   const shadowBanned = state.players.length === 2;
   const blockedShadow = shadowBanned && state.players.some((p) => p.leaderId?.endsWith("the-shadow-claw"));
+  const maxSeats = game.settings.expansionIds.length ? Math.min(8, game.leaderPool.length) : 6;
   const canStart = host && state.players.length >= 2 && missing.length === 0 && notReady.length === 0 && !blockedShadow;
   const hint = state.players.length < 2
     ? "Need at least 2 players — invite a friend or add a bot."
@@ -1082,12 +1114,33 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
             ))}
           </div>
           <small>{host ? "Using AP resets the timer; time out = turn passes." : "Set by the host."}</small>
+          {game.availableExpansions.length > 0 && (
+            <>
+              <span className="t3-kicker">EXPANSIONS</span>
+              <div className="t3-seg t3-seg--light" role="group" aria-label="Expansion packs">
+                {game.availableExpansions.map((pack) => {
+                  const on = game.settings.expansionIds.includes(pack.id);
+                  return (
+                    <button
+                      key={pack.id}
+                      className={on ? "is-on" : ""}
+                      aria-pressed={on}
+                      disabled={!host || pending}
+                      onClick={() => send("CONFIGURE_GAME", { expansionIds: on ? game.settings.expansionIds.filter((id) => id !== pack.id) : [...game.settings.expansionIds, pack.id] })}
+                    >
+                      {pack.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </header>
 
       <div className="t3-lobby-body">
         <aside className="t3-lobby-seats" aria-label="Players">
-          <h3>PLAYERS {state.players.length}/6</h3>
+          <h3>PLAYERS {state.players.length}/{maxSeats}</h3>
           {state.players.map((p) => (
             <div key={p.playerId} className={`t3-lobby-seat${p.playerId === me ? " is-me" : ""}`}>
               <span className="t3-roster-face" style={{ background: leaderColor(p) }}>{p.isBot ? "🤖" : p.nickname.slice(0, 1).toUpperCase()}</span>
@@ -1166,6 +1219,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const active = gameActive && game.currentPlayerId === me;
   const ap = game.actionPoints ?? 0;
   const free = active && game.chain === null;
+  const partyCap = game.settings.expansionIds?.length ? 7 : 6;
   const [targets, setTargets] = useState<BaseTargets>({});
   const [hovered, setHovered] = useState<{ card: CardLike; rect: DOMRect | null; pinned: boolean } | null>(null);
   const [panel, setPanel] = useState<null | "log" | "discard" | "targets" | "help" | "menu">(null);
@@ -1400,7 +1454,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               <Hand
                 hand={state.yourHand}
                 canPlay={!pending && free && ap >= 1}
-                    partyFull={(mySeat?.party.length ?? 0) >= 6}
+                    partyFull={(mySeat?.party.length ?? 0) >= partyCap}
+                    partyCap={partyCap}
                 onPlay={(card) => {
                   const rule = card.kind === "hero" ? null : ruleFor(card); // Heroes need targets only when they roll
                   if (!rule) send("PLAY_HAND_CARD", { cardInstanceId: card.cardId, targets: {} });
@@ -1419,6 +1474,9 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                     ) : null}
                     {mySeat?.leaderId === "hts.base.v1.party-leader.the-shadow-claw" && (
                       <button className="t3-act" disabled={pending || !free || ap < 1} onClick={() => mySeat && setTargetRequest({ title: "The Shadow Claw — pull a card from…", verb: "PULL · 1 AP", card: { definitionId: mySeat.leaderId!, kind: "party_leader", name: leaderDisplayName(mySeat.leaderId!) }, rule: "other_player", onConfirm: (t) => send("LEADER_ACTION", { targetPlayerId: t.playerId }) })}><kbd>⌖</kbd>PULL</button>
+                    )}
+                    {mySeat?.leaderId?.endsWith("the-gnawing-dread") && (
+                      <button className="t3-act" disabled={pending || !free || ap < 2 || game.discardCount === 0} title="Spend 2 AP: search the discard pile for a card" onClick={() => send("LEADER_ACTION", {})}><kbd>☠</kbd>SEARCH</button>
                     )}
                     <button className="t3-act" disabled={!canDraw} onClick={() => send("DRAW_CARD", {})}><kbd>D</kbd>DRAW</button>
                     <button className="t3-act" disabled={!canRedraw} onClick={() => send("REDRAW_HAND", {})}><kbd>R</kbd>REDEAL</button>

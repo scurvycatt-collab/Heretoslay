@@ -3,6 +3,7 @@
 
 import type { BaseCardKind, BaseCardView } from "@here-to-slay/protocol";
 import { lookupCard } from "../content/base-cards.ts";
+import { DS_MODIFIER_MINUS_6, DS_MODIFIER_PLUS_6 } from "./expansion-ids.ts";
 import { GAME_SET_CATALOG, type CatalogCopy, type SetCatalog } from "../content/set-catalog.ts";
 
 /** Persisted card: one physical copy. `cardId` = catalog instanceId. */
@@ -42,5 +43,6 @@ export function cardView(card: BaseCard): BaseCardView {
   const data = lookupCard(card.definitionId);
   const view: BaseCardView = { cardId: card.cardId, definitionId: card.definitionId, kind: card.kind, name: data?.name ?? card.definitionId };
   if (data?.kind === "modifier") view.modifierOptions = [...data.options];
+  if (card.definitionId === DS_MODIFIER_PLUS_6 || card.definitionId === DS_MODIFIER_MINUS_6) view.discardCost = 1;
   return view;
 }

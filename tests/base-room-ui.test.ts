@@ -106,9 +106,10 @@ test("each table name tag shows the authoritative hand count beside the player n
 
 test("playing a Hero is disabled when the Party already has 6 Heroes", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
-  assert.match(room, /partyFull=\{\(mySeat\?\.party\.length \?\? 0\) >= 6\}/);
+  assert.match(room, /partyFull=\{\(mySeat\?\.party\.length \?\? 0\) >= partyCap\}/);
+  assert.match(room, /const partyCap = game\.settings\.expansionIds\?\.length \? 7 : 6;/);
   assert.match(room, /card\.kind === "hero" && partyFull/);
-  assert.match(room, /Party is limited to 6 Heroes/);
+  assert.match(room, /Party is limited to \$\{partyCap\} Heroes/);
 });
 
 test("every card/function/target selection can return to the table without submitting", async () => {
