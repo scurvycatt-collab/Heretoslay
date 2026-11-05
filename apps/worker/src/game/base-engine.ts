@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { GOBLET_OF_CAFFEINATION, TEMPORAL_HOURGLASS } from "./expansion-ids.ts";
+import { GOBLET_OF_CAFFEINATION, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -20,6 +20,7 @@ import {
   hasClassInParty,
   leaderIs,
   monsterData,
+  monsterDefinitionId,
   rollMeets,
   rollPassives,
   slainHas,
@@ -133,6 +134,8 @@ export interface ChoiceExtras {
   perCardThen?: Step[];
   /** discard: remember discarded ids in game.collected (Beary Wise). */
   collect?: boolean;
+  /** take_from_discard: cards that may not be picked (M04: the resolving -4 cannot recover itself). */
+  excludeCardIds?: string[];
   /** take_from_discard: "add it to your hand, then play it immediately" (Magus Moose). */
   thenPlayTaken?: boolean;
 }
@@ -833,7 +836,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "excludeCardIds"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -1231,7 +1234,8 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
       return game.discard.filter(
         (card) =>
           (!choice.filterKinds || choice.filterKinds.includes(card.kind)) &&
-          (!choice.fromCardIds || choice.fromCardIds.includes(card.cardId)),
+          (!choice.fromCardIds || choice.fromCardIds.includes(card.cardId)) &&
+          !choice.excludeCardIds?.includes(card.cardId),
       );
     case "discard_from_set":
       return seat.hand.filter((card) => choice.fromCardIds?.includes(card.cardId));
@@ -1628,7 +1632,41 @@ function rememberRoll(game: EngineState, roll: RollState, outcome: RollOutcome, 
   game.lastRoll = { id: deps.newId(), resolvedAt: deps.now(), roll: structuredClone(roll), outcome, subject: subject ? { ...subject } : null };
 }
 
+/**
+ * M01–M04 (owner E09): Modifier side effects run after the roll resolves, from the frozen final total,
+ * once per physical card. They never re-enter the closed roll window.
+ */
+function modifierFollowUps(roll: RollState): Step[] {
+  const totals = rollTotals(roll);
+  const steps: Step[] = [];
+  for (const entry of roll.modifiers) {
+    const final = roll.kind === "challenge" && entry.side === "challenger" ? totals.challengerTotal ?? 0 : totals.total;
+    switch (monsterDefinitionId(entry.cardId)) { // instance ids are `<definitionId>#NN`
+      case WD_MODIFIER_PLUS_1_MINUS_1:
+        steps.push({ op: "draw", playerId: entry.playerId, n: 2 });
+        break;
+      case WD_MODIFIER_PLUS_2_MINUS_1:
+        steps.push({ op: "draw", playerId: entry.playerId, n: 1 });
+        break;
+      case WD_MODIFIER_PLUS_4:
+        if (final > 12) steps.push({ op: "draw", playerId: entry.playerId, n: 1 });
+        break;
+      case WD_MODIFIER_MINUS_4:
+        if (final < 2) {
+          steps.push({ op: "choice", playerId: entry.playerId, kind: "take_from_discard", count: 1, excludeCardIds: [entry.cardId], prompt: "Modifier -4: chọn 1 lá trong discard để lấy về tay" });
+        }
+        break;
+    }
+  }
+  return steps;
+}
+
 function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
+  resolveRollOutcome(game, roll, deps, hooks);
+  game.queue.push(...modifierFollowUps(roll));
+}
+
+function resolveRollOutcome(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
   const { total, challengerTotal } = rollTotals(roll);
   if (roll.kind === "challenge") {
     // RULE-17: challenger wins ties.
