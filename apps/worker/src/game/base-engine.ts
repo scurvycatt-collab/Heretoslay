@@ -208,6 +208,14 @@ export type Step =
   | { op: "trade_hands"; a: string; b: string }
   | { op: "pull"; fromPlayerId: string; toPlayerId: string; n: number; extraIfKind?: BaseCardKind; thenDiscardOne?: boolean; offerPlayIfKind?: BaseCardKind[] }
   | { op: "roll_bonus"; n: number }
+  /** +n to the active player's ATTACK rolls until the end of the turn (Critical Fang). */
+  | { op: "attack_bonus"; n: number }
+  /** DRAW one card per qualifying card, counted when this step runs (Hardened Hunter, Looting Lupo). */
+  | { op: "draw_for"; playerId: string; rule: "other_party_monsters" | "own_equipped_items" }
+  /** Return every equipped Item in `fromPlayerId`'s Party to `toPlayerId`'s hand (Blinding Blade). */
+  | { op: "return_party_items"; fromPlayerId: string; toPlayerId: string }
+  /** Nobody but `playerId` may play Modifier cards until the end of the turn (Stagguard). */
+  | { op: "lock_modifiers"; playerId: string }
   /** E10: an explicit AP grant (Temporal Hourglass); never a retry. */
   | { op: "gain_ap"; playerId: string; n: number }
   /** Sacrifice-by-discard of one exact attachment (credited-sacrifice events arrive with EX-02 B3). */
@@ -249,6 +257,10 @@ export interface EngineState extends SetupTable<BaseCard> {
   settings: BaseGameSettings;
   heroRollsUsed: string[];
   turnRollBonus: number;
+  /** ATTACK-only turn bonus (Critical Fang); absent in legacy saves = 0. */
+  turnAttackBonus?: number;
+  /** Stagguard: the only player allowed to play Modifier cards this turn; absent/null = no lock. */
+  modifierLockBy?: string | null;
   noChallengeThisTurn: boolean;
   leaderActionUsed: boolean;
   chain: Chain | null;
@@ -730,6 +742,32 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
         { op: "draw", playerId: actorId, n: 3 },
         { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá" },
       ];
+    case "hero.agile-dagger":
+      return [
+        {
+          op: "choice", playerId: actorId, kind: "play_card", count: 1, upTo: true, filterKinds: ["item", "cursed_item"],
+          prompt: "Chơi ngay tối đa 2 Item (Agile Dagger) — lá 1",
+          thenIfPicked: [
+            { op: "choice", playerId: actorId, kind: "play_card", count: 1, upTo: true, filterKinds: ["item", "cursed_item"], prompt: "Chơi ngay Item thứ 2 (Agile Dagger)" },
+          ],
+        },
+      ];
+    case "hero.hardened-hunter":
+      return [{ op: "draw_for", playerId: actorId, rule: "other_party_monsters" }];
+    case "hero.looting-lupo":
+      return [{ op: "draw_for", playerId: actorId, rule: "own_equipped_items" }];
+    case "hero.blinding-blade":
+      return [{ op: "return_party_items", fromPlayerId: p, toPlayerId: actorId }];
+    case "hero.critical-fang":
+      return [{ op: "attack_bonus", n: 4 }];
+    case "hero.wolfgang-pack": {
+      const others = (seatOf(game, actorId)?.party ?? []).filter((entry) => entry.card.cardId !== sourceCardId).length;
+      return others > 0 ? [{ op: "roll_bonus", n: others }] : [{ op: "log", text: "Wolfgang Pack: không có Hero khác — +0" }];
+    }
+    case "hero.stagguard":
+      return [{ op: "lock_modifiers", playerId: actorId }];
+    case "hero.maegisty":
+      return [{ op: "protect", playerId: actorId, kind: "returnToHand" }];
     case "hero.doe-fallow":
       return [
         { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Doe Fallow)" },
@@ -1057,6 +1095,40 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         if (seat.playerId === step.toPlayerId || !hasClassInParty(seat, step.heroClass, game.settings)) continue;
         runStep(game, { op: "pull", fromPlayerId: seat.playerId, toPlayerId: step.toPlayerId, n: 1 }, deps);
       }
+      return false;
+    }
+    case "attack_bonus":
+      game.turnAttackBonus = (game.turnAttackBonus ?? 0) + step.n;
+      log(game, `+${step.n} cho mọi lần ATTACK đến hết lượt`);
+      return false;
+    case "lock_modifiers":
+      game.modifierLockBy = step.playerId;
+      log(game, `${whoName(game, step.playerId)}: người khác không thể chơi Modifier đến hết lượt`);
+      return false;
+    case "draw_for": {
+      const seat = seatOf(game, step.playerId);
+      if (!seat) return false;
+      const count = step.rule === "other_party_monsters"
+        ? game.seats.filter((other) => other !== seat).reduce((sum, other) => sum + other.slain.length, 0)
+        : seat.party.reduce((sum, hero) => sum + hero.attachments.length, 0);
+      if (count === 0) {
+        log(game, `${whoName(game, step.playerId)}: không có lá nào để đếm — không rút`);
+        return false;
+      }
+      game.queue.unshift({ op: "draw", playerId: step.playerId, n: count });
+      return false;
+    }
+    case "return_party_items": {
+      const from = seatOf(game, step.fromPlayerId);
+      const to = seatOf(game, step.toPlayerId);
+      if (!from || !to) return false;
+      let count = 0;
+      for (const hero of from.party) {
+        const removed = detachAll(hero);
+        to.hand.push(...removed);
+        count += removed.length;
+      }
+      log(game, `${count} Item của ${whoName(game, from.playerId)} trở về tay ${whoName(game, to.playerId)}`);
       return false;
     }
     case "roll_bonus":
@@ -1476,6 +1548,7 @@ export function playModifier(
   const roll = chain.roll;
   if (roll.kind === "challenge" ? !payload.side : payload.side !== undefined) return "INVALID_MODIFIER_SIDE";
   if (payload.leaderBonus !== undefined && !leaderIs(seat, "the-protecting-horn")) return "INVALID_LEADER_BONUS";
+  if (game.modifierLockBy && game.modifierLockBy !== playerId) return "MODIFIERS_LOCKED";
   const [card] = seat.hand.splice(index, 1);
   game.discard.push(card);
   const side = payload.side;
@@ -1634,7 +1707,7 @@ export function startHeroRoll(game: EngineState, actorId: string, heroCardId: st
 export function startAttack(game: EngineState, actorId: string, monsterId: string, deps: EngineDeps, hooks: EngineHooks): void {
   const seat = seatOf(game, actorId)!;
   const dice = [...deps.rollDice()] as [number, number];
-  const passives = rollPassives(seat, "attack", { turnRollBonus: game.turnRollBonus });
+  const passives = rollPassives(seat, "attack", { turnRollBonus: game.turnRollBonus, turnAttackBonus: game.turnAttackBonus });
   log(game, `${whoName(game, actorId)} ATTACK ${cardName(monsterData(monsterId).definitionId)}`);
   openModifierWindow(game, { kind: "attack", rollerId: actorId, dice, monsterId, modifiers: [], passives }, deps, hooks);
 }

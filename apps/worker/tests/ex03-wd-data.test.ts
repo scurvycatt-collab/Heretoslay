@@ -76,6 +76,6 @@ test("lookup works for in-play expansion cards but this does not enable the pack
 test("pending effects are tracked explicitly, so the pack cannot be enabled by accident", () => {
   assert.ok(WD_UNIMPLEMENTED_EFFECTS.length > 0);
   assert.ok(!WD_UNIMPLEMENTED_EFFECTS.includes("item.bottomless-bag"));
-  assert.ok(WD_UNIMPLEMENTED_EFFECTS.includes("hero.maegisty"), "the Maegisty hero effect still needs its handler");
+  assert.ok(WD_UNIMPLEMENTED_EFFECTS.includes("hero.buck-omens"), "Buck Omens still needs its handler");
   assert.equal(new Set(WD_UNIMPLEMENTED_EFFECTS).size, WD_UNIMPLEMENTED_EFFECTS.length);
 });

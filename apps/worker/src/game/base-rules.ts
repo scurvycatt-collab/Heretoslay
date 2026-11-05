@@ -4,6 +4,7 @@
 import type { AnyHeroClass as HeroClass, BaseGameSettings, MonsterCardData } from "@here-to-slay/protocol";
 import { cardDataOfKind, lookupCard } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
+import { EVEN_BIGGER_RING, PIERCING_HOWL } from "./expansion-ids.ts";
 
 export interface PartyHero {
   card: BaseCard;
@@ -142,17 +143,24 @@ export interface Passive {
 export function rollPassives(
   seat: RulesSeat,
   kind: "hero_effect" | "attack" | "challenge_challenger" | "challenge_defender",
-  opts: { hero?: PartyHero; turnRollBonus?: number },
+  opts: { hero?: PartyHero; turnRollBonus?: number; turnAttackBonus?: number },
 ): Passive[] {
   const out: Passive[] = [];
   const add = (source: string, label: string, value: number) => out.push({ source, label, value });
   if (opts.turnRollBonus) add("turn", "Hiệu ứng đến hết lượt", opts.turnRollBonus);
+  if (kind === "attack" && opts.turnAttackBonus) add("turn-attack", "Hiệu ứng ATTACK đến hết lượt", opts.turnAttackBonus);
+  // The Piercing Howl: "Each time you roll, +1 to your roll for each Item card equipped to a Hero card in your Party."
+  if (seat.leaderId === PIERCING_HOWL) {
+    const equipped = seat.party.reduce((sum, hero) => sum + hero.attachments.length, 0);
+    if (equipped > 0) add(PIERCING_HOWL, "passive của Leader: The Piercing Howl", equipped);
+  }
   if (slainHas(seat, "anuran-cauldron")) add("hts.base.v1.monster.anuran-cauldron", "Anuran Cauldron (đã slay)", 1);
   if (kind === "hero_effect") {
     if (leaderIs(seat, "the-charismatic-song")) add("hts.base.v1.party-leader.the-charismatic-song", "passive của Leader: The Charismatic Song", 1);
     if (slainHas(seat, "dark-dragon-king")) add("hts.base.v1.monster.dark-dragon-king", "Dark Dragon King (đã slay)", 1);
     for (const { definitionId: item } of opts.hero?.attachments ?? []) {
       if (item === "hts.base.v1.item.really-big-ring") add(item, "Really Big Ring", 2);
+      if (item === EVEN_BIGGER_RING) add(item, "Even Bigger Ring", 4);
       if (item === "hts.base.v1.cursed-item.curse-of-the-snakes-eyes") add(item, "Curse of the Snake's Eyes", -2);
     }
   }

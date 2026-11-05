@@ -18,3 +18,5 @@ export const WD_MODIFIER_PLUS_1_MINUS_1 = idOf("Modifier +1/-1", "warriorsDruids
 export const WD_MODIFIER_PLUS_2_MINUS_1 = idOf("Modifier +2/-1", "warriorsDruids");
 export const WD_MODIFIER_PLUS_4 = idOf("Modifier +4", "warriorsDruids");
 export const WD_MODIFIER_MINUS_4 = idOf("Modifier -4", "warriorsDruids");
+export const EVEN_BIGGER_RING = idOf("Even Bigger Ring");
+export const PIERCING_HOWL = idOf("The Piercing Howl");

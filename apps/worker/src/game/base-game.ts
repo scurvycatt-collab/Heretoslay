@@ -261,6 +261,8 @@ function onTurnStart(game: BaseGameState): void {
   game.turnModifierBonusSeconds = 0;
   game.heroRollsUsed = [];
   game.turnRollBonus = 0;
+  game.turnAttackBonus = 0;
+  game.modifierLockBy = null;
   game.noChallengeThisTurn = false;
   game.leaderActionUsed = false;
   const active = seatOf(game, activePlayerId(game) ?? "");

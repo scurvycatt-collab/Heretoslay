@@ -185,6 +185,9 @@ export const WD_IMPLEMENTED_EFFECTS: ReadonlySet<string> = new Set([
   "hero.glowing-antler", // up to 2 Magic plays (EX-03 H1)
   "hero.magus-moose", // discard Hero -> hand -> play (EX-03 H1)
   "magic.rapid-refresh", // discard hand, draw 4 (EX-03 H1)
+  "hero.agile-dagger", "hero.hardened-hunter", "hero.looting-lupo", "hero.blinding-blade", // EX-03 H4
+  "hero.critical-fang", "hero.wolfgang-pack", "hero.stagguard", "hero.maegisty",
+  "item.even-bigger-ring", "leader.the-piercing-howl",
 ]);
 
 export const WD_UNIMPLEMENTED_EFFECTS: readonly string[] = WD_CARD_DATA.flatMap((card) => {
