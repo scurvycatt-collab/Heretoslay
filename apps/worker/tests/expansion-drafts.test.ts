@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EXPANSION_FACE_DRAFTS } from "../src/content/expansion-drafts.ts";
-import { EXPANSION_SET_IDS, GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { EXPANSION_FACE_DRAFTS, expansionDefinitionsFor } from "../src/content/expansion-drafts.ts";
+import { createSetCatalog, EXPANSION_SET_IDS, GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
 
 const bySet = (key: string) => EXPANSION_FACE_DRAFTS.filter((face) => face.setKey === key);
 
@@ -28,8 +28,30 @@ test("E02: exactly the eight reviewed Heroes carry the printed two-Item trait", 
   assert.ok(EXPANSION_FACE_DRAFTS.filter((face) => face.twoItemSlots).every((face) => face.kind === "hero"));
 });
 
-test("drafts carry no quantity and are not in the live registry", () => {
-  assert.ok(EXPANSION_FACE_DRAFTS.every((face) => !("physicalCopyCount" in face)));
+test("quantities reconcile with the publisher totals and compose with stub bindings", () => {
+  const stub = (key: "warriorsDruids" | "berserkersNecromancers" | "dragonSorcerer") => {
+    const definitions = expansionDefinitionsFor(key);
+    return {
+      setId: EXPANSION_SET_IDS[key], definitions,
+      rulesByDefinition: new Map(definitions.map(({ definitionId }) => [definitionId, {}])),
+    };
+  };
+  const expected = { warriorsDruids: [31, 2, 2], berserkersNecromancers: [31, 2, 2], dragonSorcerer: [14, 1, 1] } as const;
+  for (const key of Object.keys(expected) as (keyof typeof expected)[]) {
+    const catalog = createSetCatalog([stub(key)]).compose([EXPANSION_SET_IDS[key]]);
+    const base = GAME_SET_CATALOG.compose();
+    assert.deepEqual(
+      [catalog.main.length - base.main.length, catalog.monster.length - base.monster.length,
+        catalog.leaderPool.length - base.leaderPool.length],
+      expected[key], key,
+    );
+  }
+  const magic = EXPANSION_FACE_DRAFTS.filter((face) => face.physicalCopyCount === 2).map((face) => face.canonicalName).sort();
+  assert.deepEqual(magic, ["Lightning Labrys", "Mass Sacrifice"]);
+  assert.equal(EXPANSION_FACE_DRAFTS.filter((face) => face.quantityNote).length, 2);
+});
+
+test("drafts stay out of the live registry", () => {
   const base = GAME_SET_CATALOG.compose();
   assert.deepEqual(base.setIds, ["hts.base.v1"]);
   for (const face of EXPANSION_FACE_DRAFTS) assert.equal(base.expansionCard(face.definitionId), undefined);
