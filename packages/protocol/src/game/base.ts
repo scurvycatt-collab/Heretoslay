@@ -332,7 +332,10 @@ export type BaseChainView =
         | "take_from_hand"
         | "steal_hero"
         | "bring_hero"
-        | "attack_monster";
+        | "attack_monster"
+        | "sacrifice_item"
+        | "choose_class"
+        | "make_sacrifice";
       min: number;
       max: number;
       prompt: string;

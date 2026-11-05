@@ -118,7 +118,13 @@ export type ChoiceKind =
   /** Buck Omens (W05): pick a Hero in another player's hand to bring straight into your Party. */
   | "bring_hero"
   /** Big Buckley (W04): pick a face-up Monster whose Party requirement you meet, to ATTACK now. */
-  | "attack_monster";
+  | "attack_monster"
+  /** Bone Collector (BN): pick an Item equipped in your own Party to SACRIFICE. */
+  | "sacrifice_item"
+  /** Roaryal Guard (BN): name a Class by picking a Hero in play; every Hero of its (effective) Class returns to hand. */
+  | "choose_class"
+  /** Lightning Labrys (BN): pick a Hero in any Party; its owner must SACRIFICE a Hero card. */
+  | "make_sacrifice";
 
 /** Extra fields shared by a choice step and the pending choice it opens. */
 export interface ChoiceExtras {
@@ -148,6 +154,12 @@ export interface ChoiceExtras {
   excludeCardIds?: string[];
   /** take_from_discard: "add it to your hand, then play it immediately" (Magus Moose). */
   thenPlayTaken?: boolean;
+  /** take_from_hand: "you may play it immediately" — an optional play of the taken card (Hollow Husk). */
+  thenOfferPlayTaken?: boolean;
+  /** sacrifice_hero: then DESTROY as many Hero cards as were sacrificed (Rabid Beast). */
+  destroyEqual?: boolean;
+  /** destroy_hero: if the chosen Hero is of this effective Class, run `steps` once it is really destroyed (Unbridled Fury). */
+  thenIfClass?: { heroClass: string; steps: Step[] };
 }
 
 export interface PendingChoice extends ChoiceExtras {
@@ -210,7 +222,7 @@ export type Step =
       /** take_from_discard limited to game.collected (Beary Wise). */
       fromCollected?: boolean;
     } & ChoiceExtras)
-  | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string; noStealInstead?: boolean }
+  | { op: "destroy"; heroCardId: string; byPlayerId: string; itemToPlayerId?: string; noStealInstead?: boolean; thenIfReal?: Step[] }
   | { op: "steal"; heroCardId: string; toPlayerId: string }
   | { op: "move_hero"; heroCardId: string; toPlayerId: string; onlyIfOwns?: { heroCardId: string; playerId: string } }
   | { op: "discard_card"; card: BaseCard }
@@ -239,6 +251,12 @@ export type Step =
   | { op: "attack_monster_now"; playerId: string; monsterId: string }
   /** Soul Tether: SACRIFICE the equipped Hero because another Hero in the Party was lost (W11). */
   | { op: "tether_sacrifice"; heroCardId: string }
+  /** SACRIFICE one specific Hero (Perfect Vessel sacrifices itself); credited like any sacrifice (E06). */
+  | { op: "sacrifice_hero_card"; heroCardId: string }
+  /** Brawling Spirit (BN): every player with more than 3 cards in their Party (Heroes + equipped Items) SACRIFICEs a Hero. */
+  | { op: "brawling_spirit"; actorId: string }
+  /** Roaryal Guard (BN): return every Hero of this effective Class to its owner's hand (attachments follow). */
+  | { op: "return_class_heroes"; heroClass: string }
   /** E10: an explicit AP grant (Temporal Hourglass); never a retry. */
   | { op: "gain_ap"; playerId: string; n: number }
   /** Sacrifice-by-discard of one exact attachment (credited-sacrifice events arrive with EX-02 B3). */
@@ -415,6 +433,8 @@ export interface HeroLossCause {
   kind: "sacrifice" | "destroy";
   byPlayerId?: string;
   itemToPlayerId?: string;
+  /** Run after the Hero really leaves the Party (not when Decoy Doll / Maegisty replaced the loss). */
+  thenIfReal?: Step[];
 }
 
 /**
@@ -469,6 +489,7 @@ function resolveHeroLoss(game: EngineState, step: Extract<Step, { op: "resolve_h
     log(game, `${whoName(game, found.seat.playerId)} SACRIFICE ${name}`);
   }
   afterHeroLost(game, found.seat, step.cause, found.hero.card.cardId, true);
+  if (step.cause.thenIfReal) game.queue.unshift(...step.cause.thenIfReal);
 }
 
 /**
@@ -874,6 +895,82 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       ];
     case "magic.rapid-refresh":
       return [{ op: "discard_hand", playerId: actorId }, { op: "draw", playerId: actorId, n: 4 }];
+    case "magic.mass-sacrifice":
+      return [{ op: "discard_hand", playerId: actorId }, { op: "draw", playerId: actorId, n: 5 }];
+    case "hero.annihilator":
+      return [{ op: "choice", playerId: actorId, kind: "take_from_discard", count: 1, filterKinds: ["challenge"], prompt: "Chọn 1 Challenge trong discard, lấy về tay (Annihilator)" }];
+    case "hero.bark-hexer":
+      return [
+        { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá (Bark Hexer)" },
+        { op: "each_other_choice", actorId, kind: "discard", count: 2 },
+      ];
+    case "hero.grim-pupper":
+      return [
+        { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Grim Pupper)" },
+        { op: "each_other_choice", actorId, kind: "sacrifice_hero", count: 1 },
+      ];
+    case "hero.brawling-spirit":
+      return [{ op: "brawling_spirit", actorId }];
+    case "hero.unbridled-fury":
+      return [{
+        op: "choice", playerId: actorId, kind: "destroy_hero", count: 1, prompt: "DESTROY 1 Hero (Unbridled Fury)",
+        thenIfClass: { heroClass: "berserker", steps: [{ op: "gain_ap", playerId: actorId, n: 1 }] },
+      }];
+    case "hero.roaryal-guard":
+      return [{ op: "choice", playerId: actorId, kind: "choose_class", count: 1, prompt: "Chọn Class (chọn 1 Hero để chỉ Class của nó) — mọi Hero Class đó về tay chủ (Roaryal Guard)" }];
+    case "hero.boston-terror": {
+      const target = p ? seatOf(game, p) : undefined;
+      const fromDiscard: Step = { op: "choice", playerId: actorId, kind: "take_from_discard", count: 2, upTo: true, prompt: "Lấy tối đa 2 lá từ discard (Boston Terror)" };
+      if (!target || target.hand.length === 0) return [fromDiscard];
+      return [{
+        op: "choice", playerId: target.playerId, kind: "confirm", count: 1,
+        prompt: `Đưa 1 lá cho ${whoName(game, actorId)}? Không đưa (hoặc hết giờ) → họ lấy 2 lá từ discard (Boston Terror)`,
+        then: [{ op: "choice", playerId: target.playerId, kind: "give_card", count: 1, recipientId: actorId, prompt: `Đưa 1 lá cho ${whoName(game, actorId)} (Boston Terror)` }],
+        otherwise: [fromDiscard],
+      }];
+    }
+    case "hero.perfect-vessel":
+      return [
+        ...(sourceCardId ? [{ op: "sacrifice_hero_card", heroCardId: sourceCardId } as Step] : []),
+        { op: "choice", playerId: actorId, kind: "steal_hero", count: 1, prompt: "STEAL 1 Hero (Perfect Vessel)" },
+      ];
+    case "hero.bone-collector":
+      return [
+        { op: "choice", playerId: actorId, kind: "sacrifice_item", count: 1, prompt: "SACRIFICE 1 Item (Bone Collector)" },
+        { op: "choice", playerId: actorId, kind: "take_from_discard", count: 1, filterKinds: ["hero"], thenPlayTaken: true, prompt: "Chọn 1 Hero trong discard, lấy về tay rồi chơi ngay (Bone Collector)" },
+      ];
+    case "hero.beholden-retriever":
+      return [
+        { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Beholden Retriever)" },
+        { op: "choice", playerId: actorId, kind: "take_from_discard", count: 1, filterKinds: ["hero", "item", "cursed_item"], thenPlayTaken: true, prompt: "Chọn 1 Hero hoặc Item trong discard, lấy về tay rồi chơi ngay (Beholden Retriever)" },
+      ];
+    case "hero.hollow-husk":
+      return [
+        { op: "choice", playerId: actorId, kind: "view_hand", count: 0, upTo: true, targetPlayerId: p, prompt: "Xem tay bài (Hollow Husk) — bấm xác nhận để đóng" },
+        { op: "choice", playerId: actorId, kind: "take_from_hand", count: 1, targetPlayerId: p, filterKinds: ["magic"], thenOfferPlayTaken: true, prompt: "Chọn 1 Magic lấy về tay (Hollow Husk)" },
+      ];
+    case "hero.shadow-saint":
+      return [
+        { op: "choice", playerId: actorId, kind: "discard", count: 1, filterKinds: ["modifier"], prompt: "DISCARD 1 Modifier (Shadow Saint)" },
+        { op: "lock_modifiers", playerId: actorId },
+      ];
+    case "hero.gruesome-gladiator":
+      return orderFrom(game, actorId).filter((seat) => seat.playerId !== actorId).flatMap((seat): Step[] => [
+        { op: "choice", playerId: actorId, kind: "view_hand", count: 0, upTo: true, targetPlayerId: seat.playerId, prompt: `Xem tay bài ${whoName(game, seat.playerId)} (Gruesome Gladiator)` },
+        { op: "choice", playerId: actorId, kind: "take_from_hand", count: 1, targetPlayerId: seat.playerId, prompt: `Lấy 1 lá từ tay ${whoName(game, seat.playerId)} (Gruesome Gladiator)` },
+      ]);
+    case "hero.meowntain":
+      return [
+        { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Meowntain)" },
+        { op: "roll_bonus", n: 5 },
+      ];
+    case "hero.rabid-beast":
+      return [{ op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 99, upTo: true, destroyEqual: true, prompt: "SACRIFICE số Hero tùy ý, sau đó DESTROY cùng số lượng (Rabid Beast)" }];
+    case "magic.lightning-labrys":
+      return [{
+        op: "choice", playerId: actorId, kind: "discard", count: 3, upTo: true, prompt: "DISCARD tối đa 3 lá (Lightning Labrys) — mỗi lá chọn 1 người SACRIFICE 1 Hero",
+        perCardThen: [{ op: "choice", playerId: actorId, kind: "make_sacrifice", count: 1, prompt: "Chọn 1 người (bằng cách chọn 1 Hero của họ) phải SACRIFICE 1 Hero (Lightning Labrys)" }],
+      }];
     case "hero.vibrant-glow":
       return [{ op: "roll_bonus", n: 5 }];
     case "hero.wise-shield":
@@ -959,7 +1056,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "excludeCardIds", "onTimeout"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "thenOfferPlayTaken", "destroyEqual", "thenIfClass", "excludeCardIds", "onTimeout"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -1091,7 +1188,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         });
         return false;
       }
-      loseHero(game, found, { kind: "destroy", byPlayerId: step.byPlayerId, itemToPlayerId: step.itemToPlayerId }, deps);
+      loseHero(game, found, { kind: "destroy", byPlayerId: step.byPlayerId, itemToPlayerId: step.itemToPlayerId, ...(step.thenIfReal ? { thenIfReal: step.thenIfReal } : {}) }, deps);
       return false;
     }
     case "steal": {
@@ -1225,6 +1322,34 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       if (!found) return false; // already gone: a Hero is lost only once, tethers cannot loop
       log(game, `Soul Tether: ${cardName(found.hero.card.definitionId)} bị SACRIFICE`);
       loseHero(game, found, { kind: "sacrifice" }, deps);
+      return false;
+    }
+    case "sacrifice_hero_card": {
+      const found = findHero(game, step.heroCardId);
+      if (!found) return false;
+      loseHero(game, found, { kind: "sacrifice" }, deps);
+      return false;
+    }
+    case "brawling_spirit": {
+      const steps: Step[] = [];
+      for (const seat of orderFrom(game, step.actorId)) {
+        const cards = seat.party.length + seat.party.reduce((sum, hero) => sum + hero.attachments.length, 0); // E15: Heroes + equipped Items
+        if (cards > 3) steps.push({ op: "choice", playerId: seat.playerId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Brawling Spirit)" });
+      }
+      game.queue.unshift(...steps);
+      return false;
+    }
+    case "return_class_heroes": {
+      let count = 0;
+      for (const seat of game.seats) {
+        for (const hero of [...seat.party]) {
+          if (!heroClasses(hero, game.settings).includes(step.heroClass as never)) continue;
+          seat.party.splice(seat.party.indexOf(hero), 1);
+          seat.hand.push(hero.card, ...detachAll(hero));
+          count += 1;
+        }
+      }
+      log(game, `Roaryal Guard: ${count} Hero (${step.heroClass}) trở về tay chủ`);
       return false;
     }
     case "lock_modifiers":
@@ -1483,9 +1608,14 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
     case "order_top":
       return game.mainDeck.filter((card) => choice.fromCardIds?.includes(card.cardId));
     case "take_from_hand":
-      return [...(seatOf(game, choice.targetPlayerId ?? "")?.hand ?? [])];
+      return (seatOf(game, choice.targetPlayerId ?? "")?.hand ?? []).filter((card) => !choice.filterKinds || choice.filterKinds.includes(card.kind));
+    case "sacrifice_item":
+      return seat.party.flatMap((hero) => hero.attachments);
+    case "choose_class":
+    case "make_sacrifice":
+      return game.seats.flatMap((other) => other.party.map((hero) => hero.card));
     default:
-      return [...seat.hand];
+      return seat.hand.filter((card) => !choice.filterKinds || choice.filterKinds.includes(card.kind));
   }
 }
 
@@ -1512,8 +1642,29 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       }
       return;
     case "destroy_hero":
-      if (cardIds[0]) game.queue.unshift({ op: "destroy", heroCardId: cardIds[0], byPlayerId: seat.playerId });
+      game.queue.unshift(...cardIds.map((id): Step => {
+        const found = findHero(game, id);
+        const matches = choice.thenIfClass && found && heroClasses(found.hero, game.settings).includes(choice.thenIfClass.heroClass as never);
+        return { op: "destroy", heroCardId: id, byPlayerId: seat.playerId, ...(matches ? { thenIfReal: choice.thenIfClass!.steps } : {}) };
+      }));
       return;
+    case "sacrifice_item":
+      for (const id of cardIds) {
+        const holder = seat.party.find((hero) => hero.attachments.some((card) => card.cardId === id));
+        if (holder) game.queue.unshift({ op: "discard_attachment", heroCardId: holder.card.cardId, itemCardId: id });
+      }
+      return;
+    case "choose_class": {
+      const found = cardIds[0] ? findHero(game, cardIds[0]) : null;
+      const heroClass = found ? heroClasses(found.hero, game.settings)[0] : undefined;
+      if (heroClass) game.queue.unshift({ op: "return_class_heroes", heroClass });
+      return;
+    }
+    case "make_sacrifice": {
+      const found = cardIds[0] ? findHero(game, cardIds[0]) : null;
+      if (found) game.queue.unshift({ op: "choice", playerId: found.seat.playerId, kind: "sacrifice_hero", count: 1, prompt: `SACRIFICE 1 Hero (Lightning Labrys — ${whoName(game, seat.playerId)} chọn bạn)` });
+      return;
+    }
     case "steal_hero":
       game.queue.unshift(...cardIds.map((id): Step => ({ op: "steal", heroCardId: id, toPlayerId: seat.playerId })));
       return;
@@ -1560,6 +1711,9 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
         if (target && index >= 0) seat.hand.push(target.hand.splice(index, 1)[0]);
       }
       log(game, `${whoName(game, seat.playerId)} lấy 1 lá từ tay ${whoName(game, choice.targetPlayerId ?? "")}`);
+      if (choice.thenOfferPlayTaken && cardIds.length > 0) {
+        game.queue.push({ op: "choice", playerId: seat.playerId, kind: "play_card", count: 1, upTo: true, fromCardIds: [...cardIds], prompt: "Chơi ngay lá vừa lấy (tùy chọn)" });
+      }
       return;
     }
     case "play_card":
@@ -1588,14 +1742,21 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       return;
     case "confirm":
       return;
-    case "sacrifice_hero":
+    case "sacrifice_hero": {
+      const before = game.queue.length;
+      let sacrificed = 0;
       for (const id of cardIds) {
         const found = findHero(game, id);
         if (!found || found.seat !== seat) continue;
         loseHero(game, found, { kind: "sacrifice" }, deps);
+        sacrificed += 1;
       }
-      void deps;
+      if (choice.destroyEqual && sacrificed > 0) {
+        // Rabid Beast: the destroy follows the sacrifices (and any replacement prompt they opened). Counted by credited sacrifices.
+        game.queue.splice(game.queue.length - before, 0, { op: "choice", playerId: seat.playerId, kind: "destroy_hero", count: sacrificed, prompt: `DESTROY ${sacrificed} Hero (Rabid Beast)` });
+      }
       return;
+    }
   }
 }
 
@@ -2102,7 +2263,7 @@ const UNMODELLED_SLAIN = new Set<string>([]);
 
 // ---------------------------------------------------------------- deadlines
 
-const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card"]);
+const MANDATORY_KINDS: ReadonlySet<ChoiceKind> = new Set<ChoiceKind>(["discard", "discard_from_set", "sacrifice_hero", "give_card", "sacrifice_item", "choose_class", "make_sacrifice"]);
 
 /** C02: required (min > 0) penalty choice that is not an elective payment gating a benefit (C01). */
 export function isMandatoryChoice(choice: PendingChoice): boolean {
