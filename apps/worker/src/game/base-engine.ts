@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { CURSED_GLOVE, FERAL_DRAGON, MUSCIPULA_REX, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MUSCIPULA_REX, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -131,6 +131,8 @@ export interface ChoiceExtras {
   then?: Step[];
   /** confirm: run if declined (or timed out). */
   otherwise?: Step[];
+  /** confirm: a timeout counts as accepting (Majestelk's default sign is +). */
+  timeoutAccepts?: boolean;
   /** play_card: run after a card was picked, played and fully resolved (nested play, C03). */
   thenIfPicked?: Step[];
   /**
@@ -227,6 +229,12 @@ export type Step =
   | { op: "arm_silent_shield"; playerId: string }
   /** Beast Call (W07): face-up Monsters to the bottom of the deck, flip the top 3 face up. */
   | { op: "rotate_monsters" }
+  /** Majestelk (W01): one more ±5 activation for the player until their next turn. */
+  | { op: "add_roll_swing"; playerId: string }
+  /** Majestelk popup result: add a ±value passive to the roll waiting in the queue's `open_modifier_window` step. */
+  | { op: "apply_roll_swing"; value: number; source: string; side?: "challenger" | "defender" }
+  /** Opens the Modifier window of a roll once its Majestelk popups are settled. */
+  | { op: "open_modifier_window"; roll: RollState }
   /** Big Buckley (W04): ATTACK `monsterId` now with no AP (handled in advance(), which owns the hooks). */
   | { op: "attack_monster_now"; playerId: string; monsterId: string }
   /** Soul Tether: SACRIFICE the equipped Hero because another Hero in the Party was lost (W11). */
@@ -816,6 +824,11 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       const others = (seatOf(game, actorId)?.party ?? []).filter((entry) => entry.card.cardId !== sourceCardId).length;
       return others > 0 ? [{ op: "roll_bonus", n: others }] : [{ op: "log", text: "Wolfgang Pack: không có Hero khác — +0" }];
     }
+    case "hero.majestelk":
+      return [
+        { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Majestelk)" },
+        { op: "add_roll_swing", playerId: actorId },
+      ];
     case "hero.big-buckley":
       return [{ op: "choice", playerId: actorId, kind: "attack_monster", count: 1, prompt: "Chọn Monster để ATTACK ngay (Big Buckley)" }];
     case "hero.buck-omens":
@@ -944,7 +957,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "excludeCardIds"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "excludeCardIds", "timeoutAccepts"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -1182,6 +1195,18 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       game.turnAttackBonus = (game.turnAttackBonus ?? 0) + step.n;
       log(game, `+${step.n} cho mọi lần ATTACK đến hết lượt`);
       return false;
+    case "open_modifier_window": return false; // handled in advance(), which owns the hooks
+    case "add_roll_swing": {
+      const seat = seatOf(game, step.playerId);
+      if (seat) seat.rollSwings = (seat.rollSwings ?? 0) + 1;
+      return false;
+    }
+    case "apply_roll_swing": {
+      const pending = game.queue.find((queued): queued is Extract<Step, { op: "open_modifier_window" }> => queued.op === "open_modifier_window");
+      if (!pending) return false;
+      pending.roll.passives.push({ source: step.source, label: `Majestelk (${step.value > 0 ? "+" : ""}${step.value})`, value: step.value, ...(step.side ? { side: step.side } : {}) });
+      return false;
+    }
     case "attack_monster_now": return false; // handled in advance(), which owns the hooks
     case "rotate_monsters": {
       game.monsterDeck.push(...game.faceUpMonsters.splice(0));
@@ -1332,6 +1357,8 @@ export function advance(game: EngineState, deps: EngineDeps, hooks: EngineHooks)
       if (awardMonster(game, step, hooks)) return; // C04: win → stop; no passives / refill after GAME_OVER
     } else if (step.op === "retry_hero_roll") {
       retryHeroRoll(game, step, deps, hooks);
+    } else if (step.op === "open_modifier_window") {
+      openModifierWindowNow(game, step.roll, deps, hooks);
     } else if (step.op === "attack_monster_now") {
       const seat = seatOf(game, step.playerId);
       if (seat && game.faceUpMonsters.includes(step.monsterId) && meetsRequirement(seat, monsterData(step.monsterId), game.settings)) {
@@ -1640,7 +1667,37 @@ export function challenge(game: EngineState, playerId: string, windowId: string,
   return "ACCEPTED";
 }
 
+/**
+ * W01 Majestelk: before a roll's Modifier window opens, each roller with active swings answers one popup
+ * (accept = +5×n, decline = -5×n, timeout = +). The popups run through the queue; the window follows them.
+ */
 function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
+  const owners: Array<{ playerId: string; side?: "challenger" | "defender" }> =
+    roll.kind === "challenge"
+      ? [{ playerId: roll.rollerId, side: "defender" }, { playerId: roll.challengerId, side: "challenger" }]
+      : [{ playerId: roll.rollerId }];
+  const steps: Step[] = [];
+  for (const { playerId, side } of owners) {
+    const swings = seatOf(game, playerId)?.rollSwings ?? 0;
+    if (swings <= 0) continue;
+    const magnitude = 5 * swings;
+    const apply = (value: number): Step[] => [{ op: "apply_roll_swing", value, source: MAJESTELK, ...(side ? { side } : {}) }];
+    steps.push({
+      op: "choice", playerId, kind: "confirm", count: 1, timeoutAccepts: true,
+      prompt: `Majestelk: Đồng ý = +${magnitude}, Từ chối = -${magnitude} cho roll này`,
+      then: apply(magnitude), otherwise: apply(-magnitude),
+    });
+  }
+  if (steps.length === 0) {
+    openModifierWindowNow(game, roll, deps, hooks);
+    return;
+  }
+  game.chain = null;
+  game.queue.unshift(...steps, { op: "open_modifier_window", roll });
+  advance(game, deps, hooks);
+}
+
+function openModifierWindowNow(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
   const { total, challengerTotal } = rollTotals(roll);
   log(
     game,
@@ -2060,7 +2117,10 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
       // Owner 2026-11-02 / C01: optional or gated-payment choice timeout = skip (no payment, no benefit; "may" declined).
       log(game, `Hết giờ chọn — ${whoName(game, chain.choice.playerId)} bỏ qua (${chain.choice.prompt})`);
       game.chain = null;
-      if (chain.choice.kind === "confirm" && chain.choice.otherwise) game.queue.unshift(...chain.choice.otherwise);
+      if (chain.choice.kind === "confirm") {
+        const run = chain.choice.timeoutAccepts ? chain.choice.then : chain.choice.otherwise;
+        if (run) game.queue.unshift(...run);
+      }
     }
     advance(game, deps, hooks);
   }

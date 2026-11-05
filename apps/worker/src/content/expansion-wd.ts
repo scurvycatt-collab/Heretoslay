@@ -190,6 +190,7 @@ export const WD_IMPLEMENTED_EFFECTS: ReadonlySet<string> = new Set([
   "item.even-bigger-ring", "leader.the-piercing-howl",
   "hero.silent-shield", "item.cursed-glove", "item.soul-tether", "monster.feral-dragon", // EX-03 H5 (W02/W03/W10/W11)
   "hero.big-buckley", "hero.buck-omens", "hero.tenacious-timber", "magic.beast-call", "monster.muscipula-rex", // EX-03 H6 (W04–W08)
+  "hero.majestelk", // EX-03 H7 (W01)
 ]);
 
 export const WD_UNIMPLEMENTED_EFFECTS: readonly string[] = WD_CARD_DATA.flatMap((card) => {

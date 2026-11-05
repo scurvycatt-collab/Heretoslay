@@ -36,6 +36,8 @@ export interface RulesSeat {
   /** Slain Monster instance ids, in slay order. */
   slain: string[];
   protections: Protections;
+  /** Majestelk activations until this player's next turn (W01); each roll asks ±5×n once. Absent = 0. */
+  rollSwings?: number;
 }
 
 export const DEFAULT_SETTINGS: BaseGameSettings = {

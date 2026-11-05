@@ -25,3 +25,4 @@ export const CURSED_GLOVE = idOf("Cursed Glove");
 export const FERAL_DRAGON = idOf("Feral Dragon");
 export const MUSCIPULA_REX = idOf("Muscipula Rex");
 export const NOBLE_SHAMAN = idOf("The Noble Shaman");
+export const MAJESTELK = idOf("Majestelk");

@@ -271,6 +271,7 @@ function onTurnStart(game: BaseGameState): void {
   const active = seatOf(game, activePlayerId(game) ?? "");
   if (!active) return;
   active.protections = { noDestroy: false, noSteal: false };
+  active.rollSwings = 0; // Majestelk lasts until its owner's next turn (W01)
   // Mega Slime: "You may spend an extra action point on each of your turns."
   if (slainHas(active, "mega-slime")) game.actionPoints = TURN_ACTION_POINTS + 1;
   // Muscipula Rex (W08): "once per turn on your turn, DRAW a card without spending an action point".
