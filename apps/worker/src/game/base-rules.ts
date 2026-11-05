@@ -23,6 +23,8 @@ export interface Protections {
   noDestroy: boolean;
   /** "… cannot be stolen until your next turn" (Calming Voice). */
   noSteal: boolean;
+  /** "Replace destruction/sacrifice of your Heroes with return to hand until your next turn" (Maegisty, E06). Absent = off. */
+  returnToHand?: boolean;
 }
 
 export interface RulesSeat {

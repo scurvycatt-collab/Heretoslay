@@ -206,7 +206,9 @@ export type Step =
   | { op: "discard_attachment"; heroCardId: string; itemCardId: string }
   /** E04: fresh roll + Modifier window for an already-used Hero; costs no AP here (Goblet). */
   | { op: "retry_hero_roll"; playerId: string; heroCardId: string; targets: BaseTargets }
-  | { op: "protect"; playerId: string; kind: "noDestroy" | "noSteal" }
+  | { op: "protect"; playerId: string; kind: "noDestroy" | "noSteal" | "returnToHand" }
+  /** Executes the owner-selected replacement (E07) for a Hero that would be sacrificed/destroyed. */
+  | { op: "resolve_hero_loss"; heroCardId: string; via: "decoy" | "return" | "none"; cause: HeroLossCause }
   | { op: "no_challenge" }
   | { op: "return_item"; heroCardId: string; onlyCursed?: boolean; itemCardId?: string; toPlayerId?: string }
   | { op: "return_all_items" }
@@ -358,13 +360,63 @@ function moveHeroToDiscard(game: EngineState, found: { seat: BaseSeat; index: nu
   }
 }
 
-/** Decoy Doll: "If the equipped Hero card would be sacrificed or destroyed, move this card to the discard pile instead." */
-function decoyDollSaves(game: EngineState, hero: PartyHero): boolean {
-  const doll = hero.attachments.find((card) => card.definitionId === "hts.base.v1.item.decoy-doll");
-  if (!doll) return false;
-  game.discard.push(detach(hero, doll.cardId)!);
-  log(game, `Decoy Doll bảo vệ ${cardName(hero.card.definitionId)} (Decoy Doll vào discard)`);
-  return true;
+const DECOY_DOLL = "hts.base.v1.item.decoy-doll";
+
+export interface HeroLossCause {
+  kind: "sacrifice" | "destroy";
+  byPlayerId?: string;
+  itemToPlayerId?: string;
+}
+
+/**
+ * A Hero is about to be sacrificed or destroyed. The cost/effect that required a SACRIFICE is already
+ * credited by its caller (E06: Decoy Doll and Maegisty still count). Only the physical movement varies:
+ *  - Decoy Doll: the Doll goes to discard, the Hero stays.
+ *  - Maegisty (`protections.returnToHand`): the Hero and its attachments return to the owner's hand.
+ * With both eligible the owner chooses (E07); a timeout takes the Maegisty return. A replaced DESTROY is
+ * not a real destruction, so it never fires "Hero destroyed" triggers.
+ */
+function loseHero(game: EngineState, found: { seat: BaseSeat; index: number; hero: PartyHero }, cause: HeroLossCause, deps: EngineDeps): void {
+  const decoy = found.hero.attachments.some((card) => card.definitionId === DECOY_DOLL);
+  const returns = Boolean(found.seat.protections.returnToHand);
+  const heroCardId = found.hero.card.cardId;
+  if (decoy && returns) {
+    game.queue.unshift({
+      op: "choice", playerId: found.seat.playerId, kind: "confirm", count: 1,
+      prompt: `${cardName(found.hero.card.definitionId)}: dùng Decoy Doll (Hero ở lại) thay vì Maegisty (Hero về tay)?`,
+      then: [{ op: "resolve_hero_loss", heroCardId, via: "decoy", cause }],
+      otherwise: [{ op: "resolve_hero_loss", heroCardId, via: "return", cause }],
+    });
+    return;
+  }
+  // No choice needed: move now, so a dependent effect (thenIfPaid) can never run before the loss.
+  resolveHeroLoss(game, { op: "resolve_hero_loss", heroCardId, via: decoy ? "decoy" : returns ? "return" : "none", cause }, deps);
+}
+
+function resolveHeroLoss(game: EngineState, step: Extract<Step, { op: "resolve_hero_loss" }>, deps: EngineDeps): void {
+  const found = findHero(game, step.heroCardId);
+  if (!found) return; // idempotent replay: the Hero already left the Party
+  const name = cardName(found.hero.card.definitionId);
+  const doll = found.hero.attachments.find((card) => card.definitionId === DECOY_DOLL);
+  // Revalidate the selected replacement; otherwise fall through to the next one, then the normal loss.
+  if (step.via === "decoy" && doll) {
+    game.discard.push(detach(found.hero, doll.cardId)!);
+    log(game, `Decoy Doll bảo vệ ${name} (Decoy Doll vào discard)`);
+    return;
+  }
+  if ((step.via === "return" || (step.via === "decoy" && !doll)) && found.seat.protections.returnToHand) {
+    found.seat.party.splice(found.index, 1);
+    found.seat.hand.push(found.hero.card, ...detachAll(found.hero));
+    log(game, `Maegisty: ${name} trở về tay ${whoName(game, found.seat.playerId)} thay vì ${step.cause.kind === "destroy" ? "DESTROY" : "SACRIFICE"}`);
+    return;
+  }
+  moveHeroToDiscard(game, found, step.cause.itemToPlayerId);
+  if (step.cause.kind === "destroy") {
+    log(game, `${whoName(game, step.cause.byPlayerId ?? "")} DESTROY ${name} của ${whoName(game, found.seat.playerId)}`);
+    afterHeroDestroyed(game, found.seat, deps);
+  } else {
+    log(game, `${whoName(game, found.seat.playerId)} SACRIFICE ${name}`);
+  }
 }
 
 /** A "may" clause: the player is asked (owner 2026-11-02); timeout = decline. */
@@ -817,6 +869,9 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       return false;
     }
     case "retry_hero_roll": return false; // handled in advance(), which owns the hooks
+    case "resolve_hero_loss":
+      resolveHeroLoss(game, step, deps);
+      return false;
     case "gain_ap": {
       if (step.playerId === game.turnOrder[game.currentPlayerIndex]) {
         game.actionPoints = (game.actionPoints ?? 0) + step.n;
@@ -873,10 +928,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         });
         return false;
       }
-      if (decoyDollSaves(game, found.hero)) return false;
-      moveHeroToDiscard(game, found, step.itemToPlayerId);
-      log(game, `${whoName(game, step.byPlayerId)} DESTROY ${cardName(found.hero.card.definitionId)} của ${whoName(game, found.seat.playerId)}`);
-      afterHeroDestroyed(game, found.seat, deps);
+      loseHero(game, found, { kind: "destroy", byPlayerId: step.byPlayerId, itemToPlayerId: step.itemToPlayerId }, deps);
       return false;
     }
     case "steal": {
@@ -973,7 +1025,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
     case "protect": {
       const seat = seatOf(game, step.playerId);
       if (seat) seat.protections[step.kind] = true;
-      log(game, `${whoName(game, step.playerId)}: Hero ${step.kind === "noDestroy" ? "không thể bị destroy" : "không thể bị steal"} tới lượt sau`);
+      log(game, `${whoName(game, step.playerId)}: ${step.kind === "noDestroy" ? "Hero không thể bị destroy" : step.kind === "noSteal" ? "Hero không thể bị steal" : "Hero bị destroy/sacrifice sẽ về tay"} tới lượt sau`);
       return false;
     }
     case "no_challenge":
@@ -1123,9 +1175,11 @@ export function resolveChoice(
     return "ACCEPTED";
   }
   if (targets !== undefined) return "INVALID_CHOICE";
+  const queued = game.queue.length;
   applyChoice(game, choice, seat, cardIds, deps);
   game.chain = null;
-  if (choice.thenIfPaid) game.queue.unshift(...choice.thenIfPaid);
+  // Steps the selection itself queued (e.g. an E07 replacement prompt) must run before the dependent effect.
+  if (choice.thenIfPaid) game.queue.splice(game.queue.length - queued, 0, ...choice.thenIfPaid);
   advance(game, deps, hooks);
   return "ACCEPTED";
 }
@@ -1251,9 +1305,7 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       for (const id of cardIds) {
         const found = findHero(game, id);
         if (!found || found.seat !== seat) continue;
-        if (decoyDollSaves(game, found.hero)) continue;
-        moveHeroToDiscard(game, found);
-        log(game, `${whoName(game, seat.playerId)} SACRIFICE ${cardName(found.hero.card.definitionId)}`);
+        loseHero(game, found, { kind: "sacrifice" }, deps);
       }
       void deps;
       return;
