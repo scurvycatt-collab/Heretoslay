@@ -1,0 +1,128 @@
+✖ R01: timing out Entangling Trap's discard must not grant its steal for free [policy gate] (2.7659ms)
+✖ R02: nested Snowball spell must resolve before Snowball's second draw (1.3ms)
+✖ R03: slaying Corrupted Sabretooth grants the printed immediate DRAW reward (0.8781ms)
+✖ R04: Titan Wyvern's Challenge-card roll bonus applies to defender too (9.4855ms)
+✖ R05: Pan Chucks must publicly identify the revealed drawn Challenge (1.6062ms)
+✖ R06: Quick Draw Item+Hero eligibility includes either drawn playable card [wording gate] (0.3576ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 182.7539
+
+✖ failing tests:
+
+test at docs\qa\RULES_AUDIT_20261104_REPRO.test.ts:48:1
+✖ R01: timing out Entangling Trap's discard must not grant its steal for free [policy gate] (2.7659ms)
+  AssertionError [ERR_ASSERTION]: unpaid cost still granted STEAL
+      at TestContext.<anonymous> (file:///E:/Code/here-to-slay-web/tmp/rules-audit-7527f6b/source/docs/qa/RULES_AUDIT_20261104_REPRO.test.ts:57:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at docs\qa\RULES_AUDIT_20261104_REPRO.test.ts:60:1
+✖ R02: nested Snowball spell must resolve before Snowball's second draw (1.3ms)
+  AssertionError [ERR_ASSERTION]: parent's second DRAW ran before nested spell cost
+      at TestContext.<anonymous> (file:///E:/Code/here-to-slay-web/tmp/rules-audit-7527f6b/source/docs/qa/RULES_AUDIT_20261104_REPRO.test.ts:73:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at docs\qa\RULES_AUDIT_20261104_REPRO.test.ts:76:1
+✖ R03: slaying Corrupted Sabretooth grants the printed immediate DRAW reward (0.8781ms)
+  AssertionError [ERR_ASSERTION]: SLAY reward is absent from model/resolver
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///E:/Code/here-to-slay-web/tmp/rules-audit-7527f6b/source/docs/qa/RULES_AUDIT_20261104_REPRO.test.ts:85:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs\qa\RULES_AUDIT_20261104_REPRO.test.ts:88:1
+✖ R04: Titan Wyvern's Challenge-card roll bonus applies to defender too (9.4855ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(rollPassives(t.seat("p1"), "challenge_defender", {}).some(p => p.source.endsWith("titan-wyvern") && p.value === 1))
+  
+      at TestContext.<anonymous> (file:///E:/Code/here-to-slay-web/tmp/rules-audit-7527f6b/source/docs/qa/RULES_AUDIT_20261104_REPRO.test.ts:91:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at docs\qa\RULES_AUDIT_20261104_REPRO.test.ts:94:1
+✖ R05: Pan Chucks must publicly identify the revealed drawn Challenge (1.6062ms)
+  AssertionError [ERR_ASSERTION]: no public reveal event/card reference was produced
+      at TestContext.<anonymous> (file:///E:/Code/here-to-slay-web/tmp/rules-audit-7527f6b/source/docs/qa/RULES_AUDIT_20261104_REPRO.test.ts:104:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at docs\qa\RULES_AUDIT_20261104_REPRO.test.ts:107:1
+✖ R06: Quick Draw Item+Hero eligibility includes either drawn playable card [wording gate] (0.3576ms)
+  AssertionError [ERR_ASSERTION]: implementation restricts offer to drawn Items
+      at TestContext.<anonymous> (file:///E:/Code/here-to-slay-web/tmp/rules-audit-7527f6b/source/docs/qa/RULES_AUDIT_20261104_REPRO.test.ts:115:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

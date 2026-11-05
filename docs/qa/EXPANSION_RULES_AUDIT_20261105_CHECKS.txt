@@ -1,0 +1,41 @@
+✔ C01 Destructive Spell: full discard payment → DESTROY; Magic card ends in discard (5.2464ms)
+✔ C01 Destructive Spell: payment timeout → no DESTROY, nothing auto-paid, Magic still cleaned up (0.9425ms)
+✔ C01 Entangling Trap: insufficient cards → no STEAL; full payment → STEAL (0.8087ms)
+✔ C02 mandatory penalty cannot be avoided by timeout; fallback is deterministic and fires once (2.4304ms)
+✔ C03 Snowball → Magic: nested play resolves (Challenge, effect, cleanup) before the second DRAW (1.3746ms)
+✔ C11 Forced Exchange: needs an own Hero; STEAL first, own Hero goes to the victim (0.4639ms)
+✔ C11 Forced Exchange: blocked STEAL → own Hero is not moved (0.3083ms)
+✔ C04 ordinary slay: printed reward DRAW, then Monster joins the Party; refill after (6.2474ms)
+✔ C04 third slay: reward DRAW still happens before GAME_OVER; no refill/passives after the win (0.8486ms)
+✔ C04 reward draw trigger eligibility is fixed at draw time and survives the deferral (0.8802ms)
+✔ C04 no reward DRAW for a Monster whose printed success has none (0.5887ms)
+✔ C05 Titan Wyvern: holder gets +1 as challenger AND defender; opponent never (0.7292ms)
+✔ C06 Pan Chucks: accepted reveal discloses exactly the Challenge card to everyone; hand stays private (7.4241ms)
+✔ C06 Pan Chucks: declined reveal discloses nothing; reveals stay bounded (0.879ms)
+✔ C10 migration: legacy 'played' responders become pending (window not stuck); removed setting dropped (1.1705ms)
+✔ C07 Quick Draw: Item + Hero drawn → only the Item is offered (6.0997ms)
+✔ C07 Quick Draw: two Items offered, at most one played; no Item → no offer (1.575ms)
+✔ C08 PLAY grants an optional free roll; it shares the once-per-turn allowance with the paid roll (1.1002ms)
+✔ C08 skipping the free roll does not consume the allowance (0.5116ms)
+✔ C09 ordinary Item → own Hero only; equipped Item follows the Hero on STEAL and is discarded on DESTROY (0.4238ms)
+✔ C09 STEAL moves Hero + equipped Item once; DESTROY discards both once (2.3101ms)
+✔ privacy projection exposes only the viewer hand and hand counts (15.6913ms)
+✔ players without reaction cards can Skip (0.9639ms)
+✔ self Challenge and Challenge without an owned card are rejected (0.4039ms)
+✔ first valid Challenge closes once and dice are server supplied (0.3816ms)
+✔ idempotency replays an old outcome and rejects a changed payload (0.3482ms)
+✔ same-revision concurrent Modifiers from different players both apply (0.3365ms)
+✔ a second Modifier is rejected without changing state or consuming a card (0.3272ms)
+✔ deadline closes exactly once while a disconnected player remains incomplete (0.2495ms)
+✔ base capacity remains six until a supported expansion is enabled (0.4046ms)
+✔ validation requires commandId, windowId and cardId when applicable (0.8087ms)
+✔ effect-demo commands validate exact revisions and discriminated choice payloads (0.3559ms)
+✔ capacity contract blocks unsupported expansion and enforces base/expansion boundaries (1.924ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.5954

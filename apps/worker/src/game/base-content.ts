@@ -3,8 +3,7 @@
 
 import type { BaseCardKind, BaseCardView } from "@here-to-slay/protocol";
 import { BASE_CARDS_BY_ID } from "../content/base-cards.ts";
-import { BASE_REFERENCE_PHYSICAL_COPIES } from "../content/base-reference.ts";
-import type { BaseReferencePhysicalCopy } from "../content/types.ts";
+import { GAME_SET_CATALOG, type CatalogCopy } from "../content/set-catalog.ts";
 
 /** Persisted card: one physical copy. `cardId` = catalog instanceId. */
 export interface BaseCard {
@@ -13,27 +12,26 @@ export interface BaseCard {
   kind: BaseCardKind;
 }
 
-function toCard(copy: BaseReferencePhysicalCopy): BaseCard {
+function toCard(copy: CatalogCopy): BaseCard {
   return { cardId: copy.instanceId, definitionId: copy.definitionId, kind: copy.kind };
 }
 
-const MONSTER_BY_INSTANCE = new Map(
-  BASE_REFERENCE_PHYSICAL_COPIES.monster.map((copy) => [copy.instanceId, toCard(copy)]),
-);
+const BASE_CONTENT = GAME_SET_CATALOG.compose();
+const MONSTER_BY_INSTANCE = new Map(BASE_CONTENT.monster.map((copy) => [copy.instanceId, toCard(copy)]));
 
 /** 74 main definitions → 115 copies (heroes, items, magic, modifiers, challenges, cursed items). */
 export function baseMainDeck(): BaseCard[] {
-  return BASE_REFERENCE_PHYSICAL_COPIES.main.map(toCard);
+  return BASE_CONTENT.main.map(toCard);
 }
 
 /** 15 Monster instance ids. */
 export function baseMonsterDeck(): string[] {
-  return BASE_REFERENCE_PHYSICAL_COPIES.monster.map((copy) => copy.instanceId);
+  return BASE_CONTENT.monster.map((copy) => copy.instanceId);
 }
 
 /** 6 Party Leader definitionIds (each has exactly one copy, so they are unique picks). */
 export function baseLeaderPool(): string[] {
-  return BASE_REFERENCE_PHYSICAL_COPIES.partyLeader.map((copy) => copy.definitionId);
+  return [...BASE_CONTENT.leaderPool];
 }
 
 export function monsterView(instanceId: string): BaseCardView {
