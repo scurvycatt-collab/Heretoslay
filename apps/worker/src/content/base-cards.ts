@@ -132,6 +132,9 @@ export function validateCardData(file: CardDataFile): string[] {
         if (!isInt(card.rollThreshold) || card.rollThreshold < 2 || card.rollThreshold > 12) {
           errors.push(`${where}: rollThreshold`);
         }
+        if (card.rollComparator !== undefined && card.rollComparator !== "gte" && card.rollComparator !== "lte") {
+          errors.push(`${where}: rollComparator`);
+        }
         if (!TARGET_RULES.includes(card.target)) errors.push(`${where}: target`);
         if (!effectIdOk(card.effectId, "hero.")) errors.push(`${where}: effectId`);
         break;

@@ -11,6 +11,13 @@ export interface PartyHero {
   attachments: BaseCard[];
 }
 
+export type RollComparator = "gte" | "lte";
+
+/** Explicit comparator (E03): "gte" is the legacy default; "lte" is a low-roll Hero. */
+export function rollMeets(total: number, threshold: number, comparator: RollComparator = "gte"): boolean {
+  return comparator === "lte" ? total <= threshold : total >= threshold;
+}
+
 export interface Protections {
   /** "Hero cards in your Party cannot be destroyed until your next turn" (Mighty Blade). */
   noDestroy: boolean;

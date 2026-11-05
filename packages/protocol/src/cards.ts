@@ -65,8 +65,10 @@ interface CardCommon {
 export interface HeroCardData extends CardCommon {
   kind: "hero";
   heroClass: HeroClass;
-  /** Effect succeeds when final roll ≥ rollThreshold. */
+  /** Effect succeeds when final roll ≥ rollThreshold (or ≤ when `rollComparator` is "lte"). */
   rollThreshold: number;
+  /** Printed comparator; absent = "gte". Masks and Modifiers never rewrite it (E03). */
+  rollComparator?: "gte" | "lte";
   /** null only when the effect is UNVERIFIED (engine then no-ops with a log line). */
   effectId: string | null;
   target: TargetRule;

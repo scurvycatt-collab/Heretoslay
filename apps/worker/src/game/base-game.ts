@@ -62,6 +62,7 @@ import {
   slainHas,
 } from "./base-rules.ts";
 import { canAttach, hasAttachment, hasCursedAttachment } from "./attachments.ts";
+import { paidHeroEffectCost } from "./ap-cost.ts";
 import {
   advanceTurn,
   applySetupCommand,
@@ -484,7 +485,9 @@ const useHeroEffectHandler: Handler = (game, seat, command, _roster, deps) => {
   const targets = command.payload.targets ?? {};
   const error = heroRollError(game, seat, command.payload.heroInstanceId, targets);
   if (error) return error;
-  spendAp(game, HERO_EFFECT_COST);
+  const cost = paidHeroEffectCost(findHero(game, command.payload.heroInstanceId)!.hero);
+  if ((game.actionPoints ?? 0) < cost) return "INSUFFICIENT_AP";
+  spendAp(game, cost);
   startHeroRoll(game, seat.playerId, command.payload.heroInstanceId, targets, deps, HOOKS);
   return "ACCEPTED";
 };
@@ -831,7 +834,7 @@ function botTurnAction(game: BaseGameState, roster: BaseRoster, deps: BaseGameDe
   }
   if (!acted && ap >= HERO_EFFECT_COST) {
     for (const entry of seat.party) {
-      if (game.heroRollsUsed.includes(entry.card.cardId)) continue;
+      if (game.heroRollsUsed.includes(entry.card.cardId) || ap < paidHeroEffectCost(entry)) continue;
       const rule = cardDataOfKind(entry.card.definitionId, "hero")?.target ?? "none";
       const targets = botTargets(game, active, rule);
       if (targets && tryRun(botCommand("USE_HERO_EFFECT", { heroInstanceId: entry.card.cardId, targets }))) { acted = true; break; }

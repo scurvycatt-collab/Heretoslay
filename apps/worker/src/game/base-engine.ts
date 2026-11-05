@@ -19,9 +19,11 @@ import {
   hasClassInParty,
   leaderIs,
   monsterData,
+  rollMeets,
   rollPassives,
   slainHas,
   type PartyHero,
+  type RollComparator,
   type Passive,
   type RulesSeat,
 } from "./base-rules.ts";
@@ -61,6 +63,8 @@ export type RollState =
       dice: [number, number];
       heroCardId: string;
       threshold: number;
+      /** Absent in legacy saves = "gte". */
+      comparator?: RollComparator;
       targets: BaseTargets;
       modifiers: ModifierEntry[];
       passives: SidedPassive[];
@@ -1481,8 +1485,8 @@ export function startHeroRoll(game: EngineState, actorId: string, heroCardId: st
   game.heroRollsUsed.push(heroCardId); // RG-HERO: allowance consumed before dice
   const dice = [...deps.rollDice()] as [number, number];
   const passives = rollPassives(seat, "hero_effect", { hero: found.hero, turnRollBonus: game.turnRollBonus });
-  log(game, `${whoName(game, actorId)} roll hiệu ứng ${data.name} (cần ${data.rollThreshold}+)`);
-  openModifierWindow(game, { kind: "hero_effect", rollerId: actorId, dice, heroCardId, threshold: data.rollThreshold, targets, modifiers: [], passives }, deps, hooks);
+  log(game, `${whoName(game, actorId)} roll hiệu ứng ${data.name} (cần ${data.rollThreshold}${data.rollComparator === "lte" ? "-" : "+"})`);
+  openModifierWindow(game, { kind: "hero_effect", rollerId: actorId, dice, heroCardId, threshold: data.rollThreshold, comparator: data.rollComparator ?? "gte", targets, modifiers: [], passives }, deps, hooks);
 }
 
 export function startAttack(game: EngineState, actorId: string, monsterId: string, deps: EngineDeps, hooks: EngineHooks): void {
@@ -1515,9 +1519,9 @@ function resolveRoll(game: EngineState, roll: RollState, deps: EngineDeps, hooks
   const roller = seatOf(game, roll.rollerId)!;
   if (roll.kind === "hero_effect") {
     const found = findHero(game, roll.heroCardId);
-    const success = total >= roll.threshold;
+    const success = rollMeets(total, roll.threshold, roll.comparator);
     rememberRoll(game, roll, success ? "success" : "fail", found?.hero.card ?? null, deps);
-    log(game, `Kết quả ${total} ${success ? "≥" : "<"} ${roll.threshold}: ${success ? "thành công" : "thất bại"}`);
+    log(game, `Kết quả ${total} ${roll.comparator === "lte" ? (success ? "≤" : ">") : success ? "≥" : "<"} ${roll.threshold}: ${success ? "thành công" : "thất bại"}`);
     if (!success) {
       if (found && hasAttachment(found.hero, "hts.base.v1.item.particularly-rusty-coin") && found.seat === roller) game.queue.push({ op: "draw", playerId: roll.rollerId, n: 1 });
       return;
