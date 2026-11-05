@@ -1,12 +1,12 @@
-# Expansion framework — handoff (2026-11-05, 18:10 ICT)
+# Expansion framework — handoff (2026-11-05, cập nhật 23:xx ICT)
 
 Dùng file này để mở chat mới. User nói tiếng Việt, muốn trả lời ngắn kiểu caveman. Quyết định của owner luôn thắng.
 
 ## Repo / nhánh
 - Repo `scurvycatt-collab/Heretoslay`, clone `/home/claude/heretoslay` (clone lại nếu container mới).
-- Nhánh `feat/expansion-ex-foundation`, base `main@309c58b`, HEAD `7a792fce`, đã push, 27 commit trước `main`.
+- Nhánh `feat/expansion-ex-foundation`, base `main@309c58b`, HEAD xem `git rev-parse --short=8 HEAD` (đã push; nhánh đi trước `main` ~31 commit).
 - Stop hook hay báo sai "unpushed commits": kiểm bằng `git ls-remote origin feat/expansion-ex-foundation | cut -c1-8` so với `git rev-parse --short=8 HEAD`. Khớp thì bỏ qua.
-- Verify: `npm run verify` (typecheck + worker/protocol/integration tests). Lúc cuối: 254 worker + 11 protocol + 109/110 integration, 0 fail. Web build ok.
+- Verify: `npm run verify` (typecheck + worker/protocol/integration tests). Lúc cuối: 277 worker + 11 protocol + 109/110 integration, 0 fail. Web build ok.
 
 ## Ràng buộc cứng
 - Không bịa luật / card effect / kết quả test. Chưa có ruling thì hỏi owner.
@@ -27,14 +27,18 @@ Dùng file này để mở chat mới. User nói tiếng Việt, muốn trả l�
   4. UI (`apps/web/src/BaseRoom.tsx`): nút chọn pack chỉ hiện khi `game.availableExpansions` không rỗng (live = rỗng), picker discard cho ±6 (`discardCost` trên card view), nút Gnawing Dread (`LEADER_ACTION {}`), cap Party và số ghế theo pack.
 - Tests mới: `ex03-*`, `ex04-bn-*`, `ex05-ds.test.ts`, `ex06-modules.test.ts`, `ex06-room-packs.test.ts`.
 
-## Còn lại (EX-06 + acceptance)
-1. UI: Hero 2 slot (WD), class mở rộng (hiển thị/ icon), thông báo "Requirement not met" (web chưa map error code), UI nút Shaman, trạng thái Maegisty trong view.
-2. UI cho các choice kind mới đang đi qua UI choice chung (kiểm lại hiển thị): `attack_monster`, `bring_hero`, `steal_hero`, `sacrifice_item`, `choose_class`, `make_sacrifice`, `slay_monster`, `steal_item`, `equip_hero`, `mirror_hero`, `bring_from_discard`. `immediate_roll_choice` nên hiện bonus +3 của Mirroryu.
-3. Save cũ và restart: test `normalizeBaseGame` với save thiếu `settings.expansionIds`; room restart/reconnect giữ pack và profile.
-4. E14: rà từng card trigger theo scope (actor/owner/duration), chưa làm refactor chung. Test spectator privacy.
-5. Test tổ hợp ghế 2/6/7/8 theo từng tổ hợp pack, DS-only ghế 8 bị từ chối, cross-set (WD 2 slot + BN Item + DS effect).
-6. Acceptance cuối, rồi mới đăng ký pack vào `GAME_SET_CATALOG`. Cần owner đồng ý trước khi bật. Không deploy.
-7. Monster Expansion (13 card) ngoài phạm vi trừ khi owner yêu cầu.
+## Đã xong thêm (phiên 2026-11-05 tối)
+- UI: 5 class mở rộng (glyph/màu là placeholder tự làm, không phải art card), bộ đếm class theo `classGoal` (6/7), Hero 2 slot hiển thị đủ attachment + filter equip theo `slots`, nhãn "Returns to hand" (Maegisty, `protections` có `return_to_hand`), nút Shaman (`shamanAvailable` theo viewer, chọn side khi Challenge), `rejections.ts` map mã lỗi (REQUIREMENT_NOT_MET...), `immediate_roll_choice` có `bonus` (Mirroryu +3) và `sacrificesAfter` (Shamanaga).
+- Đã kiểm: 11 choice kind mới đều có nhánh trong `eligibleChoiceCards` và đi qua UI choice chung (prompt + options, options chỉ gửi cho người chọn).
+- Test: `ex06-persist` (save cũ schema 1/2 thiếu `expansionIds`, roundtrip JSON), `ex06-seat-matrix` (8 tổ hợp pack, cap = min(8, Leader), cap+1 bị từ chối, DS-only không ghế 8), `ex06-views` (shaman, slots, Maegisty, bonus Mirroryu, spectator privacy), `ex06-e14-scope` (card trigger chỉ kích hoạt cho đúng owner/actor: Manticore, Ripper, Doombringer, Fearless Flame, Calamity Mongrel, Piercing Howl + cross-set 2-slot WD Item + BN Item + DS Leader).
+- Contract `GAME_ROOM_API.md` đã cập nhật (`slots`, `return_to_hand`, `shamanAvailable`).
+
+## Còn lại
+1. Room-level restart/reconnect với pack: không test được vì room dùng `GAME_SET_CATALOG` rỗng (live). Chỉ có test state-level. Làm khi đăng ký pack, hoặc cho room nhận catalog inject.
+2. E14 còn lại (chưa rà): "skill mới không thấy event cũ", "C04 award cuối cùng chặn passive sau", phân biệt DRAW/PULL/recover/reveal/PLAY/bring từng card, duration chéo (Majestelk/Maegisty đã có test hết hạn).
+3. UI chưa xem bằng mắt trong trình duyệt (chỉ typecheck + build). Cần owner/Codex xem: hex class mở rộng `.t3-xhexes`, token Item thứ 2 `.t3-token--item2`, nút Shaman.
+4. Acceptance cuối, rồi mới đăng ký pack vào `GAME_SET_CATALOG`. Cần owner đồng ý trước. Không deploy.
+5. Monster Expansion (13 card) ngoài phạm vi trừ khi owner yêu cầu.
 
 ## Quy ước thiết kế cần giữ
 - Choice "chọn class"/"chọn player" mô phỏng bằng chọn 1 Hero đang ở trong Party làm proxy.
