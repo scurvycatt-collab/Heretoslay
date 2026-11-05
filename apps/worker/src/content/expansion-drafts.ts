@@ -4,7 +4,7 @@
 // (2026-11-05); BN and WD totals reconcile with the publisher listing (31 cards + 2 Leaders + 2 Monsters).
 // Rows are NOT registered in GAME_SET_CATALOG: EX-02..05 must supply rules bindings first.
 import type { BaseReferenceKind } from "./types.ts";
-import { EXPANSION_SET_IDS, type ExpansionDefinition } from "./set-catalog.ts";
+import type { EXPANSION_SET_IDS, ExpansionDefinition } from "./set-catalog.ts";
 
 export type ExpansionSetKey = keyof typeof EXPANSION_SET_IDS;
 

@@ -3,7 +3,7 @@
 // frames are CSS, art is an in-house geometric placeholder.
 import { createContext, useContext, useRef, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import type { BaseCardKind, CardData, HeroClass, MonsterCardData, RollCompare } from "@here-to-slay/protocol";
-import { CLASS_COLOR, PALETTE, cardData, cardSize, descriptionBox, layoutFor, pct, titleCase } from "./cardCatalog";
+import { CLASS_COLOR, PALETTE, webClass, cardData, cardSize, descriptionBox, layoutFor, pct, titleCase } from "./cardCatalog";
 import { Glyph, type GlyphName } from "./ClassIcon";
 import { CardRenderer as FaceRenderer } from "./cards/CardRenderer";
 import { CARD_FACE_PLACEHOLDER, resolveCardArt, resolveCardFace } from "./cards/resolveCardFace";
@@ -78,8 +78,8 @@ const rollText = (roll: RollCompare) => `${roll.value}${roll.op === "gte" ? "+" 
 
 function heroClassOf(data: CardData | undefined): HeroClass | undefined {
   if (!data) return undefined;
-  if (data.kind === "hero" || data.kind === "party_leader") return data.heroClass;
-  if ((data.kind === "item" || data.kind === "cursed_item") && data.maskClass) return data.maskClass;
+  if (data.kind === "hero" || data.kind === "party_leader") return webClass(data.heroClass);
+  if ((data.kind === "item" || data.kind === "cursed_item") && data.maskClass) return webClass(data.maskClass);
   return undefined;
 }
 
@@ -130,8 +130,8 @@ function MonsterPanel({ data }: { data: MonsterCardData }) {
       <span className="card-req" style={{ left: x(L.requirementLabel.x), top: y(L.requirementIcons.y), height: y(L.requirementIcons.h) }}>
         <span className="card-req-label">Requirement:</span>
         {data.requirement.map((slot, index) => (
-          <span key={index} className="card-req-icon" style={{ background: slot.kind === "class" ? CLASS_COLOR[slot.heroClass] : CLASS_COLOR.none }}>
-            <Glyph name={slot.kind === "class" ? slot.heroClass : "any"} title={slot.kind === "class" ? titleCase(slot.heroClass) : "Any Hero"} />
+          <span key={index} className="card-req-icon" style={{ background: slot.kind === "class" ? CLASS_COLOR[webClass(slot.heroClass) ?? "none"] : CLASS_COLOR.none }}>
+            <Glyph name={slot.kind === "class" ? webClass(slot.heroClass) ?? "none" : "any"} title={slot.kind === "class" ? titleCase(slot.heroClass) : "Any Hero"} />
           </span>
         ))}
       </span>

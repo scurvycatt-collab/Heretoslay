@@ -1,8 +1,8 @@
 // Pure rule helpers for mode "base" (GAME-002): classes, Monster requirement
 // matching, roll passives. Card facts come from GAME-004 card data.
 
-import type { BaseGameSettings, HeroClass, MonsterCardData } from "@here-to-slay/protocol";
-import { BASE_CARDS_BY_ID, cardDataOfKind } from "../content/base-cards.ts";
+import type { AnyHeroClass as HeroClass, BaseGameSettings, MonsterCardData } from "@here-to-slay/protocol";
+import { cardDataOfKind, lookupCard } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
 
 export interface PartyHero {
@@ -60,7 +60,7 @@ export function monsterData(instanceId: string): MonsterCardData {
 }
 
 export function cardName(definitionId: string): string {
-  return BASE_CARDS_BY_ID.get(definitionId)?.name ?? definitionId;
+  return lookupCard(definitionId)?.name ?? definitionId;
 }
 
 export function leaderClass(seat: { leaderId: string | null }): HeroClass | null {

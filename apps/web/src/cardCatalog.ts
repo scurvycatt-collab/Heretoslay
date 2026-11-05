@@ -11,6 +11,8 @@ const byId = new Map<string, CardData>(data.cards.map((card) => [card.definition
 export const cardData = (definitionId: string): CardData | undefined => byId.get(definitionId);
 
 export const HERO_CLASSES: readonly HeroClass[] = ["bard", "fighter", "guardian", "ranger", "thief", "wizard"];
+/** Expansion classes have no icon/colour yet (EX-06); they render as classless until the UI ships them. */
+export const webClass = (c: string | null | undefined): HeroClass | undefined => (HERO_CLASSES.includes(c as HeroClass) ? (c as HeroClass) : undefined);
 
 type Rgb = readonly [number, number, number] | number[];
 const rgb = (value: Rgb) => `rgb(${value[0]} ${value[1]} ${value[2]})`;

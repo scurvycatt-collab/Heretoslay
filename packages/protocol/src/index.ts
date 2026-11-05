@@ -965,6 +965,8 @@ export type {
   FieldProvenance,
   FieldStatus,
   HeroCardData,
+  AnyHeroClass,
+  ExpansionHeroClass,
   HeroClass,
   ItemCardData,
   LeaderCardData,

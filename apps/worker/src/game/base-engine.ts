@@ -519,6 +519,8 @@ export function validateTargets(game: EngineState, actorId: string, rule: Target
       const found = heroes[0] ? findHero(game, heroes[0]) : null;
       return found?.hero.attachments.length ? null : "INVALID_TARGET";
     }
+    case "any_player":
+      return targets.playerId && seatOf(game, targets.playerId) ? null : "INVALID_TARGET";
   }
 }
 
@@ -542,6 +544,7 @@ export function hasValidTargets(game: EngineState, actorId: string, rule: Target
     case "own_hero": return ownHeroes.length >= 1;
     case "own_hero_with_cursed_item": return ownHeroes.some(hasCursedAttachment);
     case "any_hero_with_item": return game.seats.some((seat) => seat.party.some((entry) => entry.attachments.length));
+    case "any_player": return game.seats.length > 0;
   }
 }
 

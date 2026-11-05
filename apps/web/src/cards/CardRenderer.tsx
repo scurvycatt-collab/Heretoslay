@@ -23,12 +23,13 @@ import anyHeroIcon from "./icons/hero.png";
 import itemIcon from "./icons/item.png";
 import cursedItemIcon from "./icons/cursed-item.png";
 
+const iconOf = (c: string): string => CLASS_ICON[c as HeroClass] ?? anyHeroIcon;
 const CLASS_ICON: Record<HeroClass, string> = { bard: bardIcon, fighter: fighterIcon, guardian: guardianIcon, ranger: rangerIcon, thief: thiefIcon, wizard: wizardIcon };
 
 const rgb = (values: readonly number[]) => `rgb(${values.join(",")})`;
 const titleCase = (text: string) => text.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 export const rollLabel = (range: RollCompare) => `${range.value}${range.op === "gte" ? "+" : "−"}`;
-const classColor = (c: HeroClass | null | undefined) => rgb(c ? spec.colors.classes[c] : spec.colors.classes.none);
+const classColor = (c: string | null | undefined) => rgb(c && c in spec.colors.classes ? spec.colors.classes[c as HeroClass] : spec.colors.classes.none);
 const C = {
   magic: rgb(spec.colors.magic), item: rgb(spec.colors.itemFrame), itemTitle: rgb(spec.colors.itemTitle),
   cursedTitle: rgb(spec.colors.cursedItemTitle), monster: rgb(spec.colors.monsterBottomPanel),
@@ -154,7 +155,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
         <Label x={width / 2} y={80} size={SIZE.name}>{card.name}</Label>
         <Label x={width / 2} y={134} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={frame}>{label}</Label>
         {card.kind === "hero" && <>
-          <Symbol x={322} y={722} size={102} fill={frame} icon={CLASS_ICON[card.heroClass]}><Letter x={322} y={722} size={102} letter={card.heroClass[0].toUpperCase()} /></Symbol>
+          <Symbol x={322} y={722} size={102} fill={frame} icon={iconOf(card.heroClass)}><Letter x={322} y={722} size={102} letter={card.heroClass[0].toUpperCase()} /></Symbol>
           <Pill x={94} y={852} fill={C.good} label={`${card.rollThreshold}+`} />
         </>}
         <Description text={text} box={box} width={width} fill={DESC_DARK} />
@@ -171,7 +172,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
         <Art id={`${uid}a`} href={art} faceCrop={faceCrop} x={100} y={232} w={545} h={545} />
         <Label x={width / 2} y={80} size={SIZE.name}>{card.name}</Label>
         <Label x={width / 2} y={134} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={title}>{label}</Label>
-        <Symbol x={99} y={886} size={102} fill={mask ? classColor(mask) : title} icon={mask ? CLASS_ICON[mask] : card.kind === "cursed_item" ? cursedItemIcon : itemIcon}>
+        <Symbol x={99} y={886} size={102} fill={mask ? classColor(mask) : title} icon={mask ? iconOf(mask) : card.kind === "cursed_item" ? cursedItemIcon : itemIcon}>
           {mask ? <Letter x={99} y={886} size={102} letter={mask[0].toUpperCase()} />
             : card.kind === "cursed_item" ? <Letter x={99} y={886} size={102} letter="!" />
               : <rect x={150 - 18} y={937 - 18} width={36} height={36} fill="#fff" transform="rotate(45 150 937)" />}
@@ -211,7 +212,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
         <Label x={88} y={920} size={SIZE.requirement} family={FONT_TEXT} weight={700} anchor="start" fill={CREAM}>{reqLabel}</Label>
         {card.requirement.map((slot, i) => {
           const x = 93 + reqWidth + 10 + i * (83 + 13);
-          return <Symbol key={i} x={x} y={902} size={83} fill={slot.kind === "any" ? C.noClass : classColor(slot.heroClass)} icon={slot.kind === "any" ? anyHeroIcon : CLASS_ICON[slot.heroClass]}>
+          return <Symbol key={i} x={x} y={902} size={83} fill={slot.kind === "any" ? C.noClass : classColor(slot.heroClass)} icon={slot.kind === "any" ? anyHeroIcon : iconOf(slot.heroClass)}>
             <Letter x={x} y={902} size={83} letter={slot.kind === "any" ? "H" : slot.heroClass[0].toUpperCase()} />
           </Symbol>;
         })}
@@ -233,7 +234,7 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
         <rect x={0} y={FRAME.tarotCreamTop} width={width} height={height - FRAME.tarotCreamTop} fill={CREAM} />
         <Label x={width / 2} y={67} size={SIZE.name} fill={onArt ? "#000" : "#fff"} shadow={{ fill: onArt ? "rgba(255,255,255,.4)" : "rgba(0,0,0,.5)", offset: 3 }}>{card.name}</Label>
         <Label x={width / 2} y={118} size={SIZE.title} family={FONT_TEXT} spacing={1} fill={onArt ? "#000" : "#fff"} shadow={{ fill: onArt ? "rgba(255,255,255,.4)" : "rgba(0,0,0,.5)", offset: 2 }}>{label}</Label>
-        <Symbol x={363} y={1167} size={102} fill={frame} icon={CLASS_ICON[card.heroClass]}><Letter x={363} y={1167} size={102} letter={card.heroClass[0].toUpperCase()} /></Symbol>
+        <Symbol x={363} y={1167} size={102} fill={frame} icon={iconOf(card.heroClass)}><Letter x={363} y={1167} size={102} letter={card.heroClass[0].toUpperCase()} /></Symbol>
         <Description text={text} box={DESCRIPTION.party_leader} width={width} fill={DESC_DARK} maxLines={4} size={42} minSize={30} />
       </>;
       break;

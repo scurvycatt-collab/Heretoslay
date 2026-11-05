@@ -4,6 +4,9 @@
 // apps/worker/src/content/base-cards.ts. Exported type-only.
 
 export type HeroClass = "bard" | "fighter" | "guardian" | "ranger" | "thief" | "wizard";
+/** Classes introduced by expansion packs (E01: a pack in the profile raises the class goal to seven). */
+export type ExpansionHeroClass = "warrior" | "druid" | "berserker" | "necromancer" | "sorcerer";
+export type AnyHeroClass = HeroClass | ExpansionHeroClass;
 
 /**
  * How well a field is sourced. All sources are secondary/community (no retail
@@ -28,7 +31,7 @@ export interface CardSource {
   url: string;
   /** Git commit or retrieval date. */
   revision: string;
-  authority: "secondary_community" | "secondary_rulebook_copy";
+  authority: "secondary_community" | "secondary_rulebook_copy" | "card_face_scan";
 }
 
 /** Who the player must pick when playing/rolling (Q-08: chosen up front, re-validated on resolve). */
@@ -40,11 +43,13 @@ export type TargetRule =
   | "hero_other_party_and_own_hero"
   | "own_hero"
   | "own_hero_with_cursed_item"
-  | "any_hero_with_item";
+  | "any_hero_with_item"
+  /** Any player, the actor included (Blinding Blade). */
+  | "any_player";
 
 export type RollCompare = { op: "gte" | "lte"; value: number };
 
-export type MonsterRequirementSlot = { kind: "any" } | { kind: "class"; heroClass: HeroClass };
+export type MonsterRequirementSlot = { kind: "any" } | { kind: "class"; heroClass: AnyHeroClass };
 
 /** Penalty kinds present in the base Monsters. */
 export type MonsterPenalty =
@@ -64,7 +69,7 @@ interface CardCommon {
 
 export interface HeroCardData extends CardCommon {
   kind: "hero";
-  heroClass: HeroClass;
+  heroClass: AnyHeroClass;
   /** Effect succeeds when final roll ≥ rollThreshold (or ≤ when `rollComparator` is "lte"). */
   rollThreshold: number;
   /** Printed comparator; absent = "gte". Masks and Modifiers never rewrite it (E03). */
@@ -95,7 +100,7 @@ export interface ItemCardData extends CardCommon {
   /** Q-06: Item → own Hero; Cursed Item → any Hero. */
   equip: "own_hero" | "any_hero";
   /** Mask class (Q-04, owner 2026-11-02: replaces the equipped Hero's class). null for non-Mask. */
-  maskClass: HeroClass | null;
+  maskClass: AnyHeroClass | null;
   effectId: string | null;
 }
 
@@ -113,11 +118,15 @@ export interface ModifierCardData extends CardCommon {
 
 export interface ChallengeCardData extends CardCommon {
   kind: "challenge";
+  /** E08: printed class prerequisite — an actual Hero of this effective class (Leader does not count). */
+  requiredClass?: AnyHeroClass;
+  /** E08: intrinsic bonus to the challenger's roll only, separate from Modifiers and passives. */
+  rollBonus?: number;
 }
 
 export interface LeaderCardData extends CardCommon {
   kind: "party_leader";
-  heroClass: HeroClass;
+  heroClass: AnyHeroClass;
   effectId: string | null;
   /** Player counts in which this Leader may not be chosen (Shadow Claw: [2]). */
   bannedPlayerCounts: number[];

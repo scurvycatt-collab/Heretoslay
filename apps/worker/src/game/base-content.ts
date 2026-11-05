@@ -2,7 +2,7 @@
 // IDs/kinds + display name (GAME-004 data); no artwork (rights UNVERIFIED).
 
 import type { BaseCardKind, BaseCardView } from "@here-to-slay/protocol";
-import { BASE_CARDS_BY_ID } from "../content/base-cards.ts";
+import { lookupCard } from "../content/base-cards.ts";
 import { GAME_SET_CATALOG, type CatalogCopy } from "../content/set-catalog.ts";
 
 /** Persisted card: one physical copy. `cardId` = catalog instanceId. */
@@ -41,7 +41,7 @@ export function monsterView(instanceId: string): BaseCardView {
 }
 
 export function cardView(card: BaseCard): BaseCardView {
-  const data = BASE_CARDS_BY_ID.get(card.definitionId);
+  const data = lookupCard(card.definitionId);
   const view: BaseCardView = { cardId: card.cardId, definitionId: card.definitionId, kind: card.kind, name: data?.name ?? card.definitionId };
   if (data?.kind === "modifier") view.modifierOptions = [...data.options];
   return view;

@@ -3,18 +3,19 @@
 // Every card carries per-field provenance; sources are secondary/community and
 // rights are UNVERIFIED. No artwork here (ADR-003).
 
+import { WD_CARD_DATA } from "./expansion-wd.ts";
 import type {
   CardData,
   CardDataFile,
   FieldStatus,
-  HeroClass,
+  AnyHeroClass,
   MonsterCardData,
   TargetRule,
 } from "@here-to-slay/protocol";
 import raw from "./base-cards.json" with { type: "json" };
 import { BASE_REFERENCE_DEFINITIONS } from "./base-reference.ts";
 
-export const HERO_CLASSES: readonly HeroClass[] = [
+export const HERO_CLASSES: readonly AnyHeroClass[] = [
   "bard",
   "fighter",
   "guardian",
@@ -250,8 +251,20 @@ export const BASE_CARDS_BY_ID: ReadonlyMap<string, CardData> = new Map(
   BASE_CARD_DATA.cards.map((card) => [card.definitionId, card]),
 );
 
+/**
+ * Expansion card data, registered for LOOKUP only (names, classes, effects of a card that is already in play).
+ * Whether a pack can be selected is decided by GAME_SET_CATALOG, never by this map.
+ */
+export const EXPANSION_CARDS_BY_ID: ReadonlyMap<string, CardData> = new Map(
+  WD_CARD_DATA.map((card) => [card.definitionId, card]),
+);
+
+export function lookupCard(definitionId: string): CardData | undefined {
+  return BASE_CARDS_BY_ID.get(definitionId) ?? EXPANSION_CARDS_BY_ID.get(definitionId);
+}
+
 export function cardData(definitionId: string): CardData {
-  const card = BASE_CARDS_BY_ID.get(definitionId);
+  const card = lookupCard(definitionId);
   if (!card) throw new Error(`Unknown card definition ${definitionId}`);
   return card;
 }
@@ -261,6 +274,6 @@ export function cardDataOfKind<K extends CardData["kind"]>(
   definitionId: string,
   kind: K,
 ): (CardData & { kind: K }) | null {
-  const card = BASE_CARDS_BY_ID.get(definitionId);
+  const card = lookupCard(definitionId);
   return card && card.kind === kind ? (card as CardData & { kind: K }) : null;
 }
