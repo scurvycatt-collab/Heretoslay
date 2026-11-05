@@ -181,6 +181,10 @@ export const WD_IMPLEMENTED_EFFECTS: ReadonlySet<string> = new Set([
   "item.temporal-hourglass", // failure-only AP offer (EX-02 B2)
   "item.druid-mask", // generic Mask class replacement
   "item.warrior-mask",
+  "hero.doe-fallow", // sacrifice + draw to 7 (EX-03 H1)
+  "hero.glowing-antler", // up to 2 Magic plays (EX-03 H1)
+  "hero.magus-moose", // discard Hero -> hand -> play (EX-03 H1)
+  "magic.rapid-refresh", // discard hand, draw 4 (EX-03 H1)
 ]);
 
 export const WD_UNIMPLEMENTED_EFFECTS: readonly string[] = WD_CARD_DATA.flatMap((card) => {

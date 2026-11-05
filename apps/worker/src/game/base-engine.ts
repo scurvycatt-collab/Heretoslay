@@ -133,6 +133,8 @@ export interface ChoiceExtras {
   perCardThen?: Step[];
   /** discard: remember discarded ids in game.collected (Beary Wise). */
   collect?: boolean;
+  /** take_from_discard: "add it to your hand, then play it immediately" (Magus Moose). */
+  thenPlayTaken?: boolean;
 }
 
 export interface PendingChoice extends ChoiceExtras {
@@ -183,6 +185,8 @@ export type Step =
     }
   | { op: "offer_immediate_roll"; playerId: string; heroCardId: string }
   | { op: "draw_to"; playerId: string; n: number }
+  /** DISCARD every card in the player's hand (Rapid Refresh); no-op on an empty hand. */
+  | { op: "discard_hand"; playerId: string }
   | ({
       op: "choice";
       playerId: string;
@@ -722,6 +726,28 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
         { op: "draw", playerId: actorId, n: 3 },
         { op: "choice", playerId: actorId, kind: "discard", count: 1, prompt: "DISCARD 1 lá" },
       ];
+    case "hero.doe-fallow":
+      return [
+        { op: "choice", playerId: actorId, kind: "sacrifice_hero", count: 1, prompt: "SACRIFICE 1 Hero (Doe Fallow)" },
+        { op: "draw_to", playerId: actorId, n: 7 },
+      ];
+    case "hero.glowing-antler":
+      // "You may play up to 2 Magic cards immediately": the second offer only follows a played first card.
+      return [
+        {
+          op: "choice", playerId: actorId, kind: "play_card", count: 1, upTo: true, filterKinds: ["magic"],
+          prompt: "Chơi ngay tối đa 2 Magic (Glowing Antler) — lá 1",
+          thenIfPicked: [
+            { op: "choice", playerId: actorId, kind: "play_card", count: 1, upTo: true, filterKinds: ["magic"], prompt: "Chơi ngay Magic thứ 2 (Glowing Antler)" },
+          ],
+        },
+      ];
+    case "hero.magus-moose":
+      return [
+        { op: "choice", playerId: actorId, kind: "take_from_discard", count: 1, filterKinds: ["hero"], thenPlayTaken: true, prompt: "Chọn 1 Hero trong discard, lấy về tay rồi chơi ngay (Magus Moose)" },
+      ];
+    case "magic.rapid-refresh":
+      return [{ op: "discard_hand", playerId: actorId }, { op: "draw", playerId: actorId, n: 4 }];
     case "hero.vibrant-glow":
       return [{ op: "roll_bonus", n: 5 }];
     case "hero.wise-shield":
@@ -807,7 +833,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -894,6 +920,14 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       const found = findHero(game, step.heroCardId);
       if (!found || found.seat.playerId !== step.playerId) return false;
       return offerHeroRoll(game, step.playerId, step.heroCardId, found.hero.card.definitionId, deps);
+    }
+    case "discard_hand": {
+      const seat = seatOf(game, step.playerId);
+      if (!seat || seat.hand.length === 0) return false;
+      const dropped = seat.hand.splice(0, seat.hand.length);
+      game.discard.push(...dropped);
+      log(game, `${whoName(game, step.playerId)} DISCARD cả tay (${dropped.length} lá)`);
+      return false;
     }
     case "draw_to": {
       const seat = seatOf(game, step.playerId);
@@ -1300,6 +1334,9 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
           seat.hand.push(card);
           log(game, `${whoName(game, seat.playerId)} lấy ${cardName(card.definitionId)} từ discard`);
         }
+      }
+      if (choice.thenPlayTaken && cardIds.length > 0) {
+        game.queue.push({ op: "choice", playerId: seat.playerId, kind: "play_card", count: 1, fromCardIds: [...cardIds], prompt: "Chơi ngay Hero vừa lấy (Magus Moose)" });
       }
       return;
     case "confirm":
