@@ -18,6 +18,7 @@ import {
   cardName,
   classifyAttack,
   hasClassInParty,
+  heroClasses,
   leaderIs,
   monsterData,
   monsterDefinitionId,
@@ -1396,6 +1397,12 @@ export function challenge(game: EngineState, playerId: string, windowId: string,
   const seat = seatOf(game, playerId)!;
   const index = seat.hand.findIndex((card) => card.cardId === cardId);
   if (index < 0 || seat.hand[index].kind !== "challenge") return "CARD_NOT_PLAYABLE";
+  // E08: a class Challenge needs a real Hero of that effective class (Leader does not count). Rejected before any
+  // mutation, so the card is kept and the window stays open for the next valid Challenge.
+  const challengeData = cardDataOfKind(seat.hand[index].definitionId, "challenge");
+  if (challengeData?.requiredClass && !seat.party.some((hero) => heroClasses(hero, game.settings).includes(challengeData.requiredClass!))) {
+    return "REQUIREMENT_NOT_MET";
+  }
   const [card] = seat.hand.splice(index, 1);
   game.discard.push(card);
   const attempt = chain.attempt;
@@ -1406,6 +1413,10 @@ export function challenge(game: EngineState, playerId: string, windowId: string,
     ...rollPassives(seat, "challenge_challenger", {}).map((p) => ({ ...p, side: "challenger" as const })),
     ...rollPassives(defender, "challenge_defender", { turnRollBonus: game.turnRollBonus }).map((p) => ({ ...p, side: "defender" as const })),
   ];
+  // E08: the intrinsic bonus belongs to the challenger's roll only and is shown apart from other passives.
+  if (challengeData?.rollBonus) {
+    passives.push({ source: card.definitionId, label: `${cardName(card.definitionId)} (+${challengeData.rollBonus})`, value: challengeData.rollBonus, side: "challenger" });
+  }
   const dice = [...deps.rollDice()] as [number, number];
   const challengerDice = [...deps.rollDice()] as [number, number];
   openModifierWindow(game, { kind: "challenge", rollerId: attempt.actorId, dice, challengerId: playerId, challengerDice, attempt, modifiers: [], passives }, deps, hooks);
