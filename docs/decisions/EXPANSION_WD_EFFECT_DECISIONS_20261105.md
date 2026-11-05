@@ -4,7 +4,7 @@ Owner answers to the EX-03 H5 proposal. They extend E01–E16 / M01–M08; they 
 
 | ID | Card | Decision |
 |---|---|---|
-| W01 | Majestelk | Sacrifice a Hero, then until the owner's next turn **each** of the owner's rolls asks once for `+5×n` or `-5×n`, where `n` = number of active Majestelk activations (two activations → ±10, one popup). |
+| W01 | Majestelk | Sacrifice a Hero, then until the owner's next turn **each** of the owner's rolls asks once for `+5×n` or `-5×n`, where `n` = number of active Majestelk activations (two activations → ±10, one popup). No answer before the timer = neither sign is recorded; the roll keeps its natural total. |
 | W02 | Feral Dragon | Its owner DRAWs 1 each time a **Hero** is sacrificed by any player's effect. A Decoy Doll sacrifice does **not** count (Hero stays); a Maegisty return is not a sacrifice. |
 | W03 | Silent Shield | On a **successful** Hero roll it arms for the active player until the end of that turn. Each time a Hero of theirs is SACRIFICED (even when another player forces it) or they DESTROY a Hero, they may search the discard pile for a Hero and add it to hand. |
 | W04 | Big Buckley | ATTACK a Monster now, no AP; requirement still applies; counts as an ATTACK for ATTACK bonuses. |

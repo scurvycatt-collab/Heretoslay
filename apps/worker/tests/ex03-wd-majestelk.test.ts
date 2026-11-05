@@ -74,12 +74,12 @@ test("two activations stack into one popup of ±10, not two popups", () => {
   assert.equal(t.total(), 6 + 10);
 });
 
-test("timeout takes the + sign", () => {
+test("timeout records neither + nor - (W01): the roll keeps its natural total", () => {
   const t = table();
   t.playMajestelk();
   t.attack();
   t.tick(10 * 60 * 1000);
   settleDeadlines(t.game, { newId: () => "x", shuffle: (a) => a, rollDice: () => [3, 3], now: () => 10 * 60 * 1000 }, { autoEndTurn: () => {}, afterSlay: () => false });
   assert.equal((t.game.chain as { step: string }).step, "modifier_window");
-  assert.equal(t.total(), 6 + 5);
+  assert.equal(t.total(), 6);
 });

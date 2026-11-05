@@ -131,8 +131,8 @@ export interface ChoiceExtras {
   then?: Step[];
   /** confirm: run if declined (or timed out). */
   otherwise?: Step[];
-  /** confirm: a timeout counts as accepting (Majestelk's default sign is +). */
-  timeoutAccepts?: boolean;
+  /** confirm: steps to run on timeout instead of `otherwise` (Majestelk: none — keep the roll as it is). */
+  onTimeout?: Step[];
   /** play_card: run after a card was picked, played and fully resolved (nested play, C03). */
   thenIfPicked?: Step[];
   /**
@@ -959,7 +959,7 @@ function openChoice(game: EngineState, step: Extract<Step, { op: "choice" }>, de
 
 function extrasOf(step: ChoiceExtras): ChoiceExtras {
   const out: ChoiceExtras = {};
-  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "excludeCardIds", "timeoutAccepts"] as const) {
+  for (const key of ["filterKinds", "fromCardIds", "recipientId", "targetPlayerId", "then", "otherwise", "thenIfPicked", "thenIfPaid", "perCardThen", "collect", "thenPlayTaken", "excludeCardIds", "onTimeout"] as const) {
     if (step[key] !== undefined) (out as Record<string, unknown>)[key] = step[key];
   }
   return out;
@@ -1671,7 +1671,7 @@ export function challenge(game: EngineState, playerId: string, windowId: string,
 
 /**
  * W01 Majestelk: before a roll's Modifier window opens, each roller with active swings answers one popup
- * (accept = +5×n, decline = -5×n, timeout = +). The popups run through the queue; the window follows them.
+ * (accept = +5×n, decline = -5×n, timeout = neither). The popups run through the queue; the window follows them.
  */
 function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps, hooks: EngineHooks): void {
   const owners: Array<{ playerId: string; side?: "challenger" | "defender" }> =
@@ -1685,7 +1685,7 @@ function openModifierWindow(game: EngineState, roll: RollState, deps: EngineDeps
     const magnitude = 5 * swings;
     const apply = (value: number): Step[] => [{ op: "apply_roll_swing", value, source: MAJESTELK, ...(side ? { side } : {}) }];
     steps.push({
-      op: "choice", playerId, kind: "confirm", count: 1, timeoutAccepts: true,
+      op: "choice", playerId, kind: "confirm", count: 1, onTimeout: [],
       prompt: `Majestelk: Đồng ý = +${magnitude}, Từ chối = -${magnitude} cho roll này`,
       then: apply(magnitude), otherwise: apply(-magnitude),
     });
@@ -2151,7 +2151,7 @@ export function settleDeadlines(game: EngineState, deps: EngineDeps, hooks: Engi
       log(game, `Hết giờ chọn — ${whoName(game, chain.choice.playerId)} bỏ qua (${chain.choice.prompt})`);
       game.chain = null;
       if (chain.choice.kind === "confirm") {
-        const run = chain.choice.timeoutAccepts ? chain.choice.then : chain.choice.otherwise;
+        const run = chain.choice.onTimeout ?? chain.choice.otherwise;
         if (run) game.queue.unshift(...run);
       }
     }
