@@ -188,6 +188,7 @@ export const WD_IMPLEMENTED_EFFECTS: ReadonlySet<string> = new Set([
   "hero.agile-dagger", "hero.hardened-hunter", "hero.looting-lupo", "hero.blinding-blade", // EX-03 H4
   "hero.critical-fang", "hero.wolfgang-pack", "hero.stagguard", "hero.maegisty",
   "item.even-bigger-ring", "leader.the-piercing-howl",
+  "hero.silent-shield", "item.cursed-glove", "item.soul-tether", "monster.feral-dragon", // EX-03 H5 (W02/W03/W10/W11)
 ]);
 
 export const WD_UNIMPLEMENTED_EFFECTS: readonly string[] = WD_CARD_DATA.flatMap((card) => {

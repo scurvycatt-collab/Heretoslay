@@ -12,7 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
-import { GOBLET_OF_CAFFEINATION, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
+import { CURSED_GLOVE, FERAL_DRAGON, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
   cardName,
@@ -216,6 +216,10 @@ export type Step =
   | { op: "return_party_items"; fromPlayerId: string; toPlayerId: string }
   /** Nobody but `playerId` may play Modifier cards until the end of the turn (Stagguard). */
   | { op: "lock_modifiers"; playerId: string }
+  /** Silent Shield: arm the sacrifice/destroy Hero-recovery trigger for `playerId` until the end of the turn (W03). */
+  | { op: "arm_silent_shield"; playerId: string }
+  /** Soul Tether: SACRIFICE the equipped Hero because another Hero in the Party was lost (W11). */
+  | { op: "tether_sacrifice"; heroCardId: string }
   /** E10: an explicit AP grant (Temporal Hourglass); never a retry. */
   | { op: "gain_ap"; playerId: string; n: number }
   /** Sacrifice-by-discard of one exact attachment (credited-sacrifice events arrive with EX-02 B3). */
@@ -261,6 +265,8 @@ export interface EngineState extends SetupTable<BaseCard> {
   turnAttackBonus?: number;
   /** Stagguard: the only player allowed to play Modifier cards this turn; absent/null = no lock. */
   modifierLockBy?: string | null;
+  /** Silent Shield (W03): the active player whose sacrifices/destroys may recover a Hero this turn; absent/null = off. */
+  silentShieldBy?: string | null;
   noChallengeThisTurn: boolean;
   leaderActionUsed: boolean;
   chain: Chain | null;
@@ -422,12 +428,14 @@ function resolveHeroLoss(game: EngineState, step: Extract<Step, { op: "resolve_h
   if (step.via === "decoy" && doll) {
     game.discard.push(detach(found.hero, doll.cardId)!);
     log(game, `Decoy Doll bảo vệ ${name} (Decoy Doll vào discard)`);
+    afterHeroLost(game, found.seat, step.cause, found.hero.card.cardId, false);
     return;
   }
   if ((step.via === "return" || (step.via === "decoy" && !doll)) && found.seat.protections.returnToHand) {
     found.seat.party.splice(found.index, 1);
     found.seat.hand.push(found.hero.card, ...detachAll(found.hero));
     log(game, `Maegisty: ${name} trở về tay ${whoName(game, found.seat.playerId)} thay vì ${step.cause.kind === "destroy" ? "DESTROY" : "SACRIFICE"}`);
+    afterHeroLost(game, found.seat, step.cause, found.hero.card.cardId, false);
     return;
   }
   moveHeroToDiscard(game, found, step.cause.itemToPlayerId);
@@ -437,6 +445,37 @@ function resolveHeroLoss(game: EngineState, step: Extract<Step, { op: "resolve_h
   } else {
     log(game, `${whoName(game, found.seat.playerId)} SACRIFICE ${name}`);
   }
+  afterHeroLost(game, found.seat, step.cause, found.hero.card.cardId, true);
+}
+
+/**
+ * Triggers after a Hero loss, released right after it in order: Soul Tether, Feral Dragon, Silent Shield.
+ * A credited SACRIFICE (E06) fires Soul Tether even when Decoy Doll/Maegisty replaced the movement (W11/T2); Feral
+ * Dragon and Silent Shield need the Hero to really leave (W02). A replaced DESTROY is not a destruction: no trigger.
+ */
+function afterHeroLost(game: EngineState, owner: BaseSeat, cause: HeroLossCause, lostHeroId: string, real: boolean): void {
+  if (!real && cause.kind === "destroy") return;
+  const follow: Step[] = [];
+  for (const hero of owner.party) {
+    if (hero.card.cardId !== lostHeroId && hasAttachment(hero, SOUL_TETHER)) follow.push({ op: "tether_sacrifice", heroCardId: hero.card.cardId });
+  }
+  if (!real) {
+    if (follow.length > 0) game.queue.unshift(...follow);
+    return;
+  }
+  if (cause.kind === "sacrifice") {
+    for (const seat of game.seats) {
+      if (seat.slain.some((id) => monsterDefinitionId(id) === FERAL_DRAGON)) follow.push({ op: "draw", playerId: seat.playerId, n: 1 });
+    }
+  }
+  const shield = game.silentShieldBy;
+  if (shield && (cause.kind === "sacrifice" ? owner.playerId === shield : cause.byPlayerId === shield)) {
+    follow.push({
+      op: "choice", playerId: shield, kind: "take_from_discard", count: 1, upTo: true, filterKinds: ["hero"],
+      prompt: "Silent Shield: lấy 1 Hero trong discard về tay (tùy chọn)",
+    });
+  }
+  if (follow.length > 0) game.queue.unshift(...follow);
 }
 
 /** A "may" clause: the player is asked (owner 2026-11-02); timeout = decline. */
@@ -764,6 +803,8 @@ export function buildEffect(game: EngineState, effectId: string | null, actorId:
       const others = (seatOf(game, actorId)?.party ?? []).filter((entry) => entry.card.cardId !== sourceCardId).length;
       return others > 0 ? [{ op: "roll_bonus", n: others }] : [{ op: "log", text: "Wolfgang Pack: không có Hero khác — +0" }];
     }
+    case "hero.silent-shield":
+      return [{ op: "arm_silent_shield", playerId: actorId }];
     case "hero.stagguard":
       return [{ op: "lock_modifiers", playerId: actorId }];
     case "hero.maegisty":
@@ -1028,6 +1069,18 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       found.seat.party.splice(found.index, 1);
       to.party.push(found.hero);
       log(game, `${whoName(game, step.toPlayerId)} STEAL ${cardName(found.hero.card.definitionId)} của ${whoName(game, found.seat.playerId)}`);
+      // W10 Cursed Glove: each other Hero left behind carrying a Glove follows the stolen one (after it). A move is
+      // not a steal; a full Party sends the Hero and its items to the discard pile.
+      for (const gloved of found.seat.party.filter((hero) => hasAttachment(hero, CURSED_GLOVE))) {
+        found.seat.party.splice(found.seat.party.indexOf(gloved), 1);
+        if (to.party.length >= PARTY_CARD_LIMIT) {
+          game.discard.push(gloved.card, ...detachAll(gloved));
+          log(game, `Cursed Glove: Party đầy — ${cardName(gloved.card.definitionId)} và Item vào discard`);
+        } else {
+          to.party.push(gloved);
+          log(game, `Cursed Glove: ${cardName(gloved.card.definitionId)} chuyển theo sang Party của ${whoName(game, step.toPlayerId)}`);
+        }
+      }
       return false;
     }
     case "move_hero": {
@@ -1101,6 +1154,17 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       game.turnAttackBonus = (game.turnAttackBonus ?? 0) + step.n;
       log(game, `+${step.n} cho mọi lần ATTACK đến hết lượt`);
       return false;
+    case "arm_silent_shield":
+      game.silentShieldBy = step.playerId;
+      log(game, `${whoName(game, step.playerId)}: Silent Shield có hiệu lực đến hết lượt`);
+      return false;
+    case "tether_sacrifice": {
+      const found = findHero(game, step.heroCardId);
+      if (!found) return false; // already gone: a Hero is lost only once, tethers cannot loop
+      log(game, `Soul Tether: ${cardName(found.hero.card.definitionId)} bị SACRIFICE`);
+      loseHero(game, found, { kind: "sacrifice" }, deps);
+      return false;
+    }
     case "lock_modifiers":
       game.modifierLockBy = step.playerId;
       log(game, `${whoName(game, step.playerId)}: người khác không thể chơi Modifier đến hết lượt`);

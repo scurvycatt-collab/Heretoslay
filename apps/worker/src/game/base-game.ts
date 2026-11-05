@@ -263,6 +263,7 @@ function onTurnStart(game: BaseGameState): void {
   game.turnRollBonus = 0;
   game.turnAttackBonus = 0;
   game.modifierLockBy = null;
+  game.silentShieldBy = null;
   game.noChallengeThisTurn = false;
   game.leaderActionUsed = false;
   const active = seatOf(game, activePlayerId(game) ?? "");

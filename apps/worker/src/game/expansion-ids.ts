@@ -20,3 +20,6 @@ export const WD_MODIFIER_PLUS_4 = idOf("Modifier +4", "warriorsDruids");
 export const WD_MODIFIER_MINUS_4 = idOf("Modifier -4", "warriorsDruids");
 export const EVEN_BIGGER_RING = idOf("Even Bigger Ring");
 export const PIERCING_HOWL = idOf("The Piercing Howl");
+export const SOUL_TETHER = idOf("Soul Tether");
+export const CURSED_GLOVE = idOf("Cursed Glove");
+export const FERAL_DRAGON = idOf("Feral Dragon");
