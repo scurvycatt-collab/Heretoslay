@@ -130,3 +130,22 @@ test("cross-set: a 2-slot Hero stacks a WD Item, a BN Item and a DS Leader on on
   assert.equal(t.total(), 6 + 4 + 2 + 1, "dice 6 + Even Bigger Ring 4 + one Ring discard 2 + Flame 1");
   assert.equal(t.me.hand.length, 1, "two cards discarded");
 });
+
+test("E14: PULL is not DRAW — pulling a Challenge does not trigger Calamity Mongrel, drawing one does", () => {
+  const pulled = table();
+  pulled.me.slain.push(`${ds("Calamity Mongrel")}#01`);
+  pulled.them.hand.push(card("ch", ds("Sorcerer Challenge"), "challenge"));
+  pulled.game.chain = null;
+  pulled.game.queue.push({ op: "pull", fromPlayerId: pulled.them.playerId, toPlayerId: pulled.me.playerId, n: 1 } as Step);
+  advance(pulled.game, pulled.deps, pulled.hooks);
+  assert.ok(pulled.me.hand.some((c) => c.cardId === "ch"), "the Challenge arrived by PULL");
+  assert.equal(pulled.pending(), undefined, "no Mongrel offer for a PULL");
+
+  const drawn = table();
+  drawn.me.slain.push(`${ds("Calamity Mongrel")}#01`);
+  drawn.game.mainDeck.unshift(card("ch2", ds("Sorcerer Challenge"), "challenge"));
+  drawn.game.chain = null;
+  drawn.game.queue.push({ op: "draw", playerId: drawn.me.playerId, n: 1 } as Step);
+  advance(drawn.game, drawn.deps, drawn.hooks);
+  assert.equal(drawn.pending()?.kind, "confirm", "control: a DRAW does offer");
+});

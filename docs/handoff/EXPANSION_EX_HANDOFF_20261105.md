@@ -6,7 +6,7 @@ Dùng file này để mở chat mới. User nói tiếng Việt, muốn trả l�
 - Repo `scurvycatt-collab/Heretoslay`, clone `/home/claude/heretoslay` (clone lại nếu container mới).
 - Nhánh `feat/expansion-ex-foundation`, base `main@309c58b`, HEAD xem `git rev-parse --short=8 HEAD` (đã push; nhánh đi trước `main` ~31 commit).
 - Stop hook hay báo sai "unpushed commits": kiểm bằng `git ls-remote origin feat/expansion-ex-foundation | cut -c1-8` so với `git rev-parse --short=8 HEAD`. Khớp thì bỏ qua.
-- Verify: `npm run verify` (typecheck + worker/protocol/integration tests). Lúc cuối: 277 worker + 11 protocol + 109/110 integration, 0 fail. Web build ok.
+- Verify: `npm run verify` (typecheck + worker/protocol/integration tests). Lúc cuối: 280 worker + 11 protocol + 109/110 integration, 0 fail. Web build ok.
 
 ## Ràng buộc cứng
 - Không bịa luật / card effect / kết quả test. Chưa có ruling thì hỏi owner.
@@ -35,8 +35,8 @@ Dùng file này để mở chat mới. User nói tiếng Việt, muốn trả l�
 
 ## Còn lại
 1. Room-level restart/reconnect với pack: không test được vì room dùng `GAME_SET_CATALOG` rỗng (live). Chỉ có test state-level. Làm khi đăng ký pack, hoặc cho room nhận catalog inject.
-2. E14 còn lại (chưa rà): "skill mới không thấy event cũ", "C04 award cuối cùng chặn passive sau", phân biệt DRAW/PULL/recover/reveal/PLAY/bring từng card, duration chéo (Majestelk/Maegisty đã có test hết hạn).
-3. UI chưa xem bằng mắt trong trình duyệt (chỉ typecheck + build). Cần owner/Codex xem: hex class mở rộng `.t3-xhexes`, token Item thứ 2 `.t3-token--item2`, nút Shaman.
+2. E14: đã rà và có test cho owner/actor scope, DRAW≠PULL (Calamity Mongrel), C04 thắng slay thứ 3 không chạy passive deferred (Manticore + Mongrel), eligibility chốt lúc DRAW (`drawTriggerSteps`). Chưa test riêng: recover/reveal/PLAY/bring cho từng card, và Rex Major/Orthus/Malamammoth theo DRAW vs PULL.
+3. UI đã xem qua snapshot thật (`projectBaseGame`) trong vite dev + Playwright: bàn có pack, Shaman, Mirroryu. Đã sửa 2 lỗi bố cục (nút Shaman bị SKIP đè, chip class đè nhãn protection). Card mở rộng hiện placeholder chữ cái vì web chưa có card data/art mở rộng — chưa sửa.
 4. Acceptance cuối, rồi mới đăng ký pack vào `GAME_SET_CATALOG`. Cần owner đồng ý trước. Không deploy.
 5. Monster Expansion (13 card) ngoài phạm vi trừ khi owner yêu cầu.
 
