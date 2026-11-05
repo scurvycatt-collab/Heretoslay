@@ -1,0 +1,55 @@
+# Expansion framework — handoff (2026-11-05, 18:10 ICT)
+
+Dùng file này để mở chat mới. User nói tiếng Việt, muốn trả lời ngắn kiểu caveman. Quyết định của owner luôn thắng.
+
+## Repo / nhánh
+- Repo `scurvycatt-collab/Heretoslay`, clone `/home/claude/heretoslay` (clone lại nếu container mới).
+- Nhánh `feat/expansion-ex-foundation`, base `main@309c58b`, HEAD `7a792fce`, đã push, 27 commit trước `main`.
+- Stop hook hay báo sai "unpushed commits": kiểm bằng `git ls-remote origin feat/expansion-ex-foundation | cut -c1-8` so với `git rev-parse --short=8 HEAD`. Khớp thì bỏ qua.
+- Verify: `npm run verify` (typecheck + worker/protocol/integration tests). Lúc cuối: 254 worker + 11 protocol + 109/110 integration, 0 fail. Web build ok.
+
+## Ràng buộc cứng
+- Không bịa luật / card effect / kết quả test. Chưa có ruling thì hỏi owner.
+- KHÔNG push `main`, KHÔNG deploy. Push nhánh feature thì được.
+- Chưa đăng ký pack vào `GAME_SET_CATALOG` (đang `createSetCatalog([])`) cho tới khi catalog, handler, migration, acceptance đủ. Không hiển thị expansion như đã hỗ trợ.
+- Commit kết thúc bằng `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>` và dòng `Claude-Session: ...`.
+- Quyết định owner: `docs/decisions/EXPANSION_OWNER_DECISIONS_20261105.md` (E01–E16, M01–M08, W01–W11) + các câu trả lời BN/DS trong chat. E14 scoped trigger, E15 cap 7 Hero, E01 thắng 7 class, E16 số ghế = min(8, số Leader duy nhất).
+
+## Đã xong
+- **EX-03 WD** (Warriors & Druids): data + handler đủ. `expansion-wd.ts`, `expansion-wd-module.ts`.
+- **EX-04 BN** (Berserkers & Necromancers): 33 card, mọi effect đã implement. `expansion-bn.ts`, `expansion-bn-module.ts`.
+- **EX-05 DS** (Dragon & Sorcerer v2): 16 card, đủ 16 effect (Dragalter, Luut, Mirroryu, Shamanaga xong ở commit `51a399a`). `expansion-ds.ts`, `expansion-ds-module.ts`.
+- Modifier ±6 (DS): phải discard 1 lá TRƯỚC khi kích hoạt. Chọn lúc chơi qua `REACT_MODIFIER.discardCardInstanceId`.
+- **EX-06 (phần đã làm):**
+  1. Module BN/DS (`createBnModule`, `createDsModule`), chưa đăng ký.
+  2. Chọn pack ở lobby: `settings.expansionIds` qua `CONFIGURE_GAME` (host, chỉ phase `lobby`). Deck, Monster, pool Leader, số ghế theo pack. Đổi pack thì Leader rơi khỏi pool bị bỏ chọn, Ready reset. Catalog inject được qua `deps.catalog` (test dùng). Pack lạ → `UNSUPPORTED_EXPANSION`. Room `maxPlayersFor(state)` trong `room.ts`.
+  3. `partyLimit(game)` (6 base, 7 có pack) và `classWinCount(game)` (6 / 7).
+  4. UI (`apps/web/src/BaseRoom.tsx`): nút chọn pack chỉ hiện khi `game.availableExpansions` không rỗng (live = rỗng), picker discard cho ±6 (`discardCost` trên card view), nút Gnawing Dread (`LEADER_ACTION {}`), cap Party và số ghế theo pack.
+- Tests mới: `ex03-*`, `ex04-bn-*`, `ex05-ds.test.ts`, `ex06-modules.test.ts`, `ex06-room-packs.test.ts`.
+
+## Còn lại (EX-06 + acceptance)
+1. UI: Hero 2 slot (WD), class mở rộng (hiển thị/ icon), thông báo "Requirement not met" (web chưa map error code), UI nút Shaman, trạng thái Maegisty trong view.
+2. UI cho các choice kind mới đang đi qua UI choice chung (kiểm lại hiển thị): `attack_monster`, `bring_hero`, `steal_hero`, `sacrifice_item`, `choose_class`, `make_sacrifice`, `slay_monster`, `steal_item`, `equip_hero`, `mirror_hero`, `bring_from_discard`. `immediate_roll_choice` nên hiện bonus +3 của Mirroryu.
+3. Save cũ và restart: test `normalizeBaseGame` với save thiếu `settings.expansionIds`; room restart/reconnect giữ pack và profile.
+4. E14: rà từng card trigger theo scope (actor/owner/duration), chưa làm refactor chung. Test spectator privacy.
+5. Test tổ hợp ghế 2/6/7/8 theo từng tổ hợp pack, DS-only ghế 8 bị từ chối, cross-set (WD 2 slot + BN Item + DS effect).
+6. Acceptance cuối, rồi mới đăng ký pack vào `GAME_SET_CATALOG`. Cần owner đồng ý trước khi bật. Không deploy.
+7. Monster Expansion (13 card) ngoài phạm vi trừ khi owner yêu cầu.
+
+## Quy ước thiết kế cần giữ
+- Choice "chọn class"/"chọn player" mô phỏng bằng chọn 1 Hero đang ở trong Party làm proxy.
+- "Item card" gồm Cursed Item. Doombringer chỉ kích hoạt khi Hero/Item thật sự rời Party.
+- Unbridled Fury: AP chỉ khi Berserker thật sự bị destroy (bị cứu/ngăn thì không).
+- Oracon in "+7" đọc là 7+. Dragalter: chỉ áp số của Modifier, không lặp draw/discard hand/chi phí ±6; BN +2/-2 = +4 khi ATTACK của chính mình.
+- Mirroryu: chọn Hero khác trong Party, roll +3, miễn phí, không tính vào 1 roll/Hero/lượt. Shamanaga: SACRIFICE sau roll dù thắng/thua/skip/timeout.
+- Instance id: `<definitionId>#NN`; id expansion resolve qua `expansion-ids.ts` (`idOf(name)`).
+- Test dùng `node --test --experimental-strip-types`.
+
+## Bản đồ file chính
+- Engine: `apps/worker/src/game/base-engine.ts` (steps, choices, `buildEffect`, `playModifier`, roll flow), `base-game.ts` (handlers, settings, lobby), `base-rules.ts`, `expansion-ids.ts`, `attachments.ts`.
+- Nội dung: `apps/worker/src/content/` (`expansion-*.ts`, `*-module.ts`, `set-catalog.ts`, `base-cards.ts`).
+- Protocol: `packages/protocol/src/index.ts`, `src/game/base.ts`, `src/cards.ts`. Contract: `docs/contracts/GAME_ROOM_API.md`.
+- Ghi chú mặt card (nếu còn): scratchpad `bn-faces.md`, `ds-faces.md`; ảnh gốc ở máy owner `E:\Code\here-to-slay-web\assets\cards\Expansion\...` (cần thiết bị liên kết).
+
+## Prompt mở chat mới
+"Tiếp tục dự án Here to Slay expansion. Đọc `docs/handoff/EXPANSION_EX_HANDOFF_20261105.md` và `CLAUDE.md` trong repo `scurvycatt-collab/Heretoslay`, nhánh `feat/expansion-ex-foundation`. Làm tiếp mục 'Còn lại' theo thứ tự. Trả lời ngắn kiểu caveman, tiếng Việt. Không push main, không deploy, không bịa luật."
