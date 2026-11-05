@@ -2,7 +2,7 @@
 // facts in docs/contracts/CARD_TEMPLATE_SPEC.json. No third-party frame/art:
 // frames are CSS, art is an in-house geometric placeholder.
 import { createContext, useContext, useRef, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from "react";
-import type { BaseCardKind, CardData, HeroClass, MonsterCardData, RollCompare } from "@here-to-slay/protocol";
+import type { AnyHeroClass, BaseCardKind, CardData, MonsterCardData, RollCompare } from "@here-to-slay/protocol";
 import { CLASS_COLOR, PALETTE, webClass, cardData, cardSize, descriptionBox, layoutFor, pct, titleCase } from "./cardCatalog";
 import { Glyph, type GlyphName } from "./ClassIcon";
 import { CardRenderer as FaceRenderer } from "./cards/CardRenderer";
@@ -76,14 +76,14 @@ const KIND_LABEL: Record<BaseCardKind, string> = {
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
 const rollText = (roll: RollCompare) => `${roll.value}${roll.op === "gte" ? "+" : "-"}`;
 
-function heroClassOf(data: CardData | undefined): HeroClass | undefined {
+function heroClassOf(data: CardData | undefined): AnyHeroClass | undefined {
   if (!data) return undefined;
   if (data.kind === "hero" || data.kind === "party_leader") return webClass(data.heroClass);
   if ((data.kind === "item" || data.kind === "cursed_item") && data.maskClass) return webClass(data.maskClass);
   return undefined;
 }
 
-function frameColors(kind: BaseCardKind, heroClass: HeroClass | undefined): CSSProperties {
+function frameColors(kind: BaseCardKind, heroClass: AnyHeroClass | undefined): CSSProperties {
   switch (kind) {
     case "hero":
     case "party_leader":
@@ -101,7 +101,7 @@ function frameColors(kind: BaseCardKind, heroClass: HeroClass | undefined): CSSP
   }
 }
 
-function kindGlyph(kind: BaseCardKind, heroClass: HeroClass | undefined): GlyphName {
+function kindGlyph(kind: BaseCardKind, heroClass: AnyHeroClass | undefined): GlyphName {
   if (heroClass) return heroClass;
   switch (kind) {
     case "item": return "item";
@@ -171,7 +171,7 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
   const seed = artSeed(card);
   const data = cardData(card.definitionId);
   const kind = card.kind;
-  const heroClass = (classes?.[0] as HeroClass | undefined) ?? heroClassOf(data);
+  const heroClass = (classes?.[0] as AnyHeroClass | undefined) ?? heroClassOf(data);
   const spec = cardSize(kind);
   const layout = layoutFor(kind) as Record<string, unknown> & { art: { x: number; y: number; w: number; h: number } };
   const compact = size === "xs" || size === "sm";

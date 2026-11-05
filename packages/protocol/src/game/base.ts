@@ -205,11 +205,12 @@ export interface BaseGameSnapshot {
     /** Leader class (for the 6-class win; Leader counts, RULE-23). */
     leaderClass: string | null;
     /** Heroes in Party with their equipped Item (if any). */
-    party: Array<{ hero: BaseCardView; /** First attachment (legacy UI field). */ item: BaseCardView | null; attachments: BaseCardView[]; classes: string[] }>;
+    party: Array<{ hero: BaseCardView; /** First attachment (legacy UI field). */ item: BaseCardView | null; attachments: BaseCardView[]; /** Item slots this Hero has (1, or 2 for 2-slot Heroes). */ slots: number; classes: string[] }>;
     slainMonsters: BaseCardView[];
     /** Distinct classes in Party incl. Leader (6 = class win at end of own turn). */
     partyClasses: string[];
-    protections: Array<"no_destroy" | "no_steal">;
+    /** `return_to_hand` = Maegisty: a lost Hero returns to hand instead. */
+    protections: Array<"no_destroy" | "no_steal" | "return_to_hand">;
   }>;
   /** Viewer-private: only the requesting seat's hand is ever serialized. */
   yourHand: BaseCardView[];
@@ -244,6 +245,8 @@ export interface BaseGameSnapshot {
     turnRollBonus: number;
     /** What is being resolved right now (null = free for turn actions). */
     chain: BaseChainView | null;
+    /** Viewer-specific: you lead The Noble Shaman and have not used its -1 this turn (W09). False for spectators. */
+    shamanAvailable: boolean;
     winnerPlayerId: string | null;
     winReason: "slay_3" | "six_classes" | null;
     /** Last public events, newest last (bounded). */

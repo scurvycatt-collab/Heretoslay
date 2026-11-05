@@ -4,10 +4,10 @@
 // (+ static card data by definitionId); the client only sends commands and never
 // computes game state. Command kinds/payloads are unchanged from UI-001/002.
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, HeroClass, TargetRule } from "@here-to-slay/protocol";
+import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, AnyHeroClass, TargetRule } from "@here-to-slay/protocol";
 import { CardRenderer, InspectContext, type CardLike, type InspectFn } from "./CardRenderer";
 import { Glyph } from "./ClassIcon";
-import { CLASS_COLOR, HERO_CLASSES, cardData, leaderDisplayName, titleCase } from "./cardCatalog";
+import { CLASS_COLOR, EXPANSION_CLASSES, HERO_CLASSES, classGoal, cardData, leaderDisplayName, titleCase } from "./cardCatalog";
 import "./base-room.css";
 
 type Send = (kind: string, payload: object) => void;
@@ -15,7 +15,7 @@ type Player = BaseGameSnapshot["players"][number];
 type Game = BaseGameSnapshot["game"];
 
 const signed = (value: number) => (value > 0 ? `+${value}` : `${value}`);
-const leaderColor = (player: Player) => (player.leaderClass ? CLASS_COLOR[player.leaderClass as HeroClass] ?? CLASS_COLOR.none : CLASS_COLOR.none);
+const leaderColor = (player: Player) => (player.leaderClass ? CLASS_COLOR[player.leaderClass as AnyHeroClass] ?? CLASS_COLOR.none : CLASS_COLOR.none);
 const RESULT_MS = 8000;
 /** Dice tumble for this long, then the numbers are revealed (owner 2026-11-04: slower, readable rolls). */
 const DICE_ROLL_MS = 2000;
@@ -121,10 +121,10 @@ function targetSteps(state: BaseGameSnapshot, rule: PickRule): TargetStep[] {
       { label: "2 · Choose one of your Heroes", options: heroes(own), count: 1 },
     ];
     case "own_hero": return [{ label: "Choose one of your Heroes", options: heroes(own), count: 1 }];
-    case "own_hero_with_cursed_item": return [{ label: "Choose your Hero with a Cursed Item", options: heroes(own, (e) => e.item?.kind === "cursed_item"), count: 1 }];
+    case "own_hero_with_cursed_item": return [{ label: "Choose your Hero with a Cursed Item", options: heroes(own, (e) => e.attachments.some((a) => a.kind === "cursed_item")), count: 1 }];
     case "any_hero_with_item": return [{ label: "Choose a Hero with an Item", options: heroes(state.players, (e) => Boolean(e.item)), count: 1 }];
-    case "equip_own": return [{ label: "Equip to any Hero (without an Item)", options: heroes(own, (e) => !e.item), count: 1 }];
-    case "equip_any": return [{ label: "Equip to any Hero (without an Item)", options: heroes(state.players, (e) => !e.item), count: 1 }];
+    case "equip_own": return [{ label: "Equip to any Hero with a free Item slot", options: heroes(own, (e) => e.attachments.length < e.slots), count: 1 }];
+    case "equip_any": return [{ label: "Equip to any Hero with a free Item slot", options: heroes(state.players, (e) => e.attachments.length < e.slots), count: 1 }];
     default: return [];
   }
 }
@@ -166,7 +166,7 @@ function TargetOptions({ state, rule, onChange }: { state: BaseGameSnapshot; rul
                     <span className="t3-target-face" style={{ background: leaderColor(option.player) }}>{option.player.nickname.slice(0, 1).toUpperCase()}</span>
                   )}
                   <span className="t3-target-name">{option.entry ? option.entry.hero.name : option.player.nickname}</span>
-                  <small>{option.entry ? `${option.player.nickname}${option.player.playerId === state.you.playerId ? " (you)" : ""}${option.entry.item ? ` · ${option.entry.item.name}` : ""}` : `${option.player.handCount} cards · ${option.player.party.length} Heroes`}</small>
+                  <small>{option.entry ? `${option.player.nickname}${option.player.playerId === state.you.playerId ? " (you)" : ""}${option.entry.attachments.length ? ` · ${option.entry.attachments.map((a) => a.name).join(" + ")}` : ""}` : `${option.player.handCount} cards · ${option.player.party.length} Heroes`}</small>
                 </button>
               );
             })}
@@ -254,11 +254,12 @@ function LeaderPanel({ player, game, rect }: { player: Player; game: Game; rect:
   let left = rect.right + 12 + w < vw ? rect.right + 12 : rect.left - 12 - w;
   if (vw < 640) left = (vw - w) / 2;
   const top = Math.min(Math.max(8, rect.top - 60), Math.max(8, vh - h - 8));
-  const missing = HERO_CLASSES.filter((c) => !player.partyClasses.includes(c));
+  const goal = classGoal(game.settings);
+  const missing = (goal > 6 ? [...HERO_CLASSES, ...EXPANSION_CLASSES] : HERO_CLASSES).filter((c) => !player.partyClasses.includes(c));
   const isTurn = player.playerId === game.currentPlayerId;
   const rows: Array<[string, ReactNode]> = [
     ["HEROES", player.party.length],
-    ["DISTINCT CLASSES", `${player.partyClasses.length}/6`],
+    ["DISTINCT CLASSES", `${player.partyClasses.length}/${goal}`],
     ["SLAIN MONSTERS", `${player.slainMonsters.length}/3`],
     [
       "MISSING",
@@ -270,7 +271,7 @@ function LeaderPanel({ player, game, rect }: { player: Player; game: Game; rect:
     ],
     ["CARDS IN HAND", player.handCount],
     ["ACTION POINTS", isTurn ? game.actionPoints ?? 0 : 0],
-    ["EQUIPPED ITEMS", player.party.filter((e) => e.item).length],
+    ["EQUIPPED ITEMS", player.party.reduce((n, e) => n + e.attachments.length, 0)],
   ];
   return (
     <div className="t3-leader-panel" style={{ left: Math.max(8, left), top, width: w, "--panel-w": `${w}px` } as CSSProperties} aria-hidden>
@@ -280,7 +281,7 @@ function LeaderPanel({ player, game, rect }: { player: Player; game: Game; rect:
         {rows.map(([k, v]) => (
           <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
         ))}
-        {player.protections.length > 0 && <div><dt>PROTECTED</dt><dd>{player.protections.map((p) => (p === "no_destroy" ? "no destroy" : "no steal")).join(", ")}</dd></div>}
+        {player.protections.length > 0 && <div><dt>PROTECTED</dt><dd>{player.protections.map((p) => PROTECTION_LABEL[p].toLowerCase()).join(", ")}</dd></div>}
       </dl>
     </div>
   );
@@ -303,7 +304,7 @@ function HeroStack({ entry, rect, onEnter, onLeave }: { entry: Player["party"][n
   if (!entry.item) return null;
   return (
     <div className={`t3-stack${split ? " is-split" : ""}`} style={{ left: cx - w / 2, top, "--stack-w": `${w}px` } as CSSProperties} onMouseEnter={onEnter} onMouseLeave={() => { setSplit(false); onLeave(); }}>
-      <div className="t3-stack-item"><CardRenderer card={entry.item} size="lg" inspect={false} /></div>
+      {entry.attachments.map((item, i) => <div key={item.cardId} className={`t3-stack-item${i > 0 ? " t3-stack-item--2" : ""}`}><CardRenderer card={item} size="lg" inspect={false} /></div>)}
       <div className="t3-stack-hero">
         <CardRenderer card={entry.hero} classes={entry.classes} equipped size="lg" inspect={false} />
         <span className="t3-stack-hot" onMouseEnter={() => setSplit(true)} aria-hidden />
@@ -314,6 +315,8 @@ function HeroStack({ entry, rect, onEnter, onLeave }: { entry: Player["party"][n
 }
 
 /* ------------------------------------------------------------------- seats */
+
+const PROTECTION_LABEL: Record<Player["protections"][number], string> = { no_destroy: "No destroy", no_steal: "No steal", return_to_hand: "Returns to hand" };
 
 const HEX_RING: Array<[number, number]> = [[0.5, -0.866], [1, 0], [0.5, 0.866], [-0.5, 0.866], [-1, 0], [-0.5, -0.866]];
 
@@ -327,13 +330,13 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
   const avatar = (
     <>
       <span className="t3-avatar-face" style={{ background: leaderColor(player) }}>
-        <Glyph name={(player.leaderClass as HeroClass) ?? "leader"} className="t3-avatar-glyph" />
+        <Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} className="t3-avatar-glyph" />
       </span>
       {targeted && <span className="t3-reticle" aria-hidden />}
     </>
   );
   return (
-    <div className={`t3-cluster${isActive ? " is-active" : ""}`} title={`${player.nickname} · ✋ ${player.handCount} cards in hand · ◆ ${player.partyClasses.length}/6 classes · ☠ ${player.slainMonsters.length}/3 Monsters`}>
+    <div className={`t3-cluster${isActive ? " is-active" : ""}`} title={`${player.nickname} · ✋ ${player.handCount} cards in hand · ◆ ${player.partyClasses.length}/${classGoal(game.settings)} classes · ☠ ${player.slainMonsters.length}/3 Monsters`}>
       <span className={`t3-nametag${isActive ? " is-active" : ""}`}>
         <span className="t3-player-name">{player.isBot ? "🤖 " : ""}{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
         <span className="t3-hand-count" aria-label={`${player.handCount} cards in hand`}>🃏 {player.handCount}</span>
@@ -357,6 +360,13 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
             </span>
           );
         })}
+        {EXPANSION_CLASSES.some((c) => player.partyClasses.includes(c)) && (
+          <span className="t3-xhexes" aria-label="Expansion classes in Party">
+            {EXPANSION_CLASSES.filter((c) => player.partyClasses.includes(c)).map((c) => (
+              <span key={c} style={{ background: CLASS_COLOR[c] }} title={`${titleCase(c)} — in Party`}><Glyph name={c} /></span>
+            ))}
+          </span>
+        )}
         {targetable ? (
           <button type="button" className={`t3-avatar is-targetable${targeted ? " is-targeted" : ""}`} onClick={() => target.togglePlayer(player.playerId)} aria-pressed={targeted} aria-label={`Target ${player.nickname}`}>
             {avatar}
@@ -368,7 +378,7 @@ function SeatCluster({ player, game, me, target }: { player: Player; game: Game;
         <SlainHexes monsters={player.slainMonsters} />
       </div>
       {player.protections.length > 0 && (
-        <span className="t3-protect">{player.protections.map((p) => (p === "no_destroy" ? "NO DESTROY" : "NO STEAL")).join(" · ")}</span>
+        <span className="t3-protect">{player.protections.map((p) => PROTECTION_LABEL[p].toUpperCase()).join(" · ")}</span>
       )}
     </div>
   );
@@ -415,9 +425,9 @@ function PartyTokens({ player, target, heroAction, vertical }: { player: Player;
               selected={order >= 0}
               badge={order >= 0 ? `T${order + 1}` : undefined}
               onClick={target.enabled ? () => target.toggleHero(entry.hero.cardId) : undefined}
-              ariaLabel={`${entry.hero.name} (${entry.classes.join("/")})${entry.item ? ` with ${entry.item.name}` : ""}`}
+              ariaLabel={`${entry.hero.name} (${entry.classes.join("/")})${entry.attachments.length ? ` with ${entry.attachments.map((a) => a.name).join(" and ")}` : ""}`}
             />
-            {entry.item && <CardRenderer card={entry.item} variant="art" size="xs" className="t3-token t3-token--item" inspect={false} />}
+            {entry.attachments.map((item, i) => <CardRenderer key={item.cardId} card={item} variant="art" size="xs" className={`t3-token t3-token--item${i > 0 ? " t3-token--item2" : ""}`} inspect={false} />)}
             {heroAction?.(entry)}
           </div>
         );
@@ -681,6 +691,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
   let tray: ReactNode = null;
   let trayCardCount = 0;
   let primary: ReactNode = null;
+  let shamanButton: ReactNode = null;
 
   if (chain.step === "challenge_window") {
     const mine = chain.responders[me];
@@ -825,6 +836,18 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
       );
       primary = <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("REACT_PASS", { windowId: chain.windowId })}>SKIP{modifierCards.length ? ` (${modifierCards.length})` : ""}</button>;
     }
+    if (mine === "pending" && state.game.shamanAvailable) {
+      // The Noble Shaman (W09): -1 to one roll, once per turn. Challenge rolls need a side.
+      const shaman = (side?: "challenger" | "defender") => send("REACT_SHAMAN", { windowId: chain.windowId, ...(side ? { side } : {}) });
+      shamanButton = roll.kind === "challenge" ? (
+        <span className="t3-shaman">
+          <button className="t3-btn" disabled={pending} onClick={() => shaman("challenger")}>SHAMAN −1 · CHALLENGER</button>
+          <button className="t3-btn" disabled={pending} onClick={() => shaman("defender")}>SHAMAN −1 · DEFENDER</button>
+        </span>
+      ) : (
+        <button className="t3-btn" disabled={pending} onClick={() => shaman()}>SHAMAN −1</button>
+      );
+    }
   } else if (chain.step === "immediate_roll_choice") {
     tone = "roll";
     headline = `${chain.hero.name} entered ${name(chain.actorPlayerId)}'s Party`;
@@ -937,6 +960,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
       <div className="t3-stage-center">{center}</div>
       {roster}
       {tray && <div className={`t3-stage-tray${trayCardCount >= 4 ? " is-dense" : ""}`} style={{ "--tray-count": Math.max(1, trayCardCount) } as CSSProperties}>{tray}</div>}
+      {shamanButton && <div className="t3-stage-primary t3-stage-shaman">{shamanButton}</div>}
       {primary && <div className="t3-stage-primary">{primary}</div>}
     </div>
     </RevealContext.Provider>
@@ -1554,7 +1578,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
             <header className="t3-stage-head">
               <span className="t3-stage-kicker">GAME OVER</span>
               <h2 className="t3-win-name" role="status">{winner?.nickname} WINS!</h2>
-              <p>{game.winReason === "slay_3" ? "Slew 3 Monsters" : "6 classes in Party"}</p>
+              <p>{game.winReason === "slay_3" ? "Slew 3 Monsters" : `${classGoal(game.settings)} classes in Party`}</p>
               {state.you.isHost && <button className="t3-btn t3-btn--continue" disabled={pending} onClick={() => send("NEW_GAME", {})}>NEW GAME · SAME ROOM</button>}
               <button className="t3-btn t3-btn--continue" onClick={() => setHideGameOver(true)}>VIEW TABLE</button>
             </header>

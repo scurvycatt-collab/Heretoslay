@@ -134,13 +134,14 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
   you: { playerId; nickname; isHost };
   players: Array<{ playerId; nickname; joinIndex; isHost;
                    handCount; leaderId: string | null; leaderClass: string | null;
-    party: Array<{ hero: BaseCardView; item: BaseCardView | null; /* first attachment, legacy */ attachments: BaseCardView[]; classes: string[] }>;
-    slainMonsters: BaseCardView[]; partyClasses: string[]; protections: ("no_destroy"|"no_steal")[] }>;
+    party: Array<{ hero: BaseCardView; item: BaseCardView | null; /* first attachment, legacy */ attachments: BaseCardView[]; slots: number /* Item slots: 1, or 2 for 2-slot Heroes */; classes: string[] }>;
+    slainMonsters: BaseCardView[]; partyClasses: string[]; protections: ("no_destroy"|"no_steal"|"return_to_hand" /* Maegisty */)[] }>;
   yourHand: BaseCardView[];              // viewer-private
   game: {
     phase: "lobby" | "leader_selection" | "turn_active";
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
+    shamanAvailable: boolean /* viewer leads The Noble Shaman and has not used it this turn; false for spectators */;
     mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: server outcome, display only; null for a viewer when it references a card that is currently in another player's hand or the deck */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice

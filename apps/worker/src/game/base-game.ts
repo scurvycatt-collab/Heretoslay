@@ -14,7 +14,8 @@ import type {
   BaseTargets,
   RoomSliceCommand,
 } from "@here-to-slay/protocol";
-import { GNAWING_DREAD } from "./expansion-ids.ts";
+import { GNAWING_DREAD, NOBLE_SHAMAN } from "./expansion-ids.ts";
+import { slotCapacity } from "./attachments.ts";
 import { EXPANSION_DISPLAY_NAMES, GAME_SET_CATALOG } from "../content/set-catalog.ts";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import {
@@ -1088,12 +1089,13 @@ export function projectBaseGame(
           hero: cardView(hero.card),
           item: hero.attachments[0] ? cardView(hero.attachments[0]) : null,
           attachments: hero.attachments.map(cardView),
+          slots: slotCapacity(hero),
           classes: heroClasses(hero, game.settings),
         })),
         slainMonsters: (seat?.slain ?? []).map(monsterView),
         partyClasses: seat ? partyClasses(seat, game.settings) : [],
         protections: seat
-          ? [...(seat.protections.noDestroy ? (["no_destroy"] as const) : []), ...(seat.protections.noSteal ? (["no_steal"] as const) : [])]
+          ? [...(seat.protections.noDestroy ? (["no_destroy"] as const) : []), ...(seat.protections.noSteal ? (["no_steal"] as const) : []), ...(seat.protections.returnToHand ? (["return_to_hand"] as const) : [])]
           : [],
       };
     }),
@@ -1103,6 +1105,7 @@ export function projectBaseGame(
       selectionPlayerId: selectionPlayerId(game),
       leaderPool: [...game.leaderPool],
       availableExpansions: GAME_SET_CATALOG.expansionSetIds.map((id) => ({ id, name: EXPANSION_DISPLAY_NAMES[id] ?? id })),
+      shamanAvailable: seats.get(viewerPlayerId)?.leaderId === NOBLE_SHAMAN && !game.shamanUsed,
       selectedLeaderIds: game.seats
         .map((seat) => seat.leaderId)
         .filter((leaderId): leaderId is string => typeof leaderId === "string"),

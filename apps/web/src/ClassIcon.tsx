@@ -1,7 +1,7 @@
 // In-house geometric glyphs (no third-party icon art, ADR-003).
-import type { HeroClass } from "@here-to-slay/protocol";
+import type { AnyHeroClass } from "@here-to-slay/protocol";
 
-export type GlyphName = HeroClass | "none" | "item" | "cursed" | "magic" | "modifier" | "challenge" | "monster" | "leader" | "any";
+export type GlyphName = AnyHeroClass | "none" | "item" | "cursed" | "magic" | "modifier" | "challenge" | "monster" | "leader" | "any";
 
 const PATHS: Record<GlyphName, string> = {
   // Bard — eighth note
@@ -16,6 +16,16 @@ const PATHS: Record<GlyphName, string> = {
   thief: "M20 3l-1 5-8 8 1 2-2 2-2-2-3 3-2-2 3-3-2-2 2-2 2 1 8-8z",
   // Wizard — star
   wizard: "M12 2l2.6 6.4L21 9l-5 4.5L17.5 21 12 17.3 6.5 21 8 13.5 3 9l6.4-.6z",
+  // Warrior — helm
+  warrior: "M12 2c4 0 7 3 7 7v3h-2v3l2 3v4H5v-4l2-3v-3H5V9c0-4 3-7 7-7zm-2 8v2h4v-2z",
+  // Druid — leaf
+  druid: "M20 4C10 4 4 9 4 15c0 2 1 3.5 2.5 4.5C7 15 10 12 14 10c-3 3-5 6-5.5 10.5C16 19 20 13 20 4z",
+  // Berserker — flame
+  berserker: "M12 2c1 4 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-4-1-6 1-10z",
+  // Necromancer — crescent
+  necromancer: "M15 3a9 9 0 1 0 6 15 7.5 7.5 0 0 1-6-15z",
+  // Sorcerer — peak
+  sorcerer: "M12 3l9.5 17h-19z",
   none: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
   any: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 4a5 5 0 1 1 0 10 5 5 0 0 1 0-10z",
   // Item — diamond gem
