@@ -179,5 +179,7 @@ export function createSetCatalog<Rules extends object>(modules: readonly Expansi
   };
 }
 
+export type SetCatalog = ReturnType<typeof createSetCatalog<object>>;
+
 // Expansion IDs are known, but the live worker registers only verified content.
 export const GAME_SET_CATALOG = createSetCatalog([]);

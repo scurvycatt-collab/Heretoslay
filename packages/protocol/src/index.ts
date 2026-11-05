@@ -407,7 +407,7 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
       for (const key of Object.keys(payload)) issues.push(`payload.${key} is not allowed`);
       break;
     case "CONFIGURE_GAME": {
-      const allowed = ["turnSeconds", "reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode"];
+      const allowed = ["turnSeconds", "reactionSeconds", "choiceSeconds", "leaderFillsClassSlot", "maskMode", "expansionIds"];
       if (payload.turnSeconds !== undefined && payload.turnSeconds !== 30 && payload.turnSeconds !== 60 && payload.turnSeconds !== 90) {
         issues.push("payload.turnSeconds must be 30, 60 or 90");
       }
@@ -423,6 +423,12 @@ function validateBaseTurnCommand(value: Record<string, unknown>): RoomSliceValid
       }
       if (payload.maskMode !== undefined && payload.maskMode !== "add" && payload.maskMode !== "replace") {
         issues.push("payload.maskMode must be add or replace");
+      }
+      if (payload.expansionIds !== undefined) {
+        const ids = payload.expansionIds;
+        if (!Array.isArray(ids) || ids.length > 8 || ids.some((id) => typeof id !== "string" || id.length === 0 || id.length > 80) || new Set(ids).size !== ids.length) {
+          issues.push("payload.expansionIds must be an array of up to 8 distinct non-empty strings");
+        }
       }
       break;
     }

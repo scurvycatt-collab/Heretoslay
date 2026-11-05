@@ -1,3 +1,4 @@
+import { GAME_SET_CATALOG } from "./content/set-catalog.ts";
 import {
   BASE_SET_ID,
   EFFECT_DEMO_LABEL,
@@ -180,6 +181,15 @@ const ROOM_STATE_KEY = "room-state-v2";
 const MAX_BODY_BYTES = 4_096;
 const REACTION_WINDOW_MS = 20_000;
 const MAX_PLAYERS = 6;
+
+/** EX-06: the seat cap follows the packs enabled in the lobby (base 6, with packs up to 8 while Leaders last). */
+function maxPlayersFor(state: PersistedRoomState): number {
+  try {
+    return GAME_SET_CATALOG.compose(state.game?.settings?.expansionIds ?? []).maxPlayers;
+  } catch {
+    return MAX_PLAYERS;
+  }
+}
 const MAX_SPECTATORS = 20;
 /** A room with no player activity (commands / join / leave — bots do not count) for this long is deleted. */
 export const ROOM_IDLE_MS = 5 * 60_000;
@@ -945,7 +955,7 @@ export class RoomDurableObject {
         return Response.json({
           roomCode: state.roomCode,
           revision: state.revision,
-          maxPlayers: MAX_PLAYERS,
+          maxPlayers: maxPlayersFor(state),
           enabledSetIds: state.enabledSetIds,
           scaffold: false,
         });
@@ -1053,8 +1063,8 @@ export class RoomDurableObject {
       if (state.reaction && !state.reaction.resolved) {
         throw new ApiFault("REACTION_ACTIVE", "Join after the reaction closes", 409);
       }
-      if (state.players.length >= MAX_PLAYERS) {
-        throw new ApiFault("ROOM_FULL", "Base room supports at most 6 players", 409);
+      if (state.players.length >= maxPlayersFor(state)) {
+        throw new ApiFault("ROOM_FULL", `Room supports at most ${maxPlayersFor(state)} players`, 409);
       }
       const player: PersistedPlayer = {
         playerId,
@@ -1405,7 +1415,7 @@ export class RoomDurableObject {
       settleBaseGame(game, baseRoster(state), this.baseDeps(now));
       return "ACCEPTED";
     }
-    if (state.players.length >= MAX_PLAYERS) return "ROOM_FULL";
+    if (state.players.length >= maxPlayersFor(state)) return "ROOM_FULL";
     let n = 1;
     while (state.players.some((candidate) => candidate.normalizedNickname === `bot ${n}`)) n += 1;
     const playerId = this.randomUUID();

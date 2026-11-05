@@ -15,6 +15,7 @@ import type {
   RoomSliceCommand,
 } from "@here-to-slay/protocol";
 import { GNAWING_DREAD } from "./expansion-ids.ts";
+import { GAME_SET_CATALOG } from "../content/set-catalog.ts";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import {
   baseLeaderPool,
@@ -253,7 +254,7 @@ function setupContext(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, d
     isHost: seat.playerId === roster.hostPlayerId,
     newTurnId: deps.newId,
     shuffle: deps.shuffle,
-    decks: () => ({ main: baseMainDeck(), monsters: baseMonsterDeck() }),
+    decks: () => ({ main: baseMainDeck(game.settings.expansionIds, deps.catalog), monsters: baseMonsterDeck(game.settings.expansionIds, deps.catalog) }),
     onTurnStart: () => onTurnStart(game),
   };
 }
@@ -381,7 +382,13 @@ function lobbySelectLeader(game: BaseGameState, seat: BaseSeat, leaderId: string
 
 function lobbyStart(game: BaseGameState, seat: BaseSeat, roster: BaseRoster, deps: BaseGameDeps): BaseCommandCode {
   if (seat.playerId !== roster.hostPlayerId) return "FORBIDDEN";
-  if (game.seats.length < 2 || game.seats.length > 6) return "NOT_ENOUGH_PLAYERS";
+  let maxPlayers: number;
+  try {
+    maxPlayers = (deps.catalog ?? GAME_SET_CATALOG).compose(game.settings.expansionIds).maxPlayers;
+  } catch {
+    return "UNSUPPORTED_EXPANSION";
+  }
+  if (game.seats.length < 2 || game.seats.length > maxPlayers) return "NOT_ENOUGH_PLAYERS";
   if (game.seats.some((candidate) => !candidate.leaderId)) return "SELECTION_INCOMPLETE";
   // Base rulebook: The Shadow Claw may not be used in 2-player games.
   if (game.seats.some((candidate) => cardDataOfKind(candidate.leaderId!, "party_leader")?.bannedPlayerCounts.includes(game.seats.length))) {
@@ -617,13 +624,30 @@ const leaderActionHandler: Handler = (game, seat, command, _roster, deps) => {
  * "ACCEPTED" only when state changed.
  */
 /** Host-only rule settings, only before START_GAME ("cấu hình trước ván"). */
-const configureHandler: Handler = (game, seat, command, roster) => {
+const configureHandler: Handler = (game, seat, command, roster, deps) => {
   if (command.kind !== "CONFIGURE_GAME") return "MODE_MISMATCH";
   if (seat.playerId !== roster.hostPlayerId) return "FORBIDDEN";
   if (game.phase !== "lobby" && game.phase !== "leader_selection") return "INVALID_PHASE";
-  const changes = Object.entries(command.payload).filter(([key, value]) => game.settings[key as keyof typeof game.settings] !== value);
-  if (changes.length === 0) return "NO_CHANGE";
-  game.settings = { ...game.settings, ...Object.fromEntries(changes) };
+  const { expansionIds, ...rest } = command.payload as typeof command.payload & { expansionIds?: string[] };
+  const changes = Object.entries(rest).filter(([key, value]) => game.settings[key as keyof typeof game.settings] !== value);
+  const current = game.settings.expansionIds ?? [];
+  const packsChanged = expansionIds !== undefined && (expansionIds.length !== current.length || expansionIds.some((id) => !current.includes(id)));
+  if (changes.length === 0 && !packsChanged) return "NO_CHANGE";
+  if (packsChanged) {
+    if (game.phase !== "lobby") return "INVALID_PHASE";
+    let pool: string[];
+    try {
+      pool = baseLeaderPool(expansionIds, deps.catalog);
+    } catch {
+      return "UNSUPPORTED_EXPANSION";
+    }
+    game.settings = { ...game.settings, expansionIds: [...expansionIds!] };
+    game.leaderPool = pool;
+    // A Leader that left the pool is released; every Ready flag resets because the table changed under the players.
+    for (const other of game.seats) if (other.leaderId && !pool.includes(other.leaderId)) other.leaderId = null;
+    game.readyPlayerIds = [];
+  }
+  if (changes.length) game.settings = { ...game.settings, ...Object.fromEntries(changes) };
   return "ACCEPTED";
 };
 
@@ -910,7 +934,7 @@ export function seatBot(game: BaseGameState, roster: BaseRoster, botId: string, 
   const seat = seatOf(game, botId);
   if (!seat || seat.leaderId) return;
   const taken = new Set(game.seats.map((candidate) => candidate.leaderId).filter(Boolean));
-  const free = deps.shuffle(game.leaderPool.filter((id) => !taken.has(id) && !id.endsWith("the-shadow-claw")));
+  const free = deps.shuffle(game.leaderPool.filter((id) => !taken.has(id) && !(cardDataOfKind(id, "party_leader")?.bannedPlayerCounts.length)));
   if (free[0]) lobbySelectLeader(game, seat, free[0]);
   if (seat.leaderId) game.readyPlayerIds = [...new Set([...(game.readyPlayerIds ?? []), seat.playerId])];
 }

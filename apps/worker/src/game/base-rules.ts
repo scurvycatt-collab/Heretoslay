@@ -49,6 +49,7 @@ export const DEFAULT_SETTINGS: BaseGameSettings = {
   leaderFillsClassSlot: true,
   /** Owner 2026-11-02: Mask replaces the Hero's class (card text "instead of"). */
   maskMode: "replace",
+  expansionIds: [],
 };
 
 export function monsterDefinitionId(instanceId: string): string {

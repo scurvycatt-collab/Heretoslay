@@ -12,6 +12,7 @@ import type {
 } from "@here-to-slay/protocol";
 import { cardDataOfKind } from "../content/base-cards.ts";
 import type { BaseCard } from "./base-content.ts";
+import type { SetCatalog } from "../content/set-catalog.ts";
 import { CALAMITY_MONGREL, DS_MODIFIER_MINUS_6, DS_MODIFIER_PLUS_6, FEARLESS_FLAME, BIGGEST_RING_EVER, BN_MODIFIER_PLUS_2_MINUS_2, BN_MODIFIER_PLUS_7, DOOMBRINGER, DRAGONS_BILE, RAGING_MANTICORE, SILVER_LINING, CURSED_GLOVE, FERAL_DRAGON, MAJESTELK, MIRRORYU, MUSCIPULA_REX, NOBLE_SHAMAN, GOBLET_OF_CAFFEINATION, SOUL_TETHER, TEMPORAL_HOURGLASS, WD_MODIFIER_PLUS_1_MINUS_1, WD_MODIFIER_PLUS_2_MINUS_1, WD_MODIFIER_MINUS_4, WD_MODIFIER_PLUS_4 } from "./expansion-ids.ts";
 import { canAttach, detach, detachAll, hasAttachment, hasCursedAttachment, isAttachable } from "./attachments.ts";
 import {
@@ -379,6 +380,8 @@ export interface EngineDeps {
   shuffle: (cardIds: string[]) => string[];
   rollDice: () => readonly [number, number];
   now: () => number;
+  /** Pack catalog; defaults to the live GAME_SET_CATALOG (tests inject one that registers packs). */
+  catalog?: SetCatalog;
 }
 
 /** Hooks the turn module provides (turn end / win checks live there). */

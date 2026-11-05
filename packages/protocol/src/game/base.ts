@@ -257,6 +257,8 @@ export interface BaseGameSettings {
   leaderFillsClassSlot: boolean;
   /** Q-04 (owner 2026-11-02): "replace" = card text, Mask replaces the Hero's class. */
   maskMode: "add" | "replace";
+  /** EX-06: enabled expansion pack ids (host, lobby only). Empty = base game. Validated against the live set catalog. */
+  expansionIds: string[];
   /** Q-11: owner default false — Leader passive does not use the player's Modifier slot. */
 }
 

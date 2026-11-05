@@ -59,7 +59,7 @@ While `game.chain` is non-null or effect steps are queued, turn commands return 
 
 | kind | payload | Who / when | Effect |
 |---|---|---|---|
-| `CONFIGURE_GAME` | `Partial<{ reactionSeconds, choiceSeconds (10..120), leaderFillsClassSlot, maskMode: "add"\|"replace", leaderPassiveUsesModifierSlot }>` | host, `lobby`/`leader_selection` | per-room rule switches (defaults: 20 s, 30 s, `leaderFillsClassSlot` true, `maskMode` "replace", Q-11 false); nothing changed → `NO_CHANGE` |
+| `CONFIGURE_GAME` | `Partial<{ reactionSeconds, choiceSeconds (10..120), leaderFillsClassSlot, maskMode: "add"\|"replace", leaderPassiveUsesModifierSlot, expansionIds: string[] }>` | host, `lobby`/`leader_selection` (`expansionIds`: `lobby` only) | per-room rule switches (defaults: 20 s, 30 s, `leaderFillsClassSlot` true, `maskMode` "replace", Q-11 false); nothing changed → `NO_CHANGE`. `expansionIds` lists enabled packs (default `[]` = base game); an id the live catalog does not register → `UNSUPPORTED_EXPANSION`; changing it rebuilds the Leader pool, clears seats whose Leader left the pool and resets Ready |
 
 ### Modifier (MOD-005)
 `REACT_MODIFIER` names the exact card instance and one of its `options` (`Modifier +1/-3` → 1 or -3). Wrong card/kind/value/side → rejected, hand unchanged. One Modifier or Skip per player per window; a retry with the same `commandId` replays the stored outcome (no second card consumed). Leader passives (+1 Divine Arrow, +2 Fist of Reason, +1 Charismatic Song, ±1 Protecting Horn via `leaderBonus`) go to `roll.passives` labelled "passive của Leader: …", not to `roll.modifiers`. With `leaderPassiveUsesModifierSlot = true` (Q-11 alternative) a player whose Leader passive applies to the roll starts the window as `played`.
