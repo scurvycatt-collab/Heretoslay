@@ -303,6 +303,10 @@ export function endTurn(game: BaseGameState, deps: BaseGameDeps): void {
 
 export const SLAY_WIN_COUNT = 3;
 export const CLASS_WIN_COUNT = 6;
+/** E01: base-only needs six distinct classes; any enabled expansion pack needs seven. */
+export function classWinCount(game: { settings: { expansionIds?: string[] } }): number {
+  return game.settings.expansionIds?.length ? CLASS_WIN_COUNT + 1 : CLASS_WIN_COUNT;
+}
 
 /**
  * GAME_OVER (WIN-END): freezes the table. Open windows/choices are closed without
@@ -317,18 +321,18 @@ function declareWinner(game: BaseGameState, playerId: string, reason: "slay_3" |
   game.queue = [];
   log(
     game,
-    `${game.names[playerId] ?? playerId} THẮNG — ${reason === "slay_3" ? "đã SLAY 3 Monster" : "Party đủ 6 class khi kết thúc lượt"}`,
+    `${game.names[playerId] ?? playerId} THẮNG — ${reason === "slay_3" ? "đã SLAY 3 Monster" : `Party đủ ${classWinCount(game)} class khi kết thúc lượt`}`,
   );
 }
 
 /**
  * WIN-CLASS / WIN-CLASS-T: only the active player, at the end of their own turn
- * (after the chain closed), with 6 distinct classes in Party — Leader included,
+ * (after the chain closed), with 6 distinct classes in Party (7 with an enabled pack, E01) — Leader included,
  * Masks per settings.maskMode (Q-04).
  */
 export function checkClassWin(game: BaseGameState): boolean {
   const actor = seatOf(game, activePlayerId(game) ?? "");
-  if (!actor || partyClasses(actor, game.settings).length < CLASS_WIN_COUNT) return false;
+  if (!actor || partyClasses(actor, game.settings).length < classWinCount(game)) return false;
   declareWinner(game, actor.playerId, "six_classes");
   return true;
 }

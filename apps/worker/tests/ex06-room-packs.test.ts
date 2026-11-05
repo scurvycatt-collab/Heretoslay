@@ -72,3 +72,38 @@ test("player cap follows the composed set: 7 players need packs, base stays at 6
   }
   assert.equal(packed.run("p1", "START_GAME"), "ACCEPTED");
 });
+
+function started(withPacks: boolean) {
+  const r = room(2);
+  if (withPacks) r.run("p1", "CONFIGURE_GAME", { expansionIds: ids });
+  const [a, b] = r.game.leaderPool.filter((id) => !id.includes("shadow-claw"));
+  r.run("p1", "SELECT_PARTY_LEADER", { leaderId: a });
+  r.run("p2", "SELECT_PARTY_LEADER", { leaderId: b });
+  r.run("p2", "SET_READY", { ready: true });
+  assert.equal(r.run("p1", "START_GAME"), "ACCEPTED");
+  const me = r.game.seats.find((s) => s.playerId === r.game.turnOrder[r.game.currentPlayerIndex])!;
+  return { ...r, me };
+}
+
+test("E15: Party cap is six in base rooms and seven with a pack", () => {
+  for (const [withPacks, cap] of [[false, 6], [true, 7]] as const) {
+    const t = started(withPacks);
+    const heroCard = (id: string) => ({ cardId: id, definitionId: "hts.base.v1.hero.bad-axe", kind: "hero" as const });
+    t.me.party = Array.from({ length: cap - 1 }, (_, i) => ({ card: heroCard(`f${i}`), attachments: [] }));
+    t.me.hand = [heroCard("in1"), heroCard("in2")];
+    assert.equal(t.run(t.me.playerId, "PLAY_HAND_CARD", { cardInstanceId: "in1" }), "ACCEPTED", `${cap - 1} → ${cap} allowed`);
+    // the played Hero sits in a challenge window; the cap is enforced again on entry
+    t.game.chain = null;
+    t.me.party.push({ card: heroCard("x"), attachments: [] });
+    t.game.actionPoints = 3;
+    assert.equal(t.run(t.me.playerId, "PLAY_HAND_CARD", { cardInstanceId: "in2" }), "PARTY_FULL", "full Party blocks another Hero");
+  }
+});
+
+test("E01: class win needs six classes in base rooms and seven with a pack", async () => {
+  const { classWinCount } = await import("../src/game/base-game.ts");
+  assert.equal(classWinCount(initialBaseGameState()), 6);
+  const packed = initialBaseGameState();
+  packed.settings = { ...packed.settings, expansionIds: [ids[0]] };
+  assert.equal(classWinCount(packed), 7);
+});

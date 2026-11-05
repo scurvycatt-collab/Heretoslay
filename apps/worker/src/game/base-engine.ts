@@ -35,7 +35,12 @@ import {
 import { drawCards, type SetupTable } from "./setup-core.ts";
 
 export const LOG_LIMIT = 30;
+/** Base-only Party cap (E15). */
 export const PARTY_CARD_LIMIT = 6;
+/** E15: with any enabled expansion pack a Party holds up to seven Heroes. */
+export function partyLimit(game: { settings: { expansionIds?: string[] } }): number {
+  return game.settings.expansionIds?.length ? PARTY_CARD_LIMIT + 1 : PARTY_CARD_LIMIT;
+}
 
 export interface BaseSeat extends RulesSeat {}
 
@@ -1278,8 +1283,8 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
         log(game, `STEAL: Hero của ${whoName(game, found.seat.playerId)} không thể bị steal — bỏ qua`);
         return false;
       }
-      if (to.party.length >= PARTY_CARD_LIMIT) {
-        log(game, `STEAL: Party của ${whoName(game, step.toPlayerId)} đã đủ ${PARTY_CARD_LIMIT} Hero — bỏ qua`);
+      if (to.party.length >= partyLimit(game)) {
+        log(game, `STEAL: Party của ${whoName(game, step.toPlayerId)} đã đủ ${partyLimit(game)} Hero — bỏ qua`);
         return false;
       }
       found.seat.party.splice(found.index, 1);
@@ -1289,7 +1294,7 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       // not a steal; a full Party sends the Hero and its items to the discard pile.
       for (const gloved of found.seat.party.filter((hero) => hasAttachment(hero, CURSED_GLOVE))) {
         found.seat.party.splice(found.seat.party.indexOf(gloved), 1);
-        if (to.party.length >= PARTY_CARD_LIMIT) {
+        if (to.party.length >= partyLimit(game)) {
           game.discard.push(gloved.card, ...detachAll(gloved));
           log(game, `Cursed Glove: Party đầy — ${cardName(gloved.card.definitionId)} và Item vào discard`);
         } else {
@@ -1303,8 +1308,8 @@ function runStep(game: EngineState, step: Step, deps: EngineDeps): boolean {
       const found = findHero(game, step.heroCardId);
       const to = seatOf(game, step.toPlayerId);
       if (!found || !to || found.seat === to) return false;
-      if (to.party.length >= PARTY_CARD_LIMIT) {
-        log(game, `Party của ${whoName(game, step.toPlayerId)} đã đủ ${PARTY_CARD_LIMIT} Hero — không chuyển thêm`);
+      if (to.party.length >= partyLimit(game)) {
+        log(game, `Party của ${whoName(game, step.toPlayerId)} đã đủ ${partyLimit(game)} Hero — không chuyển thêm`);
         return false;
       }
       if (step.onlyIfOwns && findHero(game, step.onlyIfOwns.heroCardId)?.seat.playerId !== step.onlyIfOwns.playerId) {
@@ -1705,7 +1710,7 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
     case "steal_hero":
       return game.seats.filter((other) => other !== seat && !other.protections.noSteal).flatMap((other) => other.party.map((hero) => hero.card));
     case "bring_hero":
-      return seat.party.length >= PARTY_CARD_LIMIT
+      return seat.party.length >= partyLimit(game)
         ? []
         : (seatOf(game, choice.targetPlayerId ?? "")?.hand ?? []).filter((card) => card.kind === "hero");
     case "attack_monster":
@@ -1734,7 +1739,7 @@ export function eligibleChoiceCards(game: EngineState, choice: PendingChoice): B
     case "mirror_hero":
       return seat.party.filter((own) => !choice.excludeCardIds?.includes(own.card.cardId) && !hasAttachment(own, "hts.base.v1.cursed-item.sealing-key")).map((own) => own.card);
     case "bring_from_discard":
-      return seat.party.length >= PARTY_CARD_LIMIT ? [] : game.discard.filter((card) => card.kind === "hero");
+      return seat.party.length >= partyLimit(game) ? [] : game.discard.filter((card) => card.kind === "hero");
     case "choose_class":
     case "make_sacrifice":
       return game.seats.flatMap((other) => other.party.map((hero) => hero.card));
@@ -1814,7 +1819,7 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
       return;
     case "bring_from_discard": {
       const index = game.discard.findIndex((card) => card.cardId === cardIds[0]);
-      if (index < 0 || seat.party.length >= PARTY_CARD_LIMIT) return;
+      if (index < 0 || seat.party.length >= partyLimit(game)) return;
       const [card] = game.discard.splice(index, 1);
       seat.party.push({ card, attachments: [] });
       log(game, `${whoName(game, seat.playerId)} đưa ${cardName(card.definitionId)} từ discard vào Party (Shamanaga)`);
@@ -1832,7 +1837,7 @@ function applyChoice(game: EngineState, choice: PendingChoice, seat: BaseSeat, c
     case "bring_hero": {
       const source = seatOf(game, choice.targetPlayerId ?? "");
       const index = source ? source.hand.findIndex((card) => card.cardId === cardIds[0]) : -1;
-      if (source && index >= 0 && seat.party.length < PARTY_CARD_LIMIT) {
+      if (source && index >= 0 && seat.party.length < partyLimit(game)) {
         const [card] = source.hand.splice(index, 1);
         seat.party.push({ card, attachments: [] });
         log(game, `${whoName(game, seat.playerId)} đưa ${cardName(card.definitionId)} từ tay ${whoName(game, source.playerId)} vào Party`);
@@ -2229,13 +2234,13 @@ function closeModifierWindow(game: EngineState, deps: EngineDeps, hooks: EngineH
 /** An Item needs a legal Hero to equip; other playable kinds are always offered (targets checked on play). */
 function canPlaySomewhere(game: EngineState, seat: BaseSeat, card: BaseCard): boolean {
   if (isAttachable(card)) return game.seats.some((other) => other.party.some((hero) => canAttach(hero, card)));
-  if (card.kind === "hero") return seat.party.length < PARTY_CARD_LIMIT;
+  if (card.kind === "hero") return seat.party.length < partyLimit(game);
   return card.kind === "magic";
 }
 
 /** Validation shared by PLAY_HAND_CARD and free plays (RULE-08, Q-06, Q-08). */
 export function playTargetError(game: EngineState, seat: BaseSeat, card: BaseCard, targets: BaseTargets): string | null {
-  if (card.kind === "hero" && seat.party.length >= PARTY_CARD_LIMIT) return "PARTY_FULL";
+  if (card.kind === "hero" && seat.party.length >= partyLimit(game)) return "PARTY_FULL";
   if (card.kind === "item" || card.kind === "cursed_item") {
     const targetId = targets.heroInstanceIds?.[0];
     const found = targetId ? findHero(game, targetId) : null;
@@ -2256,9 +2261,9 @@ export function resolveAttempt(game: EngineState, attempt: Attempt, deps: Engine
   const card = attempt.card;
   const continuation = attempt.continuation ?? [];
   if (card.kind === "hero") {
-    if (actor.party.length >= PARTY_CARD_LIMIT) {
+    if (actor.party.length >= partyLimit(game)) {
       game.discard.push(card);
-      log(game, `${cardName(card.definitionId)}: Party đã đủ ${PARTY_CARD_LIMIT} Hero — vào discard`);
+      log(game, `${cardName(card.definitionId)}: Party đã đủ ${partyLimit(game)} Hero — vào discard`);
       game.queue.unshift(...continuation);
       return;
     }
