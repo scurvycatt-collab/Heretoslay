@@ -59,3 +59,18 @@ test("spectator view: no hand, no choice options, no shaman, no private roll tar
   assert.ok(!JSON.stringify(spectator).includes("c1"), "hand card id never leaks to a spectator");
   assert.ok((view("p1").game.chain as { options?: unknown[] }).options, "the chooser does get options");
 });
+
+test("class goal, party limit and enabled classes come from the server", () => {
+  const { game, view } = started();
+  let g = view("p1").game;
+  assert.equal(g.classGoal, 6);
+  assert.equal(g.partyLimit, 6);
+  assert.deepEqual(g.enabledClasses, ["bard", "fighter", "guardian", "ranger", "thief", "wizard"]);
+  game.settings.expansionIds = ["hts.warriors-druids.v1"];
+  g = view("p1").game;
+  assert.equal(g.classGoal, 7);
+  assert.equal(g.partyLimit, 7);
+  assert.deepEqual(g.enabledClasses.slice(6), ["warrior", "druid"]);
+  game.settings.expansionIds = ["hts.warriors-druids.v1", "hts.berserkers-necromancers.v1", "hts.dragon-sorcerer.v2"];
+  assert.deepEqual(view("p1").game.enabledClasses.slice(6), ["warrior", "druid", "berserker", "necromancer", "sorcerer"]);
+});

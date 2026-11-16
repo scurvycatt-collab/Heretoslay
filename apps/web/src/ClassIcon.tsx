@@ -52,3 +52,18 @@ export function Glyph({ name, title, className }: { name: GlyphName; title?: str
     </svg>
   );
 }
+
+/**
+ * Class logo slot. Drop `<class>.png|webp|svg` (e.g. `warrior.png`, square, transparent) into
+ * `src/class-logos/` and it replaces the placeholder glyph everywhere ClassMark is used.
+ * Until a file exists the in-house glyph above is shown.
+ */
+const LOGO_FILES = import.meta.glob<string>("./class-logos/*.{png,webp,svg}", { eager: true, import: "default", query: "?url" });
+const CLASS_LOGOS: Partial<Record<string, string>> = Object.fromEntries(
+  Object.entries(LOGO_FILES).map(([path, url]) => [path.replace(/^.*\/([^/]+)\.[a-z]+$/, "$1"), url]),
+);
+
+export function ClassMark({ name, className }: { name: AnyHeroClass; className?: string }) {
+  const src = CLASS_LOGOS[name];
+  return src ? <img className={`class-logo ${className ?? ""}`.trim()} src={src} alt="" aria-hidden draggable={false} /> : <Glyph name={name} className={className} />;
+}

@@ -221,6 +221,12 @@ export interface BaseGameSnapshot {
     leaderPool: string[];
     /** Expansion packs this server can enable (empty while none is registered). Lobby UI offers only these. */
     availableExpansions: Array<{ id: string; name: string }>;
+    /** Distinct classes needed for the end-of-turn class win (6 base, 7 with any pack — E01). */
+    classGoal: number;
+    /** Max Heroes per Party (6 base, 7 with any pack — E15). */
+    partyLimit: number;
+    /** Hero classes that exist in this room's enabled sets, base first (UI class tracker). */
+    enabledClasses: string[];
     selectedLeaderIds: string[];
     turnOrder: string[];
     currentPlayerId: string | null;

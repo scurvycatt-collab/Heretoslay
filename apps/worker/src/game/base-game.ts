@@ -17,7 +17,7 @@ import type {
 import { GNAWING_DREAD, NOBLE_SHAMAN } from "./expansion-ids.ts";
 import { slotCapacity } from "./attachments.ts";
 import { EXPANSION_DISPLAY_NAMES, GAME_SET_CATALOG } from "../content/set-catalog.ts";
-import { cardDataOfKind } from "../content/base-cards.ts";
+import { EXPANSION_CARDS_BY_ID, cardDataOfKind } from "../content/base-cards.ts";
 import {
   baseLeaderPool,
   baseMainDeck,
@@ -54,6 +54,7 @@ import {
   type EngineState,
   type RollState,
   refillFaceUpMonsters,
+  partyLimit,
 } from "./base-engine.ts";
 import {
   DEFAULT_SETTINGS,
@@ -1053,6 +1054,18 @@ function chainView(game: BaseGameState, viewerId: string): BaseChainView | null 
 }
 
 /** Per-viewer projection: only the viewer's own hand is serialized. */
+const BASE_CLASS_ORDER = ["bard", "fighter", "guardian", "ranger", "thief", "wizard"] as const;
+const EXPANSION_CLASS_ORDER = ["warrior", "druid", "berserker", "necromancer", "sorcerer"] as const;
+
+/** Classes printed on Heroes/Leaders of the enabled sets (base always; packs by definitionId prefix). Display data only. */
+export function enabledClasses(expansionIds: readonly string[] = []): string[] {
+  const found = new Set<string>();
+  for (const card of EXPANSION_CARDS_BY_ID.values()) {
+    if ((card.kind === "hero" || card.kind === "party_leader") && expansionIds.some((id) => card.definitionId.startsWith(`${id}.`))) found.add(card.heroClass);
+  }
+  return [...BASE_CLASS_ORDER, ...EXPANSION_CLASS_ORDER.filter((c) => found.has(c))];
+}
+
 export function projectBaseGame(
   rawGame: BaseGameState,
   roster: BaseRoster,
@@ -1107,6 +1120,9 @@ export function projectBaseGame(
       selectionPlayerId: selectionPlayerId(game),
       leaderPool: [...game.leaderPool],
       availableExpansions: GAME_SET_CATALOG.expansionSetIds.map((id) => ({ id, name: EXPANSION_DISPLAY_NAMES[id] ?? id })),
+      classGoal: classWinCount(game),
+      partyLimit: partyLimit(game),
+      enabledClasses: enabledClasses(game.settings.expansionIds),
       shamanAvailable: seats.get(viewerPlayerId)?.leaderId === NOBLE_SHAMAN && !game.shamanUsed,
       selectedLeaderIds: game.seats
         .map((seat) => seat.leaderId)

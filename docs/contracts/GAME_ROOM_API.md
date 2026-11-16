@@ -142,6 +142,9 @@ Wiggles: after the STEAL an `immediate_roll_choice` opens for the stolen Hero.
     selectionPlayerId; leaderPool: string[]; selectedLeaderIds: string[];
     turnOrder: string[]; currentPlayerId; turnNumber; turnId; actionPoints;
     shamanAvailable: boolean /* viewer leads The Noble Shaman and has not used it this turn; false for spectators */;
+    classGoal: number /* distinct classes for the end-of-turn class win: 6 base, 7 with any pack (E01) */;
+    partyLimit: number /* max Heroes per Party: 6 base, 7 with any pack (E15) */;
+    enabledClasses: string[] /* base six first, then expansion classes printed on Heroes/Leaders of the enabled packs; display data for the class tracker */;
     mainDeckCount; monsterDeckCount; faceUpMonsters: BaseCardView[]; discardCount; discardPile: BaseCardView[] /* public, oldest first */; lastRoll: BaseRollResultView | null /* last resolved roll: server outcome, display only; null for a viewer when it references a card that is currently in another player's hand or the deck */;
     heroRollsUsed: string[]; turnRollBonus: number;
     chain: BaseChainView | null;   // challenge_window | modifier_window (roll: dice, modifiers, passives, total) | immediate_roll_choice | choice

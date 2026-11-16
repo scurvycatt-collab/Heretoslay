@@ -107,7 +107,7 @@ test("each table name tag shows the authoritative hand count beside the player n
 test("playing a Hero is disabled when the Party already has 6 Heroes", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   assert.match(room, /partyFull=\{\(mySeat\?\.party\.length \?\? 0\) >= partyCap\}/);
-  assert.match(room, /const partyCap = game\.settings\.expansionIds\?\.length \? 7 : 6;/);
+  assert.match(room, /const partyCap = game\.partyLimit;/);
   assert.match(room, /card\.kind === "hero" && partyFull/);
   assert.match(room, /Party is limited to \$\{partyCap\} Heroes/);
 });
@@ -129,4 +129,18 @@ test("Whiskers' STEAL/DESTROY target picker has an explicit TABLE escape", async
   assert.match(cards, /"definitionId": "hts\.base\.v1\.hero\.whiskers"[\s\S]*?"target": "two_heroes_other_party"/);
   const targetDialog = room.slice(room.indexOf("function TargetDialog"), room.indexOf("/* --------------------------------------------------------------- inspector */"));
   assert.match(targetDialog, /aria-label="Hide target selection to view the table">◱ TABLE<\/button>/);
+});
+
+test("7–8 player tables use compact seats on an ellipse; caps and class goal come from the server", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
+  assert.match(room, /const compactSeats = opponents\.length >= 6;/);
+  assert.match(room, /const ellipse = ellipseSeats\(opponents\.length\);/);
+  assert.match(room, /<CompactSeat player=\{player\}/);
+  assert.match(room, /<SeatDetail key=\{detailPlayer\.playerId\}/);
+  assert.match(room, /const partyCap = game\.partyLimit;/);
+  assert.match(room, /const goal = game\.classGoal \?\? 6;/);
+  assert.doesNotMatch(room, /classGoal\(game\.settings\)/);
+  assert.match(css, /\.t3-seat--ellipse \{ left: var\(--x\); top: var\(--y\);/);
+  assert.match(css, /\.t3-felt--p7, \.t3-felt--p8 \{/);
 });

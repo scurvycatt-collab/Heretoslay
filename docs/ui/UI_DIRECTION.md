@@ -48,3 +48,11 @@ The Vietnamese card gallery always keeps Vietnamese frames and rule text. If a d
 ## Handoff
 
 Files: `UI_DIRECTION.md`, `REFERENCE_REVISION.svg`; `WIREFRAME.svg` is intentionally unchanged. SVG is a review artifact with placeholder content and no third-party assets. Validation: SVG XML parsed; no renderer installed, so visual preview beyond source inspection was unavailable.
+
+## Expansion seats (7–8 players) — 2026-11-16
+
+Rooms with 2–6 players keep the full seat clusters above. With 7–8 players (packs enabled, E16) every opponent becomes a compact seat card on an ellipse over the top of the table: name, hand count, a class progress bar of `classGoal` segments, one chip per Party slot up to `partyLimit` (Item-equipped Heroes carry a gold base), three slain-Monster pips and protections. Clicking a compact seat — or any nametag at any table size — opens a Party drawer on the right (Leader, every class of the room lit/unlit, Heroes with Items, free slots, slain Monsters); ✕ or `Esc` closes it and it never submits a command.
+
+The class ring around each avatar now has `classGoal` hexes (6 base, 7 with any pack) that fill with the Party's distinct classes in room order (`enabledClasses`), replacing the fixed six-class ring plus the separate expansion chip strip. `classGoal`, `partyLimit` and `enabledClasses` come from the server snapshot; the client no longer derives them from `settings.expansionIds`.
+
+Class logos are placeholders (`ClassIcon.tsx` glyphs). Dropping `<class>.png|webp|svg` into `apps/web/src/class-logos/` replaces the glyph wherever `ClassMark` is used, with no code change (see that folder's README). Reaction rosters list players who still owe an answer first and tighten rows when more than five players respond.
