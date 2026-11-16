@@ -4,7 +4,8 @@ import test from "node:test";
 import { cardDataOfKind, EXPANSION_CARDS_BY_ID, lookupCard } from "../src/content/base-cards.ts";
 import { EXPANSION_FACE_DRAFTS } from "../src/content/expansion-drafts.ts";
 import { BN_CARD_DATA, BN_SOURCES, BN_UNIMPLEMENTED_EFFECTS } from "../src/content/expansion-bn.ts";
-import { GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
+import { EXPANSION_SET_IDS } from "../src/content/set-catalog.ts";
 
 const drafts = EXPANSION_FACE_DRAFTS.filter((face) => face.setKey === "berserkersNecromancers");
 const REQUIRED: Record<string, string[]> = {
@@ -74,9 +75,9 @@ test("Masks, class Challenges, Monsters and Leaders are encoded as printed", () 
   assert.equal((byName("The Raging Manticore") as { heroClass: string }).heroClass, "berserker");
 });
 
-test("BN is lookup-only: registered for lookup, never in the selectable catalog", () => {
+test("BN: lookup data matches, and the pack is selectable in the live catalog", () => {
   for (const card of BN_CARD_DATA) assert.equal(lookupCard(card.definitionId), EXPANSION_CARDS_BY_ID.get(card.definitionId));
   assert.equal(cardDataOfKind(BN_CARD_DATA.find((c) => c.name === "Berserker Mask")!.definitionId, "item")?.maskClass, "berserker");
-  assert.ok(!JSON.stringify(GAME_SET_CATALOG).includes("berserkers-necromancers"));
-    assert.deepEqual(BN_UNIMPLEMENTED_EFFECTS, [], "every BN effect has a handler; the pack stays unregistered until EX-06");
+  assert.ok(GAME_SET_CATALOG.expansionSetIds.includes(EXPANSION_SET_IDS.berserkersNecromancers));
+  assert.deepEqual(BN_UNIMPLEMENTED_EFFECTS, [], "every BN effect has a handler");
 });

@@ -4,7 +4,7 @@ import test from "node:test";
 import { cardDataOfKind, EXPANSION_CARDS_BY_ID, lookupCard } from "../src/content/base-cards.ts";
 import { EXPANSION_FACE_DRAFTS } from "../src/content/expansion-drafts.ts";
 import { WD_CARD_DATA, WD_SOURCES, WD_UNIMPLEMENTED_EFFECTS } from "../src/content/expansion-wd.ts";
-import { GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
 import { cardName } from "../src/game/base-rules.ts";
 import { buildEffect } from "../src/game/base-engine.ts";
 
@@ -66,7 +66,7 @@ test("E08 class Challenges, E02 any-Hero equip and monster ranges are encoded as
   assert.ok(dragon?.kind === "monster" && dragon.requirement.length === 2 && dragon.slay.value === 9 && dragon.penaltyRange.value === 6);
 });
 
-test("lookup works for in-play expansion cards but this does not enable the pack", () => {
+test("lookup works for in-play expansion cards; a room without the pack stays base-only", () => {
   const maegisty = drafts.find((d) => d.canonicalName === "Maegisty")!.definitionId;
   assert.equal(cardDataOfKind(maegisty, "hero")?.rollComparator, "lte");
   assert.equal(cardName(maegisty), "Maegisty");
@@ -74,12 +74,12 @@ test("lookup works for in-play expansion cards but this does not enable the pack
   assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"]);
 });
 
-test("every WD effect now has a handler, but the catalog stays base-only until the pack is wired", () => {
+test("every WD effect has a handler; base rooms stay base-only", () => {
   assert.deepEqual(WD_UNIMPLEMENTED_EFFECTS, [], "all 35 cards are implemented");
   const game = { seats: [{ playerId: "p1", party: [], slain: [], hand: [] }] } as never;
   for (const card of WD_CARD_DATA.filter((c) => c.kind === "hero" || c.kind === "magic")) {
     const steps = buildEffect(game, card.effectId!, "p1", {}, "src");
     assert.ok(!steps.some((step) => step.op === "log" && /chưa được hỗ trợ/.test(step.text)), `${card.name} falls through to the no-op default`);
   }
-  assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"], "no pack is registered or playable yet");
+  assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"]);
 });

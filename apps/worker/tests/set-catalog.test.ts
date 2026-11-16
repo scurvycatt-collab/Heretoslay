@@ -3,9 +3,10 @@ import test from "node:test";
 import { BASE_CARDS_BY_ID } from "../src/content/base-cards.ts";
 import { BASE_REFERENCE_PHYSICAL_COPIES } from "../src/content/base-reference.ts";
 import {
-  BASE_SET_ID, createSetCatalog, EXPANSION_SET_IDS, GAME_SET_CATALOG,
+  BASE_SET_ID, createSetCatalog, EXPANSION_SET_IDS,
   type ExpansionDefinition, type ExpansionModule,
 } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
 import { baseLeaderPool, baseMainDeck, baseMonsterDeck } from "../src/game/base-content.ts";
 
 const { dragonSorcerer, warriorsDruids } = EXPANSION_SET_IDS;
@@ -46,7 +47,7 @@ test("normal base deck helpers preserve every ID, kind and order", () => {
   assert.ok(base.leadersForPlayerCount(2).every((id) => BASE_CARDS_BY_ID.get(id)?.name !== "The Shadow Claw"));
   assert.equal(base.leadersForPlayerCount(6).length, 6);
   assert.throws(() => base.leadersForPlayerCount(7), /Invalid player count/);
-  assert.throws(() => GAME_SET_CATALOG.compose([dragonSorcerer]), /Unsupported expansion/);
+  assert.throws(() => createSetCatalog([]).compose([dragonSorcerer]), /Unsupported expansion/);
 });
 
 test("a registered pack composes only selected cards and bindings with stable physical IDs", () => {

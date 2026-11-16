@@ -1,0 +1,868 @@
+{
+  "schema": 1,
+  "collection": "Berserkers & Necromancers",
+  "mode": "mapped",
+  "gameplaySupported": true,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "assets": [
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-101",
+      "definitionId": "hts.berserkers-necromancers.v1.party-leader.the-gnawing-dread",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.party-leader.the-gnawing-dread.webp",
+      "sha256": "da3ef63447738cde073d527e8e22804a5370bc0136d782fec6c04768e5c64a30",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-101.png",
+        "sourceFaceSha256": "1c2b495e28e167247526c52e1a27530d555b603abbfbb08c1c4fbe59a4047b15",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-102",
+      "definitionId": "hts.berserkers-necromancers.v1.party-leader.the-raging-manticore",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.party-leader.the-raging-manticore.webp",
+      "sha256": "a2e63d4183a070141f2ad81fb0584fc681731a1ecce5b32e3ac2e78444beb185",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-102.png",
+        "sourceFaceSha256": "a7f9f0921df30c39663f905b5a2612d0e76022059afeb813ec68b8cc8d84461b",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-202",
+      "definitionId": "hts.berserkers-necromancers.v1.monster.doombringer",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.monster.doombringer.webp",
+      "sha256": "20e46c1786666bcf166166bb17dd9f94741222684f925cbc2c0a9030ffdc9440",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-202.png",
+        "sourceFaceSha256": "dbb76a41ace576220a01010c65b83b3002596237b7b7d9947798ef792ffb052f",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-201",
+      "definitionId": "hts.berserkers-necromancers.v1.monster.reptilian-ripper",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.monster.reptilian-ripper.webp",
+      "sha256": "5a6a4443c4a3a31d8f14a4a8895dd47c88b08cae1fb5c8ddee60a541a6145592",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-201.png",
+        "sourceFaceSha256": "ce61ff43ac91523ee734c96ec8de207a451f80dc4030ec4307dbffedc2ebe0fc",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-003",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.bark-hexer",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.bark-hexer.webp",
+      "sha256": "97da33ae986f3e12e551ac89249ab2ac6737d30f3f9ee31b9c7e8c54df004514",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-003.png",
+        "sourceFaceSha256": "9f72e392c706d35ebae22452971a3b147c81368d0d521a2421b0ef694bd85494",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-008",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.beholden-retriever",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.beholden-retriever.webp",
+      "sha256": "6bf52554ae89992deb1c2c9945ecabc97d7f6c1da66c26abe99545681c703466",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-008.png",
+        "sourceFaceSha256": "acc1b6b0347ab60f4683f4eee8d711607005400a8ff099f1784d60d3b4e3e087",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-005",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.bone-collector",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.bone-collector.webp",
+      "sha256": "15c68e6b432c2674607e554aca602ba8ef5d4bb3852b1c562187d7087677e95f",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-005.png",
+        "sourceFaceSha256": "af71261e3c1e3449e8122c0ef4d963ab10c6e849b645ef1d2ee7cf1e21fcb5d7",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-002",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.boston-terror",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.boston-terror.webp",
+      "sha256": "e499d4e083fc89e087cb6becb9d5bc02eabe4b9044074e73d032d5fc2aa94efa",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-002.png",
+        "sourceFaceSha256": "0f196c4b04debfbe87f295e405069242832118a95d1f2829a82ae1c694eea226",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-001",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.grim-pupper",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.grim-pupper.webp",
+      "sha256": "30e3fde0d2264fc149db303ff0ec650b2bc2fa6584d272927ca9cc5a023e0f4f",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-001.png",
+        "sourceFaceSha256": "9482bcb7807e8e338f97c8087283398dd08f669af6a3de32e3656cfda5750aa6",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-006",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.hollow-husk",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.hollow-husk.webp",
+      "sha256": "4a8f022c1c3a8ad33b0c397e2122690ee15622715fb64d0034ab7eee27f27b96",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-006.png",
+        "sourceFaceSha256": "ff090132cabac2b151f593f941a64f02b94f6bc4b07e703ef7604080c7028fd3",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-004",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.perfect-vessel",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.perfect-vessel.webp",
+      "sha256": "7c9fea84a5b8216a13d1d13324f4317347a48ec2c5d5b0955ded7df0ca5ce149",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-004.png",
+        "sourceFaceSha256": "1fef7a71f62ac6c08031deab991d9e3fa0c4e05cd137fe23b62e1940187ffc3a",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-007",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.shadow-saint",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.shadow-saint.webp",
+      "sha256": "d4ef21400187ef57f0436fa304a27fdf90fea25533bb397906c3e0d1aad011e0",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-007.png",
+        "sourceFaceSha256": "94a0b96e3833171cf538ddcc5ab7a18ceaddae68be9271e5f601a11097fd9f9b",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-012",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.annihilator",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.annihilator.webp",
+      "sha256": "66c81560ffa809b7e632a7ccb0e1955f46bac5351f9c82b69e2f09d456020adf",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-012.png",
+        "sourceFaceSha256": "1ff16f4fcd42da9d4a9f6b068abb701eb7189a8cb93c1420b20d61599659717e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-010",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.brawling-spirit",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.brawling-spirit.webp",
+      "sha256": "3d006c22a02e733cf1867d30aa8fee312048c19c03026d3f148c460c4fe3ba3f",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-010.png",
+        "sourceFaceSha256": "0e160a06f3443981de61676ab3218d3a8fdd9066a7c28d9e1840d0327cdafee0",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-016",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.gruesome-gladiator",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.gruesome-gladiator.webp",
+      "sha256": "b46d237c4d1df1ec228b783985eecea6463b6eb9c60d0d3b49b656734a8e851c",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-016.png",
+        "sourceFaceSha256": "6b1a7189c2708356e5876dd00813a1381ffa604bda0a19d28622aba6d07f98d2",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-013",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.meowntain",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.meowntain.webp",
+      "sha256": "db3f66c406fff87fccb36af042e4d02bed7eca75dae8dfc8636d4e6dbe031212",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-013.png",
+        "sourceFaceSha256": "5ee45158e8f7dadacf42705468371e1b76124dc58983ec34b4218224e18f507c",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-015",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.rabid-beast",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.rabid-beast.webp",
+      "sha256": "6197f10b4e35bc89cf987296a3dbee0143ea95e237f9b46802bcfffc79b20bd5",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-015.png",
+        "sourceFaceSha256": "120526702926349249cf3489dc853ec4b3830dd7cda280a9153c1f32225c8232",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-009",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.roaryal-guard",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.roaryal-guard.webp",
+      "sha256": "2869f35f5a85dd5fdf19f0ed7f2dbc4ff805ea45afb3c637c7f596712f893765",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-009.png",
+        "sourceFaceSha256": "50ecad4af7130814790cd66bc1d6dd19cec0af8b2747107439e1832464ec0925",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-014",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.vicious-wildcat",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.vicious-wildcat.webp",
+      "sha256": "affeefa319d96eb4356b7158c45d5f29ebd2f467a95500ccdb640d32da4ccabb",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-014.png",
+        "sourceFaceSha256": "62bd64b2ded7d215fa9fa8d1c9841adb9d4a9f5a55f873c596af543bafe09ef3",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-011",
+      "definitionId": "hts.berserkers-necromancers.v1.hero.unbridled-fury",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.hero.unbridled-fury.webp",
+      "sha256": "35b41ef3c1b4afa82496a217089bb6bca73c8c338af33c7509157c6d05495f43",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-011.png",
+        "sourceFaceSha256": "5e44865004b31c80abad4784f8d90e462783cb9683c6b344f47025adc2c9fe0a",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-024",
+      "definitionId": "hts.berserkers-necromancers.v1.item.berserker-mask",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.item.berserker-mask.webp",
+      "sha256": "23884fa0d70e2eee5092a4f37f1e099dcbf8de3e5977bb483c94474a03ee0092",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-024.png",
+        "sourceFaceSha256": "3dd83522e2595a3f3744658e6009aae3c068d799ab3c38217a91b385275415e0",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-026",
+      "definitionId": "hts.berserkers-necromancers.v1.item.biggest-ring-ever",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.item.biggest-ring-ever.webp",
+      "sha256": "81b9e3fa3b71debd9ebf06a4eb43f75e8e9bec7f9d9ffa8cb69a75eb6dbe49df",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-026.png",
+        "sourceFaceSha256": "c0946196d7e8a276c95924c9b91ab61c3a67756dbb7c68328027955faeb36972",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-025",
+      "definitionId": "hts.berserkers-necromancers.v1.item.goblet-of-caffeination",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.item.goblet-of-caffeination.webp",
+      "sha256": "e34d99836b3c8b597276eb8e1d593759a1b8df4003840da8b0a2a2d5415c273b",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-025.png",
+        "sourceFaceSha256": "be5c91643018833b6ce005ecf6c7e4daf09725e937ce15af3a14cd625884e4a0",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-023",
+      "definitionId": "hts.berserkers-necromancers.v1.item.necromancer-mask",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.item.necromancer-mask.webp",
+      "sha256": "8b3fc043925bcd7bda3e7a7ea8f0763f1eceb5b38391524d551895dba3945da2",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-023.png",
+        "sourceFaceSha256": "24d897e190b9a76e248bc50db7b2176be1698ad942bf766234326c8af6534ad2",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-027",
+      "definitionId": "hts.berserkers-necromancers.v1.item.silver-lining",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.item.silver-lining.webp",
+      "sha256": "cf5bc3dd7357f2ff4325b24e73bb21374990f4ac53cf0bd400ec8bd3553a65ff",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-027.png",
+        "sourceFaceSha256": "5e7199bd670ff06724d68fa387515da82184683ef2feb429a4bd81bf890e04ce",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-028",
+      "definitionId": "hts.berserkers-necromancers.v1.cursed-item.dragons-bile",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.cursed-item.dragons-bile.webp",
+      "sha256": "dfb6c9c4737cee3f776da8821af1c41c3c98807fa6cfaf18f8110a74bd715cf6",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-028.png",
+        "sourceFaceSha256": "25ee2b93581d5df7f4f2933d97ef63d85272f99137b0f995fd0098fce8ef9090",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-029",
+      "definitionId": "hts.berserkers-necromancers.v1.cursed-item.soulbound-grimoire",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.cursed-item.soulbound-grimoire.webp",
+      "sha256": "328e18e4cbc05c33ac669b20cd924f4be37fccd92324e2c6e1cb8014873655ee",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-029.png",
+        "sourceFaceSha256": "90208c630ca2d7c28287aaab87e63c6e1218aed6bddccc5843771c16831bd562",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-019",
+      "definitionId": "hts.berserkers-necromancers.v1.modifier.plus2-minus2",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.modifier.plus2-minus2.webp",
+      "sha256": "f24251e7eff63dd5c22899c2d47652c79eb86eb4235986906fa56f83e83bf1a6",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-019.png",
+        "sourceFaceSha256": "649519324ee8b8e45b12958e3bd335bbd9282edb27b787d5db64d47b2ec71ac2",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-020",
+      "definitionId": "hts.berserkers-necromancers.v1.modifier.plus7",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.modifier.plus7.webp",
+      "sha256": "80386cf3fc744cd6e2e5da482c9f48bab82a23f297b9741bf37998003f3167b4",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-020.png",
+        "sourceFaceSha256": "d97d9032e903d597617133b34b3256f160d7cc2a7b38d39ef0a8dabf600bf0af",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-021",
+      "definitionId": "hts.berserkers-necromancers.v1.magic.lightning-labrys",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.magic.lightning-labrys.webp",
+      "sha256": "701cfc1b3c091b4b96ff2660504a8a7894e6002a24d96caa58acda18903b0f95",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-021.png",
+        "sourceFaceSha256": "36e498a5b342714f3a0d4c9aaff8f6c8871ad9b18c83e9f8701467a640e6eec9",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-022",
+      "definitionId": "hts.berserkers-necromancers.v1.magic.mass-sacrifice",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.magic.mass-sacrifice.webp",
+      "sha256": "4ef9f61bebf80dbc607342f239eb1f6a0ed01de93dad68c4dbb6f463d3f77480",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-022.png",
+        "sourceFaceSha256": "81024a4e3cc1dc3c8c5eccd2d620f7faf947998c7cb697b3d23a7d6abfbeea6c",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-018",
+      "definitionId": "hts.berserkers-necromancers.v1.challenge.berserker-challenge",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.challenge.berserker-challenge.webp",
+      "sha256": "9a250b26787d9686d70402242164dd46de30227b826bdde229868e343a634b45",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-018.png",
+        "sourceFaceSha256": "fd910941ecf0e1d8f2eee489541b2ea8cede7c7293ba01cd13ab837fd6dd193a",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "berserkers-necromancers-HtS-BersNecr-017",
+      "definitionId": "hts.berserkers-necromancers.v1.challenge.necromancer-challenge",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.berserkers-necromancers.v1.challenge.necromancer-challenge.webp",
+      "sha256": "10ba4162c8c3865f8d2d43ddaa2d1a74c902c558ee0385e69c4cfefc3207b921",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Berserker & Necromancer/restored-png/HtS-BersNecr-017.png",
+        "sourceFaceSha256": "22a0f42b7b27e748ebb629d1bd1bb3ee83f8ad33eae890fb2ff384ac1258d749",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    }
+  ]
+}

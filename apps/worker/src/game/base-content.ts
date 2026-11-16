@@ -4,7 +4,8 @@
 import type { BaseCardKind, BaseCardView } from "@here-to-slay/protocol";
 import { lookupCard } from "../content/base-cards.ts";
 import { DS_MODIFIER_MINUS_6, DS_MODIFIER_PLUS_6 } from "./expansion-ids.ts";
-import { GAME_SET_CATALOG, type CatalogCopy, type SetCatalog } from "../content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../content/live-catalog.ts";
+import type { CatalogCopy, SetCatalog } from "../content/set-catalog.ts";
 
 /** Persisted card: one physical copy. `cardId` = catalog instanceId. */
 export interface BaseCard {

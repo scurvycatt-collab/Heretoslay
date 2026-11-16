@@ -34,6 +34,7 @@
 | TURN-MODIFIER-BONUS | Codex | done | Mỗi Modifier được server chấp nhận cộng dồn 5 giây cho lượt hiện tại; reset ở lượt mới, không đổi deadline reaction. Engine, contract, decision và test đồng bộ. |
 | UI-MODIFIER-ONE-WAY | Codex | done | Modifier một chiều (+4/-4) bỏ qua bước chọn giá trị nhưng vẫn chọn người nhận khi Challenge; roll một người thì dùng ngay. Modifier hai chiều đi tuần tự bấm thẻ → chọn +/- → chọn người nhận nếu là Challenge. Horn giữ nguyên, UI direction và test đồng bộ. |
 | GAME-NEW-SAME-ROOM | Codex | done | Sau game over, host có thể tạo ván mới trong cùng room ID; giữ player IDs/settings, reset state và readiness. Người không phải host chọn Leader → Ready; host không cần Ready và Start khi các ghế còn lại sẵn sàng. Protocol, engine, UI, contract và test đồng bộ. |
+| EX-PLAYABLE | Claude | done / chờ owner deploy | 2026-11-16: đăng ký WD/BN/DS vào catalog live (`live-catalog.ts`); 84 mặt bài mở rộng (`assets/cards/expansions/*/faces`) + 11 biểu tượng class vector; sảnh cho thêm bot tới 8 ghế; web đọc card data mở rộng. Test room-level: restart DO + reconnect + 6 bàn bot đủ 3 pack chơi tới khi có người thắng. Chưa merge main, chưa deploy. |
 
 Lead system: CLAUDE.md + docs/LEAD.md + docs/BOARD.md + .claude/agents/{arch,ui,qa}.md
 Operating model: one task at a time per role; PM owns board; workers own role cards.

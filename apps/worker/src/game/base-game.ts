@@ -16,7 +16,8 @@ import type {
 } from "@here-to-slay/protocol";
 import { GNAWING_DREAD, NOBLE_SHAMAN } from "./expansion-ids.ts";
 import { slotCapacity } from "./attachments.ts";
-import { EXPANSION_DISPLAY_NAMES, GAME_SET_CATALOG } from "../content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../content/live-catalog.ts";
+import { EXPANSION_DISPLAY_NAMES } from "../content/set-catalog.ts";
 import { EXPANSION_CARDS_BY_ID, cardDataOfKind } from "../content/base-cards.ts";
 import {
   baseLeaderPool,

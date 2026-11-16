@@ -10,8 +10,8 @@ type View = "lobby" | "preview";
 type CloseReason = "all-completed" | "deadline" | null;
 type Player = { id: string; name: string; hasModifier: boolean; hasChallenge: boolean; isActor: boolean; status: "waiting" | "completed" };
 const lobbyCopy = {
-  en: { create: "CREATE", join: "JOIN", view: "VIEW", intro: "Nickname and room code only. No account. Base rooms support 2–6 players.", createRoom: "CREATE ROOM", joinRoom: "JOIN ROOM", viewGame: "VIEW GAME", nickname: "Nickname", mode: "Mode", roomCode: "Room code", optionalRoomCode: "Room code (optional)", baseMode: "Base game (2–6 players)", reactionDemo: "Reaction demo", setupDemo: "Setup demo · synthetic", effectDemo: "Effect demo · synthetic two cards", viewDescription: "Watch a live game without taking a player seat.", openView: "VIEW GAME", expansion: "+ Expansion → max 8 (not supported)", cards: "BROWSE BASE CARD COLLECTION →" },
-  vi: { create: "TẠO", join: "VÀO", view: "XEM", intro: "Chỉ cần biệt danh và mã phòng, không cần tài khoản. Phòng cơ bản hỗ trợ 2–6 người chơi.", createRoom: "TẠO PHÒNG", joinRoom: "VÀO PHÒNG", viewGame: "XEM TRẬN", nickname: "Biệt danh", mode: "Chế độ", roomCode: "Mã phòng", optionalRoomCode: "Mã phòng (không bắt buộc)", baseMode: "Bản cơ bản (2–6 người)", reactionDemo: "Thử phản ứng", setupDemo: "Thử thiết lập · mô phỏng", effectDemo: "Thử hiệu ứng · hai lá mô phỏng", viewDescription: "Xem trận đang diễn ra mà không chiếm chỗ người chơi.", openView: "XEM TRẬN", expansion: "+ Bản mở rộng → tối đa 8 (chưa hỗ trợ)", cards: "XEM BỘ LÁ CƠ BẢN →" },
+  en: { create: "CREATE", join: "JOIN", view: "VIEW", intro: "Nickname and room code only. No account. Base rooms seat 2–6 players; with expansions up to 8.", createRoom: "CREATE ROOM", joinRoom: "JOIN ROOM", viewGame: "VIEW GAME", nickname: "Nickname", mode: "Mode", roomCode: "Room code", optionalRoomCode: "Room code (optional)", baseMode: "Base game (2–6 players)", reactionDemo: "Reaction demo", setupDemo: "Setup demo · synthetic", effectDemo: "Effect demo · synthetic two cards", viewDescription: "Watch a live game without taking a player seat.", openView: "VIEW GAME", expansion: "Expansions: Warriors & Druids · Berserkers & Necromancers · Dragon & Sorcerer. The host turns them on in the room lobby.", cards: "BROWSE THE CARD COLLECTION →" },
+  vi: { create: "TẠO", join: "VÀO", view: "XEM", intro: "Chỉ cần biệt danh và mã phòng, không cần tài khoản. Phòng cơ bản 2–6 người; bật bản mở rộng thì tối đa 8.", createRoom: "TẠO PHÒNG", joinRoom: "VÀO PHÒNG", viewGame: "XEM TRẬN", nickname: "Biệt danh", mode: "Chế độ", roomCode: "Mã phòng", optionalRoomCode: "Mã phòng (không bắt buộc)", baseMode: "Bản cơ bản (2–6 người)", reactionDemo: "Thử phản ứng", setupDemo: "Thử thiết lập · mô phỏng", effectDemo: "Thử hiệu ứng · hai lá mô phỏng", viewDescription: "Xem trận đang diễn ra mà không chiếm chỗ người chơi.", openView: "XEM TRẬN", expansion: "Bản mở rộng: Warriors & Druids · Berserkers & Necromancers · Dragon & Sorcerer. Chủ phòng bật trong sảnh phòng.", cards: "XEM BỘ SƯU TẬP LÁ BÀI →" },
 } as const;
 
 const createPlayers = (): Player[] => [
@@ -361,7 +361,7 @@ const challenge = state.yourHand.find((card) => card.kind === "challenge"); retu
 </form>}
 </section>
 </div>
-<button className="expansion" disabled>{copy.expansion}</button>
+<p className="expansion-note">{copy.expansion}</p>
 <p className="lobby-notice" role="status">{notice}</p>
 <a className="base-collection-link" href={`${import.meta.env.BASE_URL}?cards`}>{copy.cards}</a>
 </section>

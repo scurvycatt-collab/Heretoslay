@@ -126,7 +126,10 @@ export function CardRenderer({ card, className = "", artUrl }: { card: CardData;
   useFontsReady();
   const uid = useId().replaceAll(":", "");
   const completeFace = resolveCardFace(card.definitionId);
-  const face = artUrl || language === "vi" ? CARD_FACE_PLACEHOLDER : completeFace;
+  // Vietnamese redraws the frame around translated rules text. Expansion cards (WD / BN / DS) have no
+  // Vietnamese rules text yet, so they keep their complete English face instead of a half-translated frame.
+  const redrawForVi = language === "vi" && card.definitionId.startsWith("hts.base.v1.");
+  const face = artUrl || redrawForVi ? CARD_FACE_PLACEHOLDER : completeFace;
   if (face !== CARD_FACE_PLACEHOLDER) return <CardFaceImage cardId={card.definitionId} label={card.name} className={className} />;
   const tarot = card.kind === "monster" || card.kind === "party_leader";
   const width = tarot ? 827 : 745, height = tarot ? 1417 : 1040;

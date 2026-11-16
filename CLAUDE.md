@@ -1,7 +1,7 @@
 # Here to Slay Web — CLAUDE.md
 
 Fan-made multiplayer browser game trên Cloudflare Workers + Durable Objects.
-Scope: base game (2–6 người, nickname + room code, không tài khoản). Visual/content do Codex.
+Scope: base game (2–6 người) + 3 bản mở rộng chủ phòng bật trong sảnh: Warriors & Druids, Berserkers & Necromancers, Dragon & Sorcerer v2 (tối đa 8 người). Nickname + room code, không tài khoản. Visual/content do Codex.
 
 ## Bản đồ repo
 
@@ -33,7 +33,7 @@ Scope: base game (2–6 người, nickname + room code, không tài khoản). Vi
 - Server là nguồn sự thật; client không tự tính trạng thái game.
 - Không bịa luật, card effect, tiến độ, kết quả test.
 - Không commit secrets, không push/deploy khi chưa được yêu cầu.
-- Chỉ base game; không hiển thị expansion như đã hỗ trợ.
+- Pack đã đăng ký: WD, BN, DS (`apps/worker/src/content/live-catalog.ts`, owner chốt 2026-11-16). Banner Quest, Here to Sleigh, Monster Expansion: chưa hỗ trợ, không hiển thị như đã hỗ trợ.
 - Asset artwork: rights `FAN_MADE_NON_COMMERCIAL` (ADR-004 — fan-made, phi thương mại, giữ watermark Unstable Games; DMCA/gỡ: scurvycatt@gmail.com). Không phải giấy phép; vẫn tách khỏi engine, map bằng card ID.
 - Mỗi agent chỉ sửa file trong phạm vi vai của mình.
 - verify = npm run typecheck + npm run test:integration (targeted khi đủ).

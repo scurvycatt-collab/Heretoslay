@@ -22,10 +22,12 @@ function room(players: number, withCatalog = true) {
   return { game, run };
 }
 
-test("the live catalog rejects every pack", () => {
+test("the live catalog accepts the registered packs and rejects unknown ones", () => {
   const { run, game } = room(2, false);
-  assert.equal(run("p1", "CONFIGURE_GAME", { expansionIds: [EXPANSION_SET_IDS.warriorsDruids] }), "UNSUPPORTED_EXPANSION");
+  assert.equal(run("p1", "CONFIGURE_GAME", { expansionIds: ["hts.monster-expansion.v1"] }), "UNSUPPORTED_EXPANSION");
   assert.deepEqual(game.settings.expansionIds, []);
+  assert.equal(run("p1", "CONFIGURE_GAME", { expansionIds: [EXPANSION_SET_IDS.warriorsDruids] }), "ACCEPTED");
+  assert.deepEqual(game.settings.expansionIds, [EXPANSION_SET_IDS.warriorsDruids]);
 });
 
 test("host selects packs: the Leader pool grows, a stale Leader pick is released, Ready resets", () => {
@@ -108,11 +110,11 @@ test("E01: class win needs six classes in base rooms and seven with a pack", asy
   assert.equal(classWinCount(packed), 7);
 });
 
-test("views: the live catalog advertises no pack; ±6 Modifiers carry their discard cost", async () => {
+test("views: the live catalog advertises the three packs; ±6 Modifiers carry their discard cost", async () => {
   const { cardView } = await import("../src/game/base-content.ts");
   const { DS_MODIFIER_PLUS_6 } = await import("../src/game/expansion-ids.ts");
-  const { GAME_SET_CATALOG } = await import("../src/content/set-catalog.ts");
-  assert.deepEqual(GAME_SET_CATALOG.expansionSetIds, []);
+  const { GAME_SET_CATALOG } = await import("../src/content/live-catalog.ts");
+  assert.deepEqual(GAME_SET_CATALOG.expansionSetIds, ids);
   assert.deepEqual(catalog.expansionSetIds, ids.slice().sort((a, b) => ids.indexOf(a) - ids.indexOf(b)).filter((id) => catalog.expansionSetIds.includes(id)));
   assert.equal(cardView({ cardId: "m", definitionId: DS_MODIFIER_PLUS_6, kind: "modifier" }).discardCost, 1);
   assert.equal(cardView({ cardId: "m", definitionId: "hts.base.v1.modifier.modifier-plus-4", kind: "modifier" }).discardCost, undefined);

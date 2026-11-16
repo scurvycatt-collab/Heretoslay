@@ -9,7 +9,7 @@ import type { BaseCard } from "../src/game/base-content.ts";
 import { EXPANSION_FACE_DRAFTS } from "../src/content/expansion-drafts.ts";
 import { DS_CARD_DATA, DS_SOURCES, DS_UNIMPLEMENTED_EFFECTS } from "../src/content/expansion-ds.ts";
 import { EXPANSION_CARDS_BY_ID } from "../src/content/base-cards.ts";
-import { GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
 
 const drafts = EXPANSION_FACE_DRAFTS.filter((face) => face.setKey === "dragonSorcerer");
 const ds = (name: string) => drafts.find((d) => d.canonicalName === name)!.definitionId;
@@ -46,8 +46,8 @@ test("Hero class and threshold agree with the reviewed labels (all Sorcerers rol
   }
 });
 
-test("DS stays lookup-only (not in the live catalog) with every effect implemented", () => {
-  assert.ok(!JSON.stringify(GAME_SET_CATALOG).includes("dragon-sorcerer"));
+test("DS is in the live catalog with every effect implemented", () => {
+  assert.ok(GAME_SET_CATALOG.expansionSetIds.includes("hts.dragon-sorcerer.v2"));
   assert.deepEqual([...DS_UNIMPLEMENTED_EFFECTS], []);
 });
 

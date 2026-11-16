@@ -1,0 +1,426 @@
+{
+  "schema": 1,
+  "collection": "Dragon & Sorcerer",
+  "mode": "mapped",
+  "gameplaySupported": true,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "assets": [
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-101-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.party-leader.the-fearless-flame",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.party-leader.the-fearless-flame.webp",
+      "sha256": "58758cb9f25e0df394d2ff01b11d48a10bfac394d058be1285470fac1dfd419f",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-101-2E.png",
+        "sourceFaceSha256": "a8da5aec1c28a8dc577b9c4ac0887e1cdc4763c58406851ff91786c11091875d",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-201-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.monster.calamity-mongrel",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.monster.calamity-mongrel.webp",
+      "sha256": "5d87bc49ba03d0485858b23d80062dd6bbd943d92e28e9371f8c4e850a918b80",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-201-2E.png",
+        "sourceFaceSha256": "a8c72daba04c914b5ae0595e8b3d25f437bdcd74be3d39ca052003b1d90d0ff8",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-010-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.dragalter",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.dragalter.webp",
+      "sha256": "5df19e504f1865adc799fa5ae7e2c9adb251a67104e23217b7dc6ec1198cf00c",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-010-2E.png",
+        "sourceFaceSha256": "b42a4be714ef5b54d76ee037abd33ece852576263633ce5697fd5f1a0a68389c",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-008-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.dystortivern",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.dystortivern.webp",
+      "sha256": "6baf62c3906fea350f9ad455c1a1416073d1b8eee9f88e7e30df310dc14f35fc",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-008-2E.png",
+        "sourceFaceSha256": "47b9676ed00cd7e822d867baa8e749eb0b9da3ef4b8849b045200b33a188e8bc",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-006-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.extraga",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.extraga.webp",
+      "sha256": "8ab383b72cd96eeeecb2e5f27ccb9b5421e8fd59cfc9f79a7ca97aefaa206260",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-006-2E.png",
+        "sourceFaceSha256": "4f8469de7a3338c0d34bb70007e36177e086672e4b9656b2a8377ba18de85b63",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-011-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.luut",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.luut.webp",
+      "sha256": "68b784b518c08a506243a44a9a952d098d8c46428ed102ded38281828c59191a",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-011-2E.png",
+        "sourceFaceSha256": "4eef9967475412b34429b128d1f23eabc566908db04c7a562ff2ccfbc5c0f193",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-012-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.mirroryu",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.mirroryu.webp",
+      "sha256": "475219f77ecde58094c504dc0facbb3406132e22672f1c31eaa810b80b54a8f2",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-012-2E.png",
+        "sourceFaceSha256": "3684ca1b7f47f688f56d4ada4fe24bd5ed1834beb01aed1a9ba4c5f71ddc0932",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-013-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.oracon",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.oracon.webp",
+      "sha256": "ef999fc530c8713521c203e74fc8d142472078a68960f4022c4fde68ec10ef93",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-013-2E.png",
+        "sourceFaceSha256": "1be6286df47fb41f676907d9669a18dbed1965a26c96d6eb58dfc87ffc981501",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-009-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.renovern",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.renovern.webp",
+      "sha256": "d4320a4b5517618265bdcfdaed3ce26d898b276b37d1e1c82627c2f44561ba58",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-009-2E.png",
+        "sourceFaceSha256": "63ad64e05aee0f9346bd82eec951609d78fee3d5481823f27ec656cb5f611e6f",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-014-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.shamanaga",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.shamanaga.webp",
+      "sha256": "907a04e9f06509be38f76296d0841f7e0b1ce76c1718f05f5abac71fabddc770",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-014-2E.png",
+        "sourceFaceSha256": "82584e06300af8f9bc754843bc7caf7bcf3568327930b8c652b9ab4013fd5e62",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-007-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.hero.smok",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.hero.smok.webp",
+      "sha256": "059411b2903013cf8403ef04630fa9137deb89e71d849e44efc33f8e147b7a87",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-007-2E.png",
+        "sourceFaceSha256": "88bb5457f36bbd41ea7ef271bc3242cd96069aa32b246cc07573db73ebf6b37c",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-002-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.item.sorcerer-mask",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.item.sorcerer-mask.webp",
+      "sha256": "4c77723b18db135f776e03427e098f37b24ee2f792df7262fb90e8c850119a64",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-002-2E.png",
+        "sourceFaceSha256": "4f91dc7be345d6ce2eb07ef04eaa0e2e90f5cf8b42cc167586a21070fb1dd61d",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-004-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.modifier.plus6",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.modifier.plus6.webp",
+      "sha256": "8e8c003507c25399f9bf76af0b7c02b57ca81c85e7ff8dde03589c43434abb92",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-004-2E.png",
+        "sourceFaceSha256": "0a66e3732ac4c178603000676b082be50c3a1e9fe630c9b2453d187590cf0ffc",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-003-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.modifier.minus6",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.modifier.minus6.webp",
+      "sha256": "4979db091a726a0577b99ec2a2a0e2e33b396a66a908d0b3ec0356a9442d3ca2",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-003-2E.png",
+        "sourceFaceSha256": "fb4630f9295a0bef655aefe0ad55d33184a127be71fa22a13624681db8e2a4db",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-001-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.magic.egg-of-fortune",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.magic.egg-of-fortune.webp",
+      "sha256": "e9066ce97571d0b40fe90c1980739751a0bc41171df344875bafe43b131d2485",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-001-2E.png",
+        "sourceFaceSha256": "94f0c87b8794f819c742d02276d345641fe1df54890f11517afebee78c98c716",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "dragon-sorcerer-HtS-Drag-005-2E",
+      "definitionId": "hts.dragon-sorcerer.v2.challenge.sorcerer-challenge",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.dragon-sorcerer.v2.challenge.sorcerer-challenge.webp",
+      "sha256": "94aa8c3e54a3c166992f1639d3f945b3e705fc93be24667331747f9a377b4b1a",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Dragon & Sorcerer/restored-png/HtS-Drag-005-2E.png",
+        "sourceFaceSha256": "9790bd70317330eee6d36a7214d779d5afc44c808b9ae286cc555c019b083e53",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    }
+  ]
+}

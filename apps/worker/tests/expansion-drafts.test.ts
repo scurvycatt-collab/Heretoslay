@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EXPANSION_FACE_DRAFTS, expansionDefinitionsFor } from "../src/content/expansion-drafts.ts";
-import { createSetCatalog, EXPANSION_SET_IDS, GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { createSetCatalog, EXPANSION_SET_IDS } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
 
 const bySet = (key: string) => EXPANSION_FACE_DRAFTS.filter((face) => face.setKey === key);
 
@@ -51,9 +52,10 @@ test("quantities reconcile with the publisher totals and compose with stub bindi
   assert.equal(EXPANSION_FACE_DRAFTS.filter((face) => face.quantityNote).length, 2);
 });
 
-test("drafts stay out of the live registry", () => {
+test("drafts stay out of a base room; every draft is reachable once its pack is selected", () => {
   const base = GAME_SET_CATALOG.compose();
   assert.deepEqual(base.setIds, ["hts.base.v1"]);
   for (const face of EXPANSION_FACE_DRAFTS) assert.equal(base.expansionCard(face.definitionId), undefined);
-  assert.throws(() => GAME_SET_CATALOG.compose([EXPANSION_SET_IDS.warriorsDruids]), /Unsupported expansion/);
+  const all = GAME_SET_CATALOG.compose(Object.values(EXPANSION_SET_IDS));
+  for (const face of EXPANSION_FACE_DRAFTS) assert.ok(all.expansionCard(face.definitionId), face.canonicalName);
 });

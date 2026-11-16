@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createWdModule } from "../src/content/expansion-wd-module.ts";
-import { createSetCatalog, EXPANSION_SET_IDS, GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { createSetCatalog, EXPANSION_SET_IDS } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
 
 test("the WD module loads: every definition has a binding and quantities are consistent", () => {
   const module = createWdModule();
@@ -18,7 +19,7 @@ test("the WD module loads: every definition has a binding and quantities are con
   assert.ok(withWd.expansionCard(module.definitions[0].definitionId));
 });
 
-test("the live catalog still registers no pack", () => {
+test("the live catalog offers WD; a base room stays base-only", () => {
   assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"]);
-  assert.throws(() => GAME_SET_CATALOG.compose([EXPANSION_SET_IDS.warriorsDruids]), /Unsupported expansion/);
+  assert.deepEqual(GAME_SET_CATALOG.compose([EXPANSION_SET_IDS.warriorsDruids]).setIds, ["hts.base.v1", EXPANSION_SET_IDS.warriorsDruids]);
 });

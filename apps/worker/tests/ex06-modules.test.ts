@@ -4,7 +4,8 @@ import test from "node:test";
 import { createBnModule } from "../src/content/expansion-bn-module.ts";
 import { createDsModule } from "../src/content/expansion-ds-module.ts";
 import { createWdModule } from "../src/content/expansion-wd-module.ts";
-import { createSetCatalog, EXPANSION_SET_IDS, GAME_SET_CATALOG } from "../src/content/set-catalog.ts";
+import { createSetCatalog, EXPANSION_SET_IDS } from "../src/content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "../src/content/live-catalog.ts";
 
 for (const [name, make, setId] of [
   ["BN", createBnModule, EXPANSION_SET_IDS.berserkersNecromancers],
@@ -33,8 +34,11 @@ test("all three packs compose together with no duplicate ids", () => {
   assert.equal(all.maxPlayers, Math.min(8, all.leaderPool.length));
 });
 
-test("the live catalog still registers no pack", () => {
+test("the live catalog registers WD, BN and DS (owner decision 2026-11-16); base rooms are unchanged", () => {
   assert.deepEqual(GAME_SET_CATALOG.compose().setIds, ["hts.base.v1"]);
-  assert.throws(() => GAME_SET_CATALOG.compose([EXPANSION_SET_IDS.berserkersNecromancers]), /Unsupported expansion/);
-  assert.throws(() => GAME_SET_CATALOG.compose([EXPANSION_SET_IDS.dragonSorcerer]), /Unsupported expansion/);
+  assert.deepEqual(GAME_SET_CATALOG.expansionSetIds, Object.values(EXPANSION_SET_IDS));
+  const all = GAME_SET_CATALOG.compose(Object.values(EXPANSION_SET_IDS));
+  assert.deepEqual([all.main.length, all.monster.length, all.leaderPool.length], [115 + 31 + 31 + 14, 15 + 2 + 2 + 1, 6 + 2 + 2 + 1]);
+  assert.equal(all.maxPlayers, 8);
+  assert.throws(() => GAME_SET_CATALOG.compose(["hts.monster-expansion.v1"]), /Unsupported expansion/);
 });

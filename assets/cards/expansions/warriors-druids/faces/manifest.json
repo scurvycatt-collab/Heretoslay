@@ -1,0 +1,920 @@
+{
+  "schema": 1,
+  "collection": "Warriors & Druids",
+  "mode": "mapped",
+  "gameplaySupported": true,
+  "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+  "takedownContact": "scurvycatt@gmail.com",
+  "assets": [
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-102",
+      "definitionId": "hts.warriors-druids.v1.party-leader.the-noble-shaman",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.warriors-druids.v1.party-leader.the-noble-shaman.webp",
+      "sha256": "881496173afb7de10b98cb01635e83ea8163eb0d3a361afbdde81f5870469e6c",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-102.png",
+        "sourceFaceSha256": "fa6249243d7ee725aa626a12ab59999fe1068e77f8dff86b7968ebab80341617",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-101",
+      "definitionId": "hts.warriors-druids.v1.party-leader.the-piercing-howl",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.warriors-druids.v1.party-leader.the-piercing-howl.webp",
+      "sha256": "8b6f795cb7d4b528453afb294967996ccaa9cd4dbfa05bd897aeb1b1dca27ba3",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-101.png",
+        "sourceFaceSha256": "4eb240a31ed96828f4ac27aca0726707a97384dd3e4868edfff82fa74f5c20f9",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-202-2",
+      "definitionId": "hts.warriors-druids.v1.monster.feral-dragon",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.warriors-druids.v1.monster.feral-dragon.webp",
+      "sha256": "e2283dcdacfa8fd5d592a7305be1f131d126004d9a9efc04d4ed5655f6b95428",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-202-2.png",
+        "sourceFaceSha256": "a43c4adf65cfe5f2cb617b8e9c79c66e8e4ae8ec9c67ad9ad26df4940d1a2e2f",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-201-2",
+      "definitionId": "hts.warriors-druids.v1.monster.muscipula-rex",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "tarot",
+      "relativePath": "cards/hts.warriors-druids.v1.monster.muscipula-rex.webp",
+      "sha256": "150be004db602a072bad8dd999faa042aceb6d3e9b1b33ae5ff7c116074c52af",
+      "width": 827,
+      "height": 1417,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 827,
+        "height": 1417
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-201-2.png",
+        "sourceFaceSha256": "69a84df4266cd870f3b8b97e578cb335d7c4cbedfbbfce12ba477effbe113638",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-020-2",
+      "definitionId": "hts.warriors-druids.v1.hero.big-buckley",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.big-buckley.webp",
+      "sha256": "9e518ed0e4666dad6a84ea16da5be88ac3bd343a56b8e8b8efca4475f9d549c7",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-020-2.png",
+        "sourceFaceSha256": "42a2e24ae0f6bad10abf35aa8a5e8bd4528e82e73200b96668505837113bc8c1",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-018-2",
+      "definitionId": "hts.warriors-druids.v1.hero.buck-omens",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.buck-omens.webp",
+      "sha256": "eda9661dc3a7db05769e7ea8087d0623e0e90981ff7d9e0c446392bd03ce75ee",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-018-2.png",
+        "sourceFaceSha256": "714952e3ee9a4e63379cb7d6c814f372f35589f1e973d6988a6648395f3f1484",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-017-2",
+      "definitionId": "hts.warriors-druids.v1.hero.doe-fallow",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.doe-fallow.webp",
+      "sha256": "2a549cd22004f8313c9814e6b008295cdacbbe35dbb3ad45c48dd0c38c460a08",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-017-2.png",
+        "sourceFaceSha256": "43c1693004e337970d5a9911d9faee9c50c6141c74ad6f59957aeea4d6237380",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-019-2",
+      "definitionId": "hts.warriors-druids.v1.hero.glowing-antler",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.glowing-antler.webp",
+      "sha256": "d5b7ff6c0834e8687c8d93c0a0ea07b8b9cbdc6af01bd638ba202fa6b3d57b2f",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-019-2.png",
+        "sourceFaceSha256": "294c83021f49c30207b0c01d20686d05aa073ffd234f4c9d03ffc70f3a60509e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-023-2",
+      "definitionId": "hts.warriors-druids.v1.hero.maegisty",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.maegisty.webp",
+      "sha256": "affb807f78720757bbb480893cda8bf25bcc4c11c5a56fc62e177501326fab43",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-023-2.png",
+        "sourceFaceSha256": "e37db06dc6c443ffa90c5d26d9066acdd8cb49b46de563bdce44afc29abbcf6b",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-016-2",
+      "definitionId": "hts.warriors-druids.v1.hero.magus-moose",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.magus-moose.webp",
+      "sha256": "9a95c6432ec0acb4d9dc843911da9f54cb482759464dddeb6b112b4463aefd89",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-016-2.png",
+        "sourceFaceSha256": "d822147ca3a04c07142339f020471012e15ad3ddc6e168d4e60515139c373059",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-022-2",
+      "definitionId": "hts.warriors-druids.v1.hero.majestelk",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.majestelk.webp",
+      "sha256": "ef0585a5141082556544b70140f446acc231f51707717fe5d50864ae2e046495",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-022-2.png",
+        "sourceFaceSha256": "0181d899affd942fb51f8320a0bf81ba4a3aa0b1dbde7eda77d8d5fd8ff3a90e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-021-2",
+      "definitionId": "hts.warriors-druids.v1.hero.stagguard",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.stagguard.webp",
+      "sha256": "044f8a3bd1502d54f98299591c82e36dffd245ea84f0dbfc4a323f39973cc38b",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-021-2.png",
+        "sourceFaceSha256": "df5ced62eb81210e669bb7a5c8820411845505bd0990133f2685bb499d7e053f",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-028-2",
+      "definitionId": "hts.warriors-druids.v1.hero.agile-dagger",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.agile-dagger.webp",
+      "sha256": "899a13741ad08e40107c0fc19d886ffbdd52b80c72cf16cda36c1151cb14ba47",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-028-2.png",
+        "sourceFaceSha256": "97374e5ed51511745bd59eb21aa2305218213954e48d3a994d2cb02e842beed6",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-026-2",
+      "definitionId": "hts.warriors-druids.v1.hero.blinding-blade",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.blinding-blade.webp",
+      "sha256": "26c4fed403a9e073803db931ad96ac28371b6119fb93015c37c21c6232317a1d",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-026-2.png",
+        "sourceFaceSha256": "c38da323e55c54a65526e20a899ef0e4fa3515f2162e9ba57c3ee24e4ed3b081",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-029-2",
+      "definitionId": "hts.warriors-druids.v1.hero.critical-fang",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.critical-fang.webp",
+      "sha256": "a7700edd1be2cf676228fd46299964b196b0bfe6cd8d8106a8a3fad7b470f8b2",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-029-2.png",
+        "sourceFaceSha256": "14c711c180489a23ca2f1622011627d88da6eb128ade1f3666ee95aae18d36de",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-025-2",
+      "definitionId": "hts.warriors-druids.v1.hero.hardened-hunter",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.hardened-hunter.webp",
+      "sha256": "07137038cd48a667165d42096dc3280ed3714469acc33296b2b7ec7ddc3b536a",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-025-2.png",
+        "sourceFaceSha256": "23051e599e2e2961368708b65bdad7a11fc25e5527d773d99c4d27f37722e9e8",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-024-2",
+      "definitionId": "hts.warriors-druids.v1.hero.looting-lupo",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.looting-lupo.webp",
+      "sha256": "7c025e6da941b671d820e9758e1dc57ab9da886dd48f5e42e64d050f218be462",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-024-2.png",
+        "sourceFaceSha256": "1c0970d52fc8d89cde1fb862a0a4c2cd8805aa7b48fb4de3057051546a2d5d1e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-031-2",
+      "definitionId": "hts.warriors-druids.v1.hero.silent-shield",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.silent-shield.webp",
+      "sha256": "14eb775a091c41331fa211f7e6a21b2e90a77bd24614e12e3c234c0384ccfca7",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-031-2.png",
+        "sourceFaceSha256": "749d3412a4ef2c285f3a0017dc75f213c0dfc50cd0f944c0417c459ed43c27d1",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-030-2",
+      "definitionId": "hts.warriors-druids.v1.hero.tenacious-timber",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.tenacious-timber.webp",
+      "sha256": "b3f0d99562b6321ce73841aa999d0822e59d3530c7a072906bc1c6e0535b8a66",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-030-2.png",
+        "sourceFaceSha256": "3d012556c1e2e0473a78c9965a91e9f769c88b13b16216270552716fcc9c6cb6",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-027-2",
+      "definitionId": "hts.warriors-druids.v1.hero.wolfgang-pack",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.hero.wolfgang-pack.webp",
+      "sha256": "c80c6d2255d21c4e624649ebdc8a741dc89f94cf426fb308c747b7763ccc7326",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-027-2.png",
+        "sourceFaceSha256": "11039f66eb3b0912e601bbd269411a0e63fb453b5359f2d76ef4e6648d289e4e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-007-2",
+      "definitionId": "hts.warriors-druids.v1.item.bottomless-bag",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.item.bottomless-bag.webp",
+      "sha256": "a17f9323e2e2e0939b331170dbd779966dca305cb70c8e557a7c3287c831cd6a",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-007-2.png",
+        "sourceFaceSha256": "2f08e9ab42cefd0851ab4194f69211f136264f6f1b3e4c1b9e6b2ef0f9d35131",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-006-2",
+      "definitionId": "hts.warriors-druids.v1.item.druid-mask",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.item.druid-mask.webp",
+      "sha256": "bae99c423d577c6b7bda282dcfdc25bdc7b3797ff637fbcfb53909b156a85cf1",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-006-2.png",
+        "sourceFaceSha256": "1b805dc4958a67fd897331b79cfc6fe87553598007825aee85c93ba75ac6a0b0",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-003-2",
+      "definitionId": "hts.warriors-druids.v1.item.even-bigger-ring",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.item.even-bigger-ring.webp",
+      "sha256": "96df394069e4911317503c41637a905820b355aba77c5471951678dc092f5d09",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-003-2.png",
+        "sourceFaceSha256": "e653088cae21db755d61926a45377cd62fc24375dba15c151528b58dcd151833",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-004-2",
+      "definitionId": "hts.warriors-druids.v1.item.temporal-hourglass",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.item.temporal-hourglass.webp",
+      "sha256": "6618886214dd14bed53ef53051ff0b54f835eda3c1707c06cd537fda052f98a6",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-004-2.png",
+        "sourceFaceSha256": "ad65497bc2babb34db087c63770deb4d91a5d8f2c649a45566995cdb7d40acf4",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-005-2",
+      "definitionId": "hts.warriors-druids.v1.item.warrior-mask",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.item.warrior-mask.webp",
+      "sha256": "52859f6905924e9734ab7277eb400fda240eb2f9dcae69addebbf68493b93ed6",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-005-2.png",
+        "sourceFaceSha256": "ee6e6478e84fa21f4abaf3e38260f148bcdae1a53f19a0fa04ce99ae524e287e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-009-2",
+      "definitionId": "hts.warriors-druids.v1.cursed-item.cursed-glove",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.cursed-item.cursed-glove.webp",
+      "sha256": "8ee28e2424507c59e8e50d1cf95a411b6040bc2985a34529238d4051522fd4db",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-009-2.png",
+        "sourceFaceSha256": "ac5f63b8ea099f4d3af9df2aeae85ee956e0d3e072330281de5dc7c7f2b106a6",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-008-2",
+      "definitionId": "hts.warriors-druids.v1.cursed-item.soul-tether",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.cursed-item.soul-tether.webp",
+      "sha256": "1dd7ea9f1eb651e51d83a55e22de7c1ace22d9f2ef4da406b920dc00e81b5313",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-008-2.png",
+        "sourceFaceSha256": "052dd5757548b3b000abfa12dbc65bb6cee4221f337347b02f7c263507f5bc05",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-012-2",
+      "definitionId": "hts.warriors-druids.v1.modifier.plus1-minus1",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.modifier.plus1-minus1.webp",
+      "sha256": "3732990b5ac43fc0d99c89e9a87de6cc049e48e3a34f5bcea0218f280e7d4aca",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-012-2.png",
+        "sourceFaceSha256": "af0daa347ffa80c24d0cc76eccdcc4d3bd0cfc2aa49353dad05ba17da5f37b41",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-013-2",
+      "definitionId": "hts.warriors-druids.v1.modifier.plus2-minus1",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.modifier.plus2-minus1.webp",
+      "sha256": "9c127eb28b81ba3506e1e059eac75dc9299bda9973d40a6b8fb2530ea2942b87",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-013-2.png",
+        "sourceFaceSha256": "9280ab14d4cfd5e1d02b3b76d0805a504fc1e1d982c297825078e677ae3f97de",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-010-2",
+      "definitionId": "hts.warriors-druids.v1.modifier.plus4",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.modifier.plus4.webp",
+      "sha256": "688afa3abaac3718312dd06844bc332c84c0d1e3e1d1bf98383b450d7423278f",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-010-2.png",
+        "sourceFaceSha256": "037670ab2e8125b90e16e99f61efe27a6dc6d42144c1362382931e9a1b137770",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-011-2",
+      "definitionId": "hts.warriors-druids.v1.modifier.minus4",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.modifier.minus4.webp",
+      "sha256": "1e94a9a2cec56cf04c32f6d09000bfc9ea306b1cb72bb31db5f21bb1a395b9fa",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-011-2.png",
+        "sourceFaceSha256": "9c8c7447a37dba0af506011fa809dd2498daefea779bf29054f5e9e93ac569ea",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-002-2",
+      "definitionId": "hts.warriors-druids.v1.magic.beast-call",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.magic.beast-call.webp",
+      "sha256": "336d07f9ef69aa138e3fe8cac60eaf17c6ef0449bcd174d8824bca9f2adbb304",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-002-2.png",
+        "sourceFaceSha256": "cb2598ef30810441a432a8703862c3beb02722d3e4ba5a82c79f79dc689290ff",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-001-2",
+      "definitionId": "hts.warriors-druids.v1.magic.rapid-refresh",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.magic.rapid-refresh.webp",
+      "sha256": "5556194f87cc00960ab3ed334ae1e7bee3cde168683f831c6a4a53cadd357063",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-001-2.png",
+        "sourceFaceSha256": "d772088b4fee313d65f0b57b9ff75011ad1b20d74ca51df6516a8477646576ec",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-015-2",
+      "definitionId": "hts.warriors-druids.v1.challenge.druid-challenge",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.challenge.druid-challenge.webp",
+      "sha256": "68b68c3c7710425326594a9cd48f740ca689784b3d74d4dbdbf516ac3083b7f8",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-015-2.png",
+        "sourceFaceSha256": "75ed5533ac9c4c8e51a5617be824a23dbbf0b4f8034dcf57db580ee8c52346c3",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    },
+    {
+      "candidateId": "warriors-druids-HtS-WarDruid-014-2",
+      "definitionId": "hts.warriors-druids.v1.challenge.warrior-challenge",
+      "variant": "default",
+      "inputType": "complete_card_front",
+      "renderMode": "complete_face",
+      "template": "poker",
+      "relativePath": "cards/hts.warriors-druids.v1.challenge.warrior-challenge.webp",
+      "sha256": "ac14c226481ba10bbf56e44d3454c3c7c44b783256231a4bfb30a93c3bee0719",
+      "width": 745,
+      "height": 1040,
+      "contentRect": {
+        "x": 0,
+        "y": 0,
+        "width": 745,
+        "height": 1040
+      },
+      "provenance": {
+        "origin": "Owner folder · Expansion/Warrior & Druid/restored-png/HtS-WarDruid-014-2.png",
+        "sourceFaceSha256": "c987317fcbc9ad2b4db18538878ff691512eb22b05f8590e47d5774f276e0d1e",
+        "note": "Owner-restored copy of the reviewed source face (generative watermark removal); rules come from card data, not from this image.",
+        "rightsStatus": "FAN_MADE_NON_COMMERCIAL"
+      },
+      "rightsStatus": "FAN_MADE_NON_COMMERCIAL",
+      "format": "webp"
+    }
+  ]
+}

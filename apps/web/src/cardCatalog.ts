@@ -3,15 +3,22 @@
 // computes game state; the server snapshot stays authoritative.
 import type { AnyHeroClass, BaseCardKind, CardData, CardDataFile, ExpansionHeroClass, HeroClass } from "@here-to-slay/protocol";
 import cardFile from "../../worker/src/content/base-cards.json";
+import { WD_CARD_DATA } from "../../worker/src/content/expansion-wd.ts";
+import { BN_CARD_DATA } from "../../worker/src/content/expansion-bn.ts";
+import { DS_CARD_DATA } from "../../worker/src/content/expansion-ds.ts";
+import { CLASS_LOGO_COLOR } from "./classGlyphs";
 import templateSpec from "../../../docs/contracts/CARD_TEMPLATE_SPEC.json";
 
 const data = cardFile as unknown as CardDataFile;
-const byId = new Map<string, CardData>(data.cards.map((card) => [card.definitionId, card]));
+// Expansion card facts (WD / BN / DS) come from the same modules the engine reads, so faces, names and
+// rules text on the table can never drift from what the server resolves.
+export const EXPANSION_CARD_DATA: readonly CardData[] = [...WD_CARD_DATA, ...BN_CARD_DATA, ...DS_CARD_DATA];
+const byId = new Map<string, CardData>([...data.cards, ...EXPANSION_CARD_DATA].map((card) => [card.definitionId, card]));
 
 export const cardData = (definitionId: string): CardData | undefined => byId.get(definitionId);
 
 export const HERO_CLASSES: readonly HeroClass[] = ["bard", "fighter", "guardian", "ranger", "thief", "wizard"];
-/** Classes added by expansion packs (E01). Icons and colours are in-house placeholders, not card art. */
+/** Classes added by expansion packs (E01). Symbols and colours come from the owner's class-logo export (classGlyphs.ts). */
 export const EXPANSION_CLASSES: readonly ExpansionHeroClass[] = ["warrior", "druid", "berserker", "necromancer", "sorcerer"];
 export const ALL_CLASSES: readonly AnyHeroClass[] = [...HERO_CLASSES, ...EXPANSION_CLASSES];
 export const webClass = (c: string | null | undefined): AnyHeroClass | undefined => (ALL_CLASSES.includes(c as AnyHeroClass) ? (c as AnyHeroClass) : undefined);
@@ -30,11 +37,11 @@ export const CLASS_COLOR: Record<AnyHeroClass | "none", string> = {
   ranger: rgb(colors.classes.ranger),
   thief: rgb(colors.classes.thief),
   wizard: rgb(colors.classes.wizard),
-  warrior: "rgb(176 84 42)",
-  druid: "rgb(63 143 79)",
-  berserker: "rgb(163 32 45)",
-  necromancer: "rgb(91 58 138)",
-  sorcerer: "rgb(42 111 176)",
+  warrior: CLASS_LOGO_COLOR.warrior,
+  druid: CLASS_LOGO_COLOR.druid,
+  berserker: CLASS_LOGO_COLOR.berserker,
+  necromancer: CLASS_LOGO_COLOR.necromancer,
+  sorcerer: CLASS_LOGO_COLOR.sorcerer,
 };
 
 export const PALETTE = {

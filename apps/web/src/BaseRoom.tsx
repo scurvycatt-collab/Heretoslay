@@ -1299,10 +1299,10 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
               )}
             </div>
           ))}
-          {host && state.players.length < 6 && (
+          {host && state.players.length < maxSeats && (
             <button className="t3-lobby-add" disabled={pending} onClick={() => send("ADD_BOT", {})}>+ ADD BOT</button>
           )}
-          {Array.from({ length: Math.max(0, 6 - state.players.length - (host ? 1 : 0)) }, (_, i) => <div key={`e${i}`} className="t3-lobby-seat is-empty">open seat</div>)}
+          {Array.from({ length: Math.max(0, maxSeats - state.players.length - (host ? 1 : 0)) }, (_, i) => <div key={`e${i}`} className="t3-lobby-seat is-empty">open seat</div>)}
         </aside>
 
         <div className="t3-lobby-leaders">

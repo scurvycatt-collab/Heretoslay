@@ -152,3 +152,10 @@
     font-size: 12px;
   }
 }
+
+.lobby-panel .expansion-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.8;
+}

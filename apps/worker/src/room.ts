@@ -1,4 +1,4 @@
-import { GAME_SET_CATALOG } from "./content/set-catalog.ts";
+import { GAME_SET_CATALOG } from "./content/live-catalog.ts";
 import {
   BASE_SET_ID,
   EFFECT_DEMO_LABEL,

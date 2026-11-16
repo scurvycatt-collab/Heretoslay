@@ -1,5 +1,6 @@
 // In-house geometric glyphs (no third-party icon art, ADR-003).
 import type { AnyHeroClass } from "@here-to-slay/protocol";
+import { CLASS_GLYPHS } from "./classGlyphs";
 
 export type GlyphName = AnyHeroClass | "none" | "item" | "cursed" | "magic" | "modifier" | "challenge" | "monster" | "leader" | "any";
 
@@ -45,10 +46,22 @@ const PATHS: Record<GlyphName, string> = {
 };
 
 export function Glyph({ name, title, className }: { name: GlyphName; title?: string; className?: string }) {
+  // Class symbols use the owner's vector logos; the PATHS entries for classes are the fallback only.
+  if (Object.hasOwn(CLASS_GLYPHS, name)) return <ClassGlyph name={name as AnyHeroClass} title={title} className={className} />;
   return (
     <svg className={className ?? "glyph"} viewBox="0 0 24 24" aria-hidden={title ? undefined : true} role={title ? "img" : undefined}>
       {title && <title>{title}</title>}
       <path d={PATHS[name]} fill="currentColor" />
+    </svg>
+  );
+}
+
+function ClassGlyph({ name, title, className }: { name: AnyHeroClass; title?: string; className?: string }) {
+  const glyph = CLASS_GLYPHS[name];
+  return (
+    <svg className={className ?? "glyph"} viewBox={glyph.viewBox} aria-hidden={title ? undefined : true} role={title ? "img" : undefined}>
+      {title && <title>{title}</title>}
+      <path d={glyph.d} fill="currentColor" />
     </svg>
   );
 }

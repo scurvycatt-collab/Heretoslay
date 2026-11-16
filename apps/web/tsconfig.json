@@ -4,6 +4,7 @@
     "jsx": "react-jsx",
     "types": ["vite/client"],
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true
   },
   "include": ["src", "vite.config.ts"]

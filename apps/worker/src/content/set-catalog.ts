@@ -33,7 +33,7 @@ export interface ExpansionDefinition {
 }
 
 /**
- * The engine supplies Rules and dispatches those bindings. Register a pack only
+ * The engine supplies Rules and dispatches those bindings. Register a pack (live-catalog.ts) only
  * once all of its definitions, verified quantities and handlers are complete.
  */
 export interface ExpansionModule<Rules extends object> {
@@ -188,6 +188,3 @@ export function createSetCatalog<Rules extends object>(modules: readonly Expansi
 }
 
 export type SetCatalog = ReturnType<typeof createSetCatalog<object>>;
-
-// Expansion IDs are known, but the live worker registers only verified content.
-export const GAME_SET_CATALOG = createSetCatalog([]);
