@@ -100,8 +100,10 @@ test("the host can start a clean game from game over without replacing the room"
 test("each table name tag shows the authoritative hand count beside the player name", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
-  assert.match(room, /className="t3-hand-count" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 \{player\.handCount\}/);
-  assert.match(css, /\.t3-hand-count \{ flex: 0 0 auto;/);
+  // Layout v2: the count sits in the seat head (opponents) and in the own-seat counters.
+  assert.match(room, /className="t3-cseat-hand" title="Cards in hand" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 \{player\.handCount\}/);
+  assert.match(room, /<span title="Cards in hand" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 <b>\{player\.handCount\}<\/b><\/span>/);
+  assert.match(css, /\.t3-cseat-hand \{ flex: none;/);
 });
 
 test("playing a Hero is disabled when the Party already has 6 Heroes", async () => {

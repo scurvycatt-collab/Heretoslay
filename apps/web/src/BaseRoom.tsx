@@ -391,7 +391,7 @@ function MyPanelHead({ player, game }: { player: Player; game: Game }) {
           <span className="t3-me-stats">
             <span title="Distinct classes in your Party (Leader included)">CLASS <b>{have}/{game.classGoal}</b></span>
             <span title="Heroes in your Party">PARTY <b>{player.party.length}/{game.partyLimit}</b></span>
-            <span title="Cards in hand">🃏 <b>{player.handCount}</b></span>
+            <span title="Cards in hand" aria-label={`${player.handCount} cards in hand`}>🃏 <b>{player.handCount}</b></span>
             <span className="t3-cseat-slain" role="img" aria-label={`Slain Monsters ${player.slainMonsters.length}/3`} title={`Slain Monsters ${player.slainMonsters.length}/3`}>
               {[0, 1, 2].map((i) => <span key={i} className={i < player.slainMonsters.length ? "is-on" : ""} />)}
             </span>
@@ -430,7 +430,7 @@ function CompactSeat({ player, game, selected, onOpen }: { player: Player; game:
           <Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} />
         </span>
         <span className="t3-cseat-name">{player.isBot ? "🤖 " : ""}{player.nickname}{player.isHost ? " ★" : ""}</span>
-        <span className="t3-cseat-hand" title="Cards in hand">🃏 {player.handCount}</span>
+        <span className="t3-cseat-hand" title="Cards in hand" aria-label={`${player.handCount} cards in hand`}>🃏 {player.handCount}</span>
       </span>
       <span className="t3-cseat-classes">
         <span className="t3-cseat-bar">
