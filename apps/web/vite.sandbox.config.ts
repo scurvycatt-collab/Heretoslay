@@ -7,5 +7,9 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   define: { "import.meta.env.VITE_SANDBOX": JSON.stringify("1") },
-  build: { outDir: "dist-sandbox", emptyOutDir: true, assetsInlineLimit: 0, chunkSizeWarningLimit: 4000 },
+  build: {
+    outDir: "dist-sandbox", emptyOutDir: true, assetsInlineLimit: 0, chunkSizeWarningLimit: 4000,
+    // Short names: the folder is published file by file.
+    rollupOptions: { output: { assetFileNames: "a/[hash:7][extname]", chunkFileNames: "a/[hash:7].js", entryFileNames: "a/[hash:7].js" } },
+  },
 });
