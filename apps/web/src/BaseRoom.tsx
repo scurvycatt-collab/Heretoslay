@@ -3,11 +3,12 @@
 // full-screen reaction stage. Everything shown comes from the server snapshot
 // (+ static card data by definitionId); the client only sends commands and never
 // computes game state. Command kinds/payloads are unchanged from UI-001/002.
-import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, AnyHeroClass, TargetRule } from "@here-to-slay/protocol";
 import { CardRenderer, InspectContext, type CardLike, type InspectFn } from "./CardRenderer";
 import { ClassMark, Glyph } from "./ClassIcon";
 import { useCardFlights, useLossPulse } from "./cardFlights";
+import { centreY, handSpans, seatLayout } from "./tableLayout";
 import { CLASS_COLOR, HERO_CLASSES, cardData, leaderDisplayName, titleCase, webClass } from "./cardCatalog";
 import "./base-room.css";
 
@@ -384,19 +385,16 @@ function MyPanelHead({ player, game }: { player: Player; game: Game }) {
             <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-leader-card" inspect={false} />
           </span>
         )}
-        <div className="t3-me-id">
-          <button type="button" className="t3-me-name" onClick={() => hover.openSeat(player.playerId)} aria-label={`${player.nickname}: open Party details`}>
-            <span className="t3-cseat-face" style={{ background: leaderColor(player) }}><Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} /></span>
-            <span className="t3-player-name">{player.nickname} (you){player.isHost ? " ★" : ""}</span>
-          </button>
-          <span className="t3-me-stats">
-            <span title="Distinct classes in your Party (Leader included)">CLASS <b>{have}/{game.classGoal}</b></span>
-            <span title="Heroes in your Party">PARTY <b>{player.party.length}/{game.partyLimit}</b></span>
-            <span title="Cards in hand" aria-label={`${player.handCount} cards in hand`}>🃏 <b>{player.handCount}</b></span>
-            <span className="t3-cseat-slain" role="img" aria-label={`Slain Monsters ${player.slainMonsters.length}/3`} title={`Slain Monsters ${player.slainMonsters.length}/3`}>
-              {[0, 1, 2].map((i) => <span key={i} className={i < player.slainMonsters.length ? "is-on" : ""} />)}
-            </span>
-          </span>
+        <button type="button" className="t3-me-name" onClick={() => hover.openSeat(player.playerId)} aria-label={`${player.nickname}: open Party details`}>
+          <span className="t3-player-name">{player.nickname} (you){player.isHost ? " ★" : ""}</span>
+        </button>
+        <div className="t3-me-slain" role="group" aria-label={`Slain Monsters ${player.slainMonsters.length}/3`}>
+          {[0, 1, 2].map((i) => {
+            const monster = player.slainMonsters[i];
+            return monster
+              ? <CardRenderer key={monster.cardId} card={monster} variant="art" size="xs" className="t3-token" />
+              : <span key={i} className="t3-me-slain-free" aria-hidden>☠</span>;
+          })}
         </div>
       </div>
       <div className="t3-me-classes" aria-label={`Classes ${have}/${game.classGoal}`}>
@@ -419,6 +417,7 @@ function CompactSeat({ player, game, selected, onOpen }: { player: Player; game:
   const progress = classProgress(player, game);
   const have = progress.filter(Boolean).length;
   const hit = useLossPulse(player.party.length);
+  const hover = useContext(TableHoverContext);
   return (
     <button
       type="button"
@@ -427,10 +426,13 @@ function CompactSeat({ player, game, selected, onOpen }: { player: Player; game:
       aria-label={`${player.nickname}: ${have}/${game.classGoal} classes, ${player.party.length}/${game.partyLimit} Heroes, ${player.slainMonsters.length}/3 Monsters, ${player.handCount} cards in hand — open Party details`}
       aria-expanded={selected}
     >
+      <span className="t3-cseat-leader t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
+        {player.leaderId
+          ? <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-leader-card" inspect={false} />
+          : <span className="t3-cseat-face" style={{ background: leaderColor(player) }}><Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} /></span>}
+      </span>
+      <span className="t3-cseat-body">
       <span className="t3-cseat-head">
-        <span className="t3-cseat-face" style={{ background: leaderColor(player) }}>
-          <Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} />
-        </span>
         <span className="t3-cseat-name">{player.isBot ? "🤖 " : ""}{player.nickname}{player.isHost ? " ★" : ""}</span>
         <span className="t3-cseat-hand" title="Cards in hand" aria-label={`${player.handCount} cards in hand`}>🃏 {player.handCount}</span>
       </span>
@@ -453,6 +455,7 @@ function CompactSeat({ player, game, selected, onOpen }: { player: Player; game:
         </span>
       </span>
       {player.protections.length > 0 && <span className="t3-cseat-protect">{player.protections.map((p) => PROTECTION_LABEL[p].toUpperCase()).join(" · ")}</span>}
+      </span>
     </button>
   );
 }
@@ -467,10 +470,32 @@ function SeatDetail({ player, game, me, onClose }: { player: Player; game: Game;
   const order = (game.enabledClasses?.length ? game.enabledClasses : [...HERO_CLASSES]).map(webClass).filter((c): c is AnyHeroClass => Boolean(c));
   const have = Math.min(player.partyClasses.length, game.classGoal);
   const isTurn = player.playerId === game.currentPlayerId;
+  // Heroes fill the whole Party area: the largest card width at which every Hero still fits.
+  const partyRef = useRef<HTMLDivElement>(null);
+  const heroes = player.party.length;
+  useLayoutEffect(() => {
+    const box = partyRef.current;
+    if (!box) return;
+    const fit = () => {
+      const gap = 12;
+      let best = 56;
+      for (let cols = 1; cols <= Math.max(1, heroes); cols += 1) {
+        const rows = Math.ceil(heroes / cols);
+        best = Math.max(best, Math.min((box.clientWidth - gap * (cols - 1)) / cols - 18, (box.clientHeight - gap * (rows - 1)) / rows / 1.4));
+      }
+      box.style.setProperty("--cw", `${Math.floor(Math.min(best, 240))}px`);
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [heroes]);
   return (
     <aside className="t3-detail" role="dialog" aria-label={`${player.nickname}'s Party`}>
       <header className="t3-detail-head">
-        <span className="t3-cseat-face" style={{ background: leaderColor(player) }}><Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} /></span>
+        {player.leaderId
+          ? <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-detail-leader" />
+          : <span className="t3-cseat-face" style={{ background: leaderColor(player) }}><Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} /></span>}
         <span className="t3-detail-who">
           <b>{player.nickname}{player.playerId === me ? " (you)" : ""}{isTurn && <em>TURN</em>}</b>
           <small>{player.leaderId ? leaderDisplayName(player.leaderId) : "No Leader"} · 🃏 {player.handCount} in hand</small>
@@ -486,41 +511,32 @@ function SeatDetail({ player, game, me, onClose }: { player: Player; game: Game;
           })}
         </div>
       </section>
-      <section>
+      <section className="t3-detail-fill">
         <h3>PARTY {player.party.length}/{game.partyLimit}</h3>
-        <div className="t3-detail-party">
-          {player.leaderId && <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} size="sm" />}
+        <div className="t3-detail-party" ref={partyRef}>
           {player.party.map((entry) => (
-            <div key={entry.hero.cardId} className="t3-detail-hero">
+            <div key={entry.hero.cardId} className={`t3-detail-hero has-${entry.attachments.length}`}>
+              {entry.attachments.map((item) => <span key={item.cardId} className="t3-detail-item"><CardRenderer card={item} size="sm" /></span>)}
               <CardRenderer card={entry.hero} classes={entry.classes} equipped={Boolean(entry.item)} size="sm" />
-              {entry.attachments.map((item) => <CardRenderer key={item.cardId} card={item} size="sm" className="t3-detail-item" />)}
             </div>
           ))}
-          {Array.from({ length: Math.max(0, game.partyLimit - player.party.length) }, (_, i) => <span key={`free-${i}`} className="t3-detail-free" aria-hidden />)}
-        </div>
-      </section>
-      <section>
-        <h3>SLAIN MONSTERS {player.slainMonsters.length}/3</h3>
-        <div className="t3-detail-party">
-          {player.slainMonsters.map((m) => <CardRenderer key={m.cardId} card={m} size="sm" />)}
-          {player.slainMonsters.length === 0 && <span className="t3-muted">None yet</span>}
+          {player.party.length === 0 && <span className="t3-muted">No Heroes yet</span>}
         </div>
       </section>
       {player.protections.length > 0 && <p className="t3-detail-protect">{player.protections.map((p) => PROTECTION_LABEL[p]).join(" · ")}</p>}
-      <p className="t3-detail-hint">Hover a card for 2s or right-click to enlarge · <kbd>Esc</kbd> closes</p>
+      <section>
+        <h3>SLAIN MONSTERS {player.slainMonsters.length}/3</h3>
+        <div className="t3-detail-slain">
+          {[0, 1, 2].map((i) => {
+            const monster = player.slainMonsters[i];
+            return monster ? <CardRenderer key={monster.cardId} card={monster} size="sm" /> : <span key={i} className="t3-detail-free" aria-hidden>☠</span>;
+          })}
+        </div>
+      </section>
     </aside>
   );
 }
 
-/** Seat centres on an ellipse over the top of the table, left → right in turn order after you (display only). */
-function ellipseSeats(count: number): Array<{ x: number; y: number }> {
-  const span = count <= 1 ? 0 : count === 2 ? 70 : count === 3 ? 120 : count === 4 ? 156 : 180;
-  return Array.from({ length: count }, (_, i) => {
-    const deg = count <= 1 ? 270 : 270 - span / 2 + (span * i) / (count - 1);
-    const a = (deg * Math.PI) / 180;
-    return { x: Math.round((50 + 41 * Math.cos(a)) * 10) / 10, y: Math.round((47 + 33 * Math.sin(a)) * 10) / 10 };
-  });
-}
 
 /* ------------------------------------------------------------- reaction UI */
 
@@ -959,7 +975,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     }
   } else {
     const toggle = (id: string) => setPicked((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]));
-    const range = chain.kind !== "confirm" ? ` · pick ${chain.min === chain.max ? chain.max : `${chain.min}–${chain.max}`}` : "";
+    const pickCount = chain.min === chain.max ? `${chain.max}` : `${chain.min}–${chain.max}`;
     tone = "choice";
     headline = `${name(chain.playerId)}: ${chain.prompt}`;
     kicker = chain.kind === "order_top" ? "ORDER THE CARDS" : chain.kind === "view_hand" ? "LOOK AT HAND" : chain.kind === "confirm" ? "CONFIRM" : "CHOOSE";
@@ -969,7 +985,7 @@ function ReactionStage({ state, send, pending, serverNow, askTargets }: { state:
     ) : chain.kind === "confirm" ? null : chain.options ? (
       <div className="t3-choice">
         <p className="t3-muted">
-          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Click cards to select${range}.`} Timeout = skip. Hover a card for 2s or right-click for full text.
+          {chain.kind === "order_top" ? "Click in order — #1 goes on top." : `Pick ${pickCount} ${chain.max === 1 ? "card" : "cards"}.`} Hover 2s or right-click for full text.
           {chain.kind === "play_card" && <> You will choose targets after confirming.</>}
         </p>
         <div className="t3-choice-row">
@@ -1403,8 +1419,45 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const rotated = myIndex >= 0 ? [...order.slice(myIndex + 1), ...order.slice(0, myIndex)] : order.filter((id) => id !== me);
   const opponents = rotated.map((id) => state.players.find((p) => p.playerId === id)).filter((p): p is Player => Boolean(p));
   for (const p of state.players) if (p.playerId !== me && !opponents.includes(p)) opponents.push(p);
-  // Every table size: opponents are compact seats on an ellipse; Party details open in a drawer.
-  const ellipse = ellipseSeats(opponents.length);
+  // Table layout v3: seats, the deck row and the hand are placed from the real table size (tableLayout.ts).
+  const feltRef = useRef<HTMLElement>(null);
+  const [metrics, setMetrics] = useState({ width: 1280, height: 720, bannerTop: 460, bannerRight: 420, railLeft: 1200, rowHalfWidth: 300, rowHeight: 160, handTop: 560, card: 150 });
+  useLayoutEffect(() => {
+    const felt = feltRef.current;
+    if (!felt) return;
+    const measure = () => {
+      const base = felt.getBoundingClientRect();
+      const banner = felt.querySelector(".t3-me")?.getBoundingClientRect();
+      const rail = felt.querySelector(".t3-turn-actions")?.getBoundingClientRect();
+      const row = felt.querySelector(".t3-center")?.getBoundingClientRect();
+      const card = felt.querySelector(".t3-hand .tcard")?.getBoundingClientRect();
+      const hand = felt.querySelector(".t3-hand")?.getBoundingClientRect();
+      const next = {
+        width: Math.round(base.width), height: Math.round(base.height),
+        bannerTop: Math.round(banner ? banner.top - base.top : base.height * 0.64),
+        bannerRight: Math.round(banner ? banner.right - base.left : base.width * 0.3),
+        railLeft: Math.round(rail ? rail.left - base.left : base.width - 70),
+        // The deck hangs outside the row box on the left, so the row is measured from its farthest piece.
+        rowHalfWidth: Math.round(row ? Math.max(...[row, ...[...felt.querySelectorAll(".t3-center *")].map((el) => el.getBoundingClientRect())].flatMap((r) => [base.left + base.width / 2 - r.left, r.right - base.left - base.width / 2])) : 300),
+        rowHeight: Math.round(row ? row.height : 160),
+        handTop: Math.round(hand ? hand.top - base.top : base.height * 0.72),
+        card: Math.round(card ? card.width : 150),
+      };
+      setMetrics((current) => (Object.keys(next) as Array<keyof typeof next>).every((key) => Math.abs(current[key] - next[key]) < 2) ? current : next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(felt);
+    for (const selector of [".t3-me", ".t3-turn-actions", ".t3-center"]) { const el = felt.querySelector(selector); if (el) observer.observe(el); }
+    return () => observer.disconnect();
+  }, [playing, opponents.length, state.yourHand.length > 0]);
+  const seatFloor = metrics.bannerTop - 14;
+  const row = { halfWidth: metrics.rowHalfWidth, height: metrics.rowHeight, floor: metrics.handTop - 10 };
+  const seats = seatLayout(opponents.length, metrics.width, seatFloor, row);
+  const tableVars = {
+    "--centre-y": `${Math.round(centreY(seats, metrics.width, metrics.height, row))}px`,
+    ...(() => { const fan = handSpans(state.yourHand.length, metrics.card, metrics.bannerRight, metrics.railLeft); return { "--hand-x": `${Math.round(fan.centre)}px`, "--hand-idle": `${Math.round(fan.idle)}px`, "--hand-open": `${Math.round(fan.open)}px` }; })(),
+  } as CSSProperties;
   const detailPlayer = detailFor ? state.players.find((p) => p.playerId === detailFor) : undefined;
   const railPlayers = order.map((id) => state.players.find((p) => p.playerId === id)).filter((p): p is Player => Boolean(p));
   const currentName = state.players.find((p) => p.playerId === game.currentPlayerId)?.nickname;
@@ -1473,7 +1526,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
             </nav>
 
-            <section className={`t3-felt t3-felt--p${opponents.length + 1} is-compact`} aria-label="Base game table">
+            <section ref={feltRef} style={tableVars} className={`t3-felt t3-felt--p${opponents.length + 1} is-compact`} aria-label="Base game table">
               <button className="t3-corner t3-corner--menu" onClick={() => setPanel("menu")} aria-label="Menu">≡</button>
               <div className="t3-corner t3-corner--status" aria-label="Turn status">
                 {chain ? <span className="t3-status-timer">⧗ {Math.max(0, Math.ceil((chain.deadlineAt - serverNow) / 1000))}s</span> : null}
@@ -1485,7 +1538,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
 
               {opponents.map((player, i) => (
-                <div key={player.playerId} data-seat-id={player.playerId} className="t3-seat t3-seat--ellipse" style={{ "--x": `${ellipse[i].x}%`, "--y": `${ellipse[i].y}%` } as CSSProperties} aria-label={`${player.nickname}'s party`}>
+                <div key={player.playerId} data-seat-id={player.playerId} className="t3-seat t3-seat--ellipse" style={{ "--x": `${Math.round(seats[i].x)}px`, "--y": `${Math.round(seats[i].y)}px`, "--k": seats[i].scale } as CSSProperties} aria-label={`${player.nickname}'s party`}>
                   <CompactSeat player={player} game={game} selected={detailFor === player.playerId} onOpen={() => tableHover.openSeat(player.playerId)} />
                 </div>
               ))}
@@ -1575,8 +1628,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                   <>
                     {game.turnDeadlineAt ? (
                       <div className={`t3-turnbar${turnLeft <= 10 ? " is-urgent" : ""}`} role="timer" aria-label={`${turnLeft} seconds left in your turn`}>
-                        <span className="t3-turnbar-fill" style={{ transform: `scaleX(${turnFraction})` }} />
-                        <b>YOUR TURN · {turnLeft}s</b>
+                        <span className="t3-turnbar-fill" style={{ "--f": turnFraction } as CSSProperties} />
+                        <b><span className="t3-turnbar-label">YOUR TURN · </span>{turnLeft}s</b>
                       </div>
                     ) : null}
                     {mySeat?.leaderId === "hts.base.v1.party-leader.the-shadow-claw" && (

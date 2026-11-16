@@ -1176,3 +1176,89 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 @media (prefers-reduced-motion: reduce) {
   .t3-cseat-party span.is-on, .t3-cseat-bar span.is-on, .t3-cseat-slain span.is-on, .t3-me-classes span.is-on, .t3-cseat.is-hit, .t3-felt .t3-seat--me.t3-me.is-hit { animation: none; }
 }
+
+/* =====================================================================
+   Table layout v3 (owner 2026-11-16, prototype docs/ui/prototypes/table-v3.html).
+   Geometry comes from tableLayout.ts through --x/--y/--k, --centre-y and --hand-*.
+   ===================================================================== */
+.t3-turnbar-fill { transform: scaleX(var(--f, 1)); }
+:root { --r3: 12px; }
+
+/* Softer corners everywhere (cards keep their own radius). */
+.t3-cseat, .t3-felt .t3-seat--me.t3-me, .t3-detail, .t3-btn, .t3-act, .t3-chip, .t3-icon-btn, .t3-turnbar, .t3-toast, .t3-waiting,
+.t3-corner, .t3-party-free, .t3-detail-free, .t3-me-slain-free, .t3-target-bar, .t3-panel, .t3-modal, .t3-stage-card, .t3-roster, .t3-lobby-card,
+.t3-status-timer, .t3-turn-clock, .t3-hand-actions .t3-chip { border-radius: var(--r3); }
+.t3-cseat-bar span { border-radius: 3px; }
+.t3-cseat-party span { border-radius: 4px; }
+.t3-cseat-slain span { border-radius: 2px; }
+.t3-felt { border-radius: 28px; }
+
+/* Opponent banners: Leader picture on the left, roomier rows. */
+.t3-seat--ellipse { transform: translate(-50%, -50%) scale(var(--k, 1)); }
+.t3-cseat { width: 262px; min-height: 100px; flex-direction: row; align-items: center; gap: 9px; padding: 8px 10px 8px 8px; }
+.t3-cseat-leader { flex: none; display: flex; }
+.t3-cseat-leader .tcard { --w: 56px !important; border-radius: 9px; }
+.t3-cseat-leader .t3-cseat-face { width: 56px; height: 70px; border-radius: 9px; }
+.t3-cseat-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.t3-cseat-party span { flex: 0 0 14px; }
+
+/* Your banner: no counters; slain Monsters as small cards; round class chips. */
+.t3-me-head { width: 100%; }
+.t3-me-slain { display: flex; gap: 6px; margin-left: auto; padding-left: 14px; }
+.t3-me-slain .tcard { --w: clamp(40px, 3.6cqw, 58px) !important; }
+.t3-me-slain-free { display: grid; place-items: center; width: clamp(40px, 3.6cqw, 58px); aspect-ratio: 4 / 5; box-sizing: border-box; border: 2px dashed #9aa5ae; color: #9aa5ae; font-size: 15px; }
+.t3-me-classes span, .t3-detail-classes span { border-radius: 50%; }
+.t3-me-name { max-width: 20cqw; }
+
+/* Items sit behind their Hero with one corner showing; hovering the Hero fans them out to the right. */
+.t3-felt .t3-me .t3-hero { transition: margin-right 0.22s ease; }
+.t3-felt .t3-me .t3-hero > .tcard:first-child { position: relative; z-index: 2; }
+.t3-felt .t3-me .t3-hero .t3-token--item { --w: var(--tok) !important; top: 0; left: 0; right: auto; bottom: auto; z-index: 1; transform: translate(9px, -7px) rotate(5deg); transition: transform 0.22s ease; }
+.t3-felt .t3-me .t3-hero .t3-token--item2 { left: 0 !important; transform: translate(17px, -12px) rotate(10deg); }
+.t3-felt .t3-me .t3-hero.has-item { margin-right: 10px; }
+.t3-felt .t3-me .t3-hero:hover { z-index: 6; }
+.t3-felt .t3-me .t3-hero:hover .t3-token--item { transform: translate(calc(100% + 5px), 0); }
+.t3-felt .t3-me .t3-hero:hover .t3-token--item2 { transform: translate(calc(200% + 10px), 0); }
+
+/* Party drawer: Heroes take all the room, slain Monsters are a small row at the very bottom. */
+.t3-detail { gap: 10px; padding-bottom: 12px; border-radius: 18px; }
+.t3-detail-leader { --w: 64px !important; flex: none; }
+.t3-detail-fill { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.t3-detail-fill .t3-detail-party { flex: 1; min-height: 0; align-content: center; justify-content: center; align-items: center; gap: 12px; }
+.t3-detail-party .tcard { --w: var(--cw, 120px) !important; }
+.t3-detail-hero { transition: margin-right 0.22s ease; }
+.t3-detail-hero > .tcard { position: relative; z-index: 2; }
+.t3-detail-item { position: absolute; top: 0; left: 0; z-index: 1; margin: 0; transition: transform 0.22s ease; }
+.t3-detail-item:nth-of-type(1) { transform: translate(10px, -8px) rotate(5deg); }
+.t3-detail-item:nth-of-type(2) { transform: translate(19px, -14px) rotate(10deg); }
+.t3-detail-hero.has-1 { margin-right: 10px; }
+.t3-detail-hero.has-2 { margin-right: 18px; }
+.t3-detail-hero:hover { z-index: 6; }
+.t3-detail-hero:hover .t3-detail-item:nth-of-type(1) { transform: translate(calc(100% + 6px), 0); }
+.t3-detail-hero:hover .t3-detail-item:nth-of-type(2) { transform: translate(calc(200% + 12px), 0); }
+.t3-detail-slain { display: grid; grid-template-columns: repeat(3, 78px); justify-content: center; gap: 12px; }
+.t3-detail-slain .tcard { --w: 78px !important; }
+.t3-detail-slain .t3-detail-free { display: grid; place-items: center; width: 78px; aspect-ratio: 827 / 1417; color: #4b5d70; font-size: 20px; }
+
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-felt .t3-center { left: 50%; top: var(--centre-y, 46%); transform: translate(-50%, -50%); }
+
+  /* Turn rail: narrow, vertical, glued to the bottom-right corner. */
+  .t3-felt .t3-turn-actions {
+    left: auto; top: auto; right: 0; bottom: 12px; transform: none; width: 62px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 8px 5px; background: var(--navy); border: 3px solid #07111c; border-right: 0; border-radius: var(--r3) 0 0 var(--r3);
+  }
+  .t3-felt .t3-turn-actions .t3-turnbar { position: relative; min-width: 0; width: 12px; height: 84px; margin-bottom: 22px; overflow: visible; border-width: 2px; border-color: #5d7186; border-radius: 6px; background: #0b1420; }
+  .t3-felt .t3-turn-actions .t3-turnbar-fill { inset: 0; border-radius: 4px; background: linear-gradient(#2fbf5b, var(--gold)); transform: scaleY(var(--f, 1)); transform-origin: 50% 100%; }
+  .t3-felt .t3-turn-actions .t3-turnbar b { position: absolute; left: 50%; top: calc(100% + 4px); transform: translateX(-50%); font-size: 13px; line-height: 1.2; color: #fff; letter-spacing: 0; }
+  .t3-felt .t3-turn-actions .t3-turnbar-label { display: none; }
+  .t3-felt .t3-turn-actions .t3-act { width: 48px; min-width: 0; height: 40px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 8px; letter-spacing: 0; box-shadow: 0 3px 0 #07111c; }
+  .t3-felt .t3-turn-actions .t3-act kbd { font-size: 12px; }
+  .t3-felt .t3-turn-actions .t3-waiting { writing-mode: vertical-rl; transform: rotate(180deg); max-height: 200px; padding: 6px 0; font-size: 11px; white-space: nowrap; overflow: hidden; background: none; border: 0; color: var(--gold); }
+
+  /* Hand: packed between your banner and the rail when idle; hovering the fan opens it (it may then cover the banner). */
+  .t3-felt .t3-hand { left: var(--hand-x, 55%); --span: var(--hand-idle, 35cqw); max-width: none; }
+  .t3-felt .t3-hand:hover, .t3-felt .t3-hand:focus-within { --span: var(--hand-open, 35cqw); }
+  .t3-felt .t3-hand-card { margin-left: calc((var(--span) - var(--hw)) / max(var(--n) - 1, 1) - var(--hw)); }
+  .t3-felt .t3-hand-card:first-child { margin-left: 0; }
+}

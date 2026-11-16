@@ -32,7 +32,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #discard{width:84px;height:118px;border-radius:10px;border:3px dashed #9aa5ae;display:grid;place-items:center;color:#5d6a75;font-size:10px;position:relative}
 #discard .card{position:absolute;inset:-3px;width:auto;height:auto}
 /* opponent seats: bigger banner with the Leader picture */
-.seat{position:absolute;transform:translate(-50%,-50%);width:262px;display:flex;gap:9px;padding:8px;border-radius:var(--r);background:#fff;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);text-align:left}
+.seat{position:absolute;transform:translate(-50%,-50%) scale(var(--k,1));width:262px;display:flex;gap:9px;padding:8px;border-radius:var(--r);background:#fff;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);text-align:left}
 .seat:hover{translate:0 -2px}
 .seat.turn{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange),0 4px 0 var(--ink)}
 .seat.hit,#me.hit{animation:hit calc(.5s/var(--speed)) ease-in-out;border-color:var(--red)}
@@ -196,11 +196,26 @@ const classesOf=p=>[...new Set([p.leader,...p.party.map(e=>e.hero.cls)])];
 const leaderH=p=>`<div class="leader" style="background:${CLS[p.leader]}">${SHORT[p.leader]}</div>`;
 const classRow=p=>{const have=classesOf(p);return `<div class="classes">${CLASSES.map(c=>`<i class="${have.includes(c)?"on":""}" style="${have.includes(c)?"background:"+CLS[c]:""}" title="${c}">${SHORT[c]}</i>`).join("")}</div>`};
 
+/* Seats never overlap: spread over the full width, centre seat(s) on top; a neighbour that would
+   overlap sideways steps down by one seat height. If the stack gets too tall the seats scale down. */
+function seatLayout(m,W,H,floor){
+  const SW=262,SH=100,top=10;
+  for(const k of [1,.92,.84,.76,.68,.6]){
+    const w=SW*k,h=SH*k,gap=10*k,c=W/2,odd=m%2===1,half=Math.floor(m/2),out=[];
+    const s=odd?(half?(c-10-w/2)/half:0):(half>1?(c-10-w-gap/2-w/2)/(half-1):0);
+    const ys=[top+h/2];for(let j=1;j<=half;j++)ys.push(ys[j-1]+(s>=w+gap?Math.min(26,h/3):h+gap));
+    for(let i=0;i<m;i++){const d=i-(m-1)/2,j=odd?Math.abs(d):Math.abs(d)-.5,dx=odd?j*s:w/2+gap/2+j*s;out.push({x:c+Math.sign(d)*dx,y:ys[j],k,w,h})}
+    if(Math.max(...out.map(o=>o.y+h/2))<=floor||k===.6)return out;
+  }
+}
 function render(){
   const T=$("#table"),W=T.clientWidth,H=T.clientHeight,opp=S.players.slice(1),m=opp.length;
-  const span=m<=1?0:m===2?70:m===3?120:m===4?156:180;
-  $("#seats").innerHTML=opp.map((p,i)=>{const a=(m<=1?270:270-span/2+span*i/(m-1))*Math.PI/180,x=48+36.5*Math.cos(a),y=47+34*Math.sin(a),have=classesOf(p),idx=i+1;
-    return `<button class="seat ${S.turn===idx?"turn":""}" data-seat="${idx}" style="left:${x}%;top:${y}%">${leaderH(p)}<span class="col">
+  const L=seatLayout(m,W,H,H-300);
+  // the deck / Monsters row sits below every seat that hangs over it
+  const over=L.filter(o=>Math.abs(o.x-W/2)<300+o.w/2),cy=Math.max(H*.46,(over.length?Math.max(...over.map(o=>o.y+o.h/2)):0)+14+75);
+  $("#centre").style.cssText=`left:50%;top:${Math.min(cy,H-330)}px`;
+  $("#seats").innerHTML=opp.map((p,i)=>{const o=L[i],have=classesOf(p),idx=i+1;
+    return `<button class="seat ${S.turn===idx?"turn":""}" data-seat="${idx}" style="left:${o.x}px;top:${o.y}px;--k:${o.k}">${leaderH(p)}<span class="col">
       <span class="row"><span class="name">${p.name}</span><span>🃏 ${p.hand}</span></span>
       <span class="row"><span class="bar">${Array.from({length:GOAL},(_,k)=>`<i class="${k<have.length?"on":""}" style="${k<have.length?"background:"+CLS[have[k]]:""}"></i>`).join("")}</span><span>${Math.min(have.length,GOAL)}/${GOAL}</span></span>
       <span class="row"><span class="chips">${Array.from({length:LIMIT},(_,k)=>{const e=p.party[k];return `<i ${e?`data-id="${e.hero.id}"`:""} class="${e?"on":""} ${e&&e.items.length?"item":""}" style="${e?"background:"+CLS[e.hero.cls]:""}"></i>`}).join("")}</span>

@@ -49,6 +49,20 @@ The Vietnamese card gallery always keeps Vietnamese frames and rule text. If a d
 
 Files: `UI_DIRECTION.md`, `REFERENCE_REVISION.svg`; `WIREFRAME.svg` is intentionally unchanged. SVG is a review artifact with placeholder content and no third-party assets. Validation: SVG XML parsed; no renderer installed, so visual preview beyond source inspection was unavailable.
 
+## Table layout v3 — 2026-11-16 (supersedes the geometry of v2)
+
+Owner decisions after playing the sandbox build; prototype: `docs/ui/prototypes/table-v3.html`. Geometry lives in `apps/web/src/tableLayout.ts` (pure, tested in `tests/table-layout.test.ts`) and reaches CSS through `--x/--y/--k`, `--centre-y` and `--hand-*`.
+
+- **Opponent banners** show the Leader picture, are wider (262 px) and never overlap: they spread over the full width with the middle seat(s) on top; a neighbour that would overlap sideways steps down one banner height; if the stack would reach your banner or squeeze the deck / Monster row, every banner scales down one notch.
+- **Your banner** has no counters: Leader, name (opens your drawer), three slain-Monster cards, round class chips, Hero row with free slots.
+- **Items** sit behind their Hero with one corner showing; hovering the Hero fans them out to the right (table and drawer).
+- **Hand** is packed between your banner and the rail when idle and opens on hover (it may then cover the banner).
+- **Turn rail** is a narrow vertical strip in the bottom-right corner: vertical timer, seconds, stacked action buttons.
+- **Party drawer**: Leader picture in the header, Heroes sized to fill the Party area, three small slain-Monster slots at the very bottom, no helper lines.
+- **Choice dialog** copy: `Pick N cards. Hover 2s or right-click for full text.`
+- Corners are rounded (`--r3`).
+- **Card flights** (`cardFlights.tsx`): 580 ms, stagger 110 ms; a ghost waits for its picture before take-off; after a card lands in a Party the table stays visible 500 ms before a reaction / roll stage opens.
+
 ## Table layout v2 (all table sizes) — 2026-11-16
 
 Owner decision: the layout of the design canvas "Bàn chơi 2–8 người" applies to every table, 2 to 8 players (the old hex-ring clusters are gone). Opponents are compact seat cards on an ellipse over the top of the table: Leader class, name, hand count, a class progress bar of `classGoal` segments, one chip per Party slot up to `partyLimit` (Item-equipped Heroes carry a gold base), three slain-Monster pips and protections. Clicking a seat opens the Party drawer on the right (Leader, every class of the room lit/unlit, Heroes with Items, free slots, slain Monsters); ✕ or `Esc` closes it and it never submits a command. Your own seat is a panel at the lower left: Leader art (hover = Leader panel), name (click = your drawer), CLASS / PARTY / hand / slain counters, one chip per class in `enabledClasses`, then the Hero row with roll buttons and dashed free slots up to `partyLimit`. The panel is outlined in orange on your turn.

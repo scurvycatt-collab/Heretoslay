@@ -102,7 +102,8 @@ test("each table name tag shows the authoritative hand count beside the player n
   const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
   // Layout v2: the count sits in the seat head (opponents) and in the own-seat counters.
   assert.match(room, /className="t3-cseat-hand" title="Cards in hand" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 \{player\.handCount\}/);
-  assert.match(room, /<span title="Cards in hand" aria-label=\{`\$\{player\.handCount\} cards in hand`\}>🃏 <b>\{player\.handCount\}<\/b><\/span>/);
+  // Layout v3 (owner 2026-11-16): your own banner carries no counters; your hand is in front of you.
+  assert.doesNotMatch(room, /t3-me-stats/);
   assert.match(css, /\.t3-cseat-hand \{ flex: none;/);
 });
 
@@ -140,7 +141,13 @@ test("every table size uses compact seats on an ellipse and the own-seat panel; 
   assert.match(room, /<MyPanelHead player=\{mySeat\} game=\{game\} \/>/);
   assert.match(room, /freeSlots=\{game\.partyLimit - mySeat\.party\.length\}/);
   assert.match(css, /\.t3-felt \.t3-seat--me\.t3-me \{/);
-  assert.match(room, /const ellipse = ellipseSeats\(opponents\.length\);/);
+  // Layout v3: seat geometry is computed from the real table size (tableLayout.ts), never hard-coded.
+  assert.match(room, /const seats = seatLayout\(opponents\.length, metrics\.width, seatFloor, row\);/);
+  assert.doesNotMatch(room, /ellipseSeats/);
+  assert.match(css, /\.t3-seat--ellipse \{ transform: translate\(-50%, -50%\) scale\(var\(--k, 1\)\); \}/);
+  assert.match(css, /\.t3-felt \.t3-turn-actions \.t3-turnbar-fill \{[^}]*scaleY\(var\(--f, 1\)\)/);
+  assert.match(css, /\.t3-felt \.t3-hand:hover, \.t3-felt \.t3-hand:focus-within \{ --span: var\(--hand-open, 35cqw\); \}/);
+  assert.match(room, /`Pick \$\{pickCount\} \$\{chain\.max === 1 \? "card" : "cards"\}\.`\} Hover 2s or right-click for full text\./);
   assert.match(room, /<CompactSeat player=\{player\}/);
   assert.match(room, /<SeatDetail key=\{detailPlayer\.playerId\}/);
   assert.match(room, /const partyCap = game\.partyLimit;/);
