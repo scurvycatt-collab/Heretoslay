@@ -1118,3 +1118,39 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 @media (prefers-reduced-motion: reduce) { .t3-cseat { transition: none; } }
 /* 7-class ring (any pack): a wider ring so the hexes do not touch and the slain column clears it. */
 .t3-hexes.is-wide { width: calc(var(--hex) * 3.9); height: calc(var(--hex) * 3.4); }
+
+/* =====================================================================
+   Table layout v2 (owner 2026-11-16, design canvas "Bàn chơi 2–8 người"): at EVERY table size the
+   opponents are compact seats on the ellipse and your own seat is a panel: Leader, counters, one chip
+   per class of the room, then the Hero row with the free Party slots.
+   ===================================================================== */
+.t3-felt .t3-seat--me.t3-me {
+  flex-direction: column; align-items: flex-start; gap: 7px; box-sizing: border-box; padding: 9px 11px 10px;
+  background: rgb(255 255 255 / 0.9); border: 3px solid var(--ink); box-shadow: 0 4px 0 var(--ink); color: var(--ink);
+}
+.t3-felt .t3-seat--me.t3-me.is-active { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange), 0 4px 0 var(--ink); }
+.t3-me-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.t3-me-leader { flex: none; display: flex; }
+.t3-me-leader .tcard { --w: clamp(34px, 3.4cqw, 58px); }
+.t3-me-id { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.t3-me-name { display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 26cqw; padding: 0; font: inherit; font-size: 15px; font-weight: 800; color: var(--ink); background: none; border: 0; cursor: pointer; text-align: left; }
+.t3-me-name:hover .t3-player-name { text-decoration: underline; }
+.t3-me-name:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.t3-me-name .t3-player-name { white-space: nowrap; }
+.t3-me-stats { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; font-weight: 700; color: #3d4c59; }
+.t3-me-stats b { color: var(--ink); }
+.t3-me-classes { display: flex; flex-wrap: wrap; gap: 4px; }
+.t3-me-classes span { display: grid; place-items: center; width: clamp(22px, 2cqw, 30px); height: clamp(22px, 2cqw, 30px); box-sizing: border-box; color: #7d8b97; background: #eef0f1; border: 2px solid #b9c1c7; }
+.t3-me-classes span.is-on { color: #fff; border-color: var(--ink); }
+.t3-me-classes svg, .t3-me-classes .class-logo { width: 68%; height: 68%; object-fit: contain; }
+.t3-felt .t3-seat--me.t3-me .t3-party { --tok: clamp(38px, 3.9cqw, 78px); flex-wrap: nowrap; max-width: none; justify-content: flex-start; align-items: flex-start; gap: 5px; }
+.t3-party-free { flex: none; width: var(--tok); aspect-ratio: 4 / 5; box-sizing: border-box; border: 2px dashed #9aa5ae; background: rgb(255 255 255 / 0.5); }
+@media (min-width: 1101px) and (min-height: 641px) {
+  .t3-felt .t3-seat--me.t3-me { --s: 1 !important; left: 1.6%; bottom: 2%; transform: none; }
+  /* the hand moves right a little so a full 7-slot Party row never sits under it */
+  .t3-felt .t3-hand { left: 55%; }
+}
+@media (max-width: 1100px), (max-height: 640px) {
+  .t3-felt .t3-seat--me.t3-me .t3-party { --tok: clamp(40px, 9cqw, 64px); flex-wrap: wrap; }
+  .t3-me-name { max-width: none; }
+}

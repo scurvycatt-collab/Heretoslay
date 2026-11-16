@@ -49,6 +49,10 @@ The Vietnamese card gallery always keeps Vietnamese frames and rule text. If a d
 
 Files: `UI_DIRECTION.md`, `REFERENCE_REVISION.svg`; `WIREFRAME.svg` is intentionally unchanged. SVG is a review artifact with placeholder content and no third-party assets. Validation: SVG XML parsed; no renderer installed, so visual preview beyond source inspection was unavailable.
 
+## Table layout v2 (all table sizes) — 2026-11-16
+
+Owner decision: the layout of the design canvas "Bàn chơi 2–8 người" applies to every table, 2 to 8 players (the old hex-ring clusters are gone). Opponents are compact seat cards on an ellipse over the top of the table: Leader class, name, hand count, a class progress bar of `classGoal` segments, one chip per Party slot up to `partyLimit` (Item-equipped Heroes carry a gold base), three slain-Monster pips and protections. Clicking a seat opens the Party drawer on the right (Leader, every class of the room lit/unlit, Heroes with Items, free slots, slain Monsters); ✕ or `Esc` closes it and it never submits a command. Your own seat is a panel at the lower left: Leader art (hover = Leader panel), name (click = your drawer), CLASS / PARTY / hand / slain counters, one chip per class in `enabledClasses`, then the Hero row with roll buttons and dashed free slots up to `partyLimit`. The panel is outlined in orange on your turn.
+
 ## Expansion seats (7–8 players) — 2026-11-16
 
 Rooms with 2–6 players keep the full seat clusters above. With 7–8 players (packs enabled, E16) every opponent becomes a compact seat card on an ellipse over the top of the table: name, hand count, a class progress bar of `classGoal` segments, one chip per Party slot up to `partyLimit` (Item-equipped Heroes carry a gold base), three slain-Monster pips and protections. Clicking a compact seat — or any nametag at any table size — opens a Party drawer on the right (Leader, every class of the room lit/unlit, Heroes with Items, free slots, slain Monsters); ✕ or `Esc` closes it and it never submits a command.

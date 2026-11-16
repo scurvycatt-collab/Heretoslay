@@ -131,10 +131,13 @@ test("Whiskers' STEAL/DESTROY target picker has an explicit TABLE escape", async
   assert.match(targetDialog, /aria-label="Hide target selection to view the table">◱ TABLE<\/button>/);
 });
 
-test("7–8 player tables use compact seats on an ellipse; caps and class goal come from the server", async () => {
+test("every table size uses compact seats on an ellipse and the own-seat panel; caps and class goal come from the server", async () => {
   const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
-  assert.match(room, /const compactSeats = opponents\.length >= 6;/);
+  assert.doesNotMatch(room, /SeatCluster|seatSlots|compactSeats/);
+  assert.match(room, /<MyPanelHead player=\{mySeat\} game=\{game\} \/>/);
+  assert.match(room, /freeSlots=\{game\.partyLimit - mySeat\.party\.length\}/);
+  assert.match(css, /\.t3-felt \.t3-seat--me\.t3-me \{/);
   assert.match(room, /const ellipse = ellipseSeats\(opponents\.length\);/);
   assert.match(room, /<CompactSeat player=\{player\}/);
   assert.match(room, /<SeatDetail key=\{detailPlayer\.playerId\}/);

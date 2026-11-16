@@ -320,12 +320,6 @@ function HeroStack({ entry, rect, onEnter, onLeave }: { entry: Player["party"][n
 
 const PROTECTION_LABEL: Record<Player["protections"][number], string> = { no_destroy: "No destroy", no_steal: "No steal", return_to_hand: "Returns to hand" };
 
-/** Point i of n around the avatar, clockwise from the top (n = 6 gives the original hex ring). */
-const ringPoint = (i: number, n: number): [number, number] => {
-  const a = ((-90 + ((i + 0.5) * 360) / n) * Math.PI) / 180;
-  return [Math.round(Math.cos(a) * 1000) / 1000, Math.round(Math.sin(a) * 1000) / 1000];
-};
-
 /** Win-progress slots: `classGoal` entries, the Party's distinct classes first (room class order), then nulls. */
 function classProgress(player: Player, game: Game): Array<AnyHeroClass | null> {
   const goal = game.classGoal ?? 6;
@@ -336,77 +330,7 @@ function classProgress(player: Player, game: Game): Array<AnyHeroClass | null> {
   return Array.from({ length: goal }, (_, i) => have[i] ?? null);
 }
 
-/** Leader avatar in a ring of `classGoal` hexes that fill as the Party gains distinct classes. */
-function SeatCluster({ player, game, me, target }: { player: Player; game: Game; me: string; target: TargetApi }) {
-  const isActive = player.playerId === game.currentPlayerId;
-  const isMe = player.playerId === me;
-  const targetable = target.enabled && !isMe;
-  const targeted = target.value.playerId === player.playerId;
-  const hover = useContext(TableHoverContext);
-  const avatar = (
-    <>
-      <span className="t3-avatar-face" style={{ background: leaderColor(player) }}>
-        <Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} className="t3-avatar-glyph" />
-      </span>
-      {targeted && <span className="t3-reticle" aria-hidden />}
-    </>
-  );
-  return (
-    <div className={`t3-cluster${isActive ? " is-active" : ""}`} title={`${player.nickname} · ✋ ${player.handCount} cards in hand · ◆ ${Math.min(player.partyClasses.length, game.classGoal)}/${game.classGoal} classes · ☠ ${player.slainMonsters.length}/3 Monsters`}>
-      <button type="button" className={`t3-nametag${isActive ? " is-active" : ""}`} onClick={() => hover.openSeat(player.playerId)} aria-label={`${player.nickname}: open Party details`}>
-        <span className="t3-player-name">{player.isBot ? "🤖 " : ""}{player.nickname}{isMe ? " (you)" : ""}{player.isHost ? " ★" : ""}</span>
-        <span className="t3-hand-count" aria-label={`${player.handCount} cards in hand`}>🃏 {player.handCount}</span>
-      </button>
-      {player.leaderId && (
-        <span className="t3-seat-leader t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
-          <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-leader-card" inspect={false} />
-        </span>
-      )}
-      <div className={`t3-hexes${game.classGoal > 6 ? " is-wide" : ""}`} onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
-        {classProgress(player, game).map((c, i, ring) => (
-          <span
-            key={i}
-            className={`t3-hex${c ? " is-lit" : ""}`}
-            style={{ "--dx": ringPoint(i, ring.length)[0], "--dy": ringPoint(i, ring.length)[1], "--ring": ring.length > 6 ? 1.2 : 1.04, ...(c ? { background: CLASS_COLOR[c] } : {}) } as CSSProperties}
-            title={c ? `${titleCase(c)} — in Party` : `Class ${i + 1}/${ring.length}`}
-          >
-            {c && <ClassMark name={c} />}
-          </span>
-        ))}
-        {targetable ? (
-          <button type="button" className={`t3-avatar is-targetable${targeted ? " is-targeted" : ""}`} onClick={() => target.togglePlayer(player.playerId)} aria-pressed={targeted} aria-label={`Target ${player.nickname}`}>
-            {avatar}
-          </button>
-        ) : (
-          <span className="t3-avatar" title={player.leaderId ? leaderDisplayName(player.leaderId) : "No Leader"}>{avatar}</span>
-        )}
-        {/* Anchored to the hex ring, not the cluster: a long nickname must not push the Monster slots around. */}
-        <SlainHexes monsters={player.slainMonsters} />
-      </div>
-      {player.protections.length > 0 && (
-        <span className="t3-protect">{player.protections.map((p) => PROTECTION_LABEL[p].toUpperCase()).join(" · ")}</span>
-      )}
-    </div>
-  );
-}
-
-/** Three Monster slots per seat (3 slain = win); a slain Monster pops into its hex. */
-function SlainHexes({ monsters }: { monsters: BaseCardView[] }) {
-  return (
-    <span className="t3-slain" aria-label={`Slain Monsters ${monsters.length}/3`}>
-      {[0, 1, 2].map((i) => {
-        const monster = monsters[i];
-        return monster ? (
-          <CardRenderer key={monster.cardId} card={monster} variant="art" size="xs" className="t3-slain-hex is-filled" ariaLabel={`Slain: ${monster.name}`} />
-        ) : (
-          <span key={`empty-${i}`} className="t3-slain-hex" aria-hidden>☠</span>
-        );
-      })}
-    </span>
-  );
-}
-
-function PartyTokens({ player, target, heroAction, vertical }: { player: Player; target: TargetApi; heroAction?: (entry: Player["party"][number]) => ReactNode; vertical?: boolean }) {
+function PartyTokens({ player, target, heroAction, vertical, freeSlots = 0 }: { player: Player; target: TargetApi; heroAction?: (entry: Player["party"][number]) => ReactNode; vertical?: boolean; /** Dashed placeholders for the Party slots still free (your own panel). */ freeSlots?: number }) {
   const heroIds = target.value.heroInstanceIds ?? [];
   const hover = useContext(TableHoverContext);
   return (
@@ -438,12 +362,55 @@ function PartyTokens({ player, target, heroAction, vertical }: { player: Player;
           </div>
         );
       })}
+      {Array.from({ length: Math.max(0, freeSlots) }, (_, i) => <span key={`free-${i}`} className="t3-party-free" aria-hidden />)}
     </div>
   );
 }
 
 /**
- * Compact seat for crowded tables (7–8 players): name + hand count, class progress bar,
+ * Your own seat (every table size): Leader, name, class / Party / Monster counters and one chip per class
+ * the room plays with (`enabledClasses`), lit when your Party has it. The Hero row sits right below it.
+ */
+function MyPanelHead({ player, game }: { player: Player; game: Game }) {
+  const hover = useContext(TableHoverContext);
+  const order = (game.enabledClasses?.length ? game.enabledClasses : [...HERO_CLASSES]).map(webClass).filter((c): c is AnyHeroClass => Boolean(c));
+  const have = Math.min(player.partyClasses.length, game.classGoal);
+  return (
+    <>
+      <div className="t3-me-head">
+        {player.leaderId && (
+          <span className="t3-me-leader t3-leader-hit" onMouseEnter={(e) => hover.showLeader(player.playerId, e.currentTarget.getBoundingClientRect())} onMouseLeave={() => hover.showLeader(null)}>
+            <CardRenderer card={{ definitionId: player.leaderId, kind: "party_leader", name: leaderDisplayName(player.leaderId) }} variant="art" size="xs" className="t3-token t3-leader-card" inspect={false} />
+          </span>
+        )}
+        <div className="t3-me-id">
+          <button type="button" className="t3-me-name" onClick={() => hover.openSeat(player.playerId)} aria-label={`${player.nickname}: open Party details`}>
+            <span className="t3-cseat-face" style={{ background: leaderColor(player) }}><Glyph name={(player.leaderClass as AnyHeroClass) ?? "leader"} /></span>
+            <span className="t3-player-name">{player.nickname} (you){player.isHost ? " ★" : ""}</span>
+          </button>
+          <span className="t3-me-stats">
+            <span title="Distinct classes in your Party (Leader included)">CLASS <b>{have}/{game.classGoal}</b></span>
+            <span title="Heroes in your Party">PARTY <b>{player.party.length}/{game.partyLimit}</b></span>
+            <span title="Cards in hand">🃏 <b>{player.handCount}</b></span>
+            <span className="t3-cseat-slain" role="img" aria-label={`Slain Monsters ${player.slainMonsters.length}/3`} title={`Slain Monsters ${player.slainMonsters.length}/3`}>
+              {[0, 1, 2].map((i) => <span key={i} className={i < player.slainMonsters.length ? "is-on" : ""} />)}
+            </span>
+          </span>
+        </div>
+      </div>
+      <div className="t3-me-classes" aria-label={`Classes ${have}/${game.classGoal}`}>
+        {order.map((c) => {
+          const on = player.partyClasses.includes(c);
+          return <span key={c} className={on ? "is-on" : ""} style={on ? { background: CLASS_COLOR[c] } : undefined} title={`${titleCase(c)}${on ? " — in Party" : ""}`}><ClassMark name={c} /></span>;
+        })}
+      </div>
+      {player.protections.length > 0 && <span className="t3-cseat-protect">{player.protections.map((p) => PROTECTION_LABEL[p].toUpperCase()).join(" · ")}</span>}
+    </>
+  );
+}
+
+/**
+ * Compact seat for every opponent (2–8 players): name + hand count, class progress bar,
  * one chip per Party slot (`partyLimit`), slain Monsters. Click opens the Party drawer.
  */
 function CompactSeat({ player, game, selected, onOpen }: { player: Player; game: Game; selected: boolean; onOpen: () => void }) {
@@ -549,7 +516,7 @@ function ellipseSeats(count: number): Array<{ x: number; y: number }> {
   return Array.from({ length: count }, (_, i) => {
     const deg = count <= 1 ? 270 : 270 - span / 2 + (span * i) / (count - 1);
     const a = (deg * Math.PI) / 180;
-    return { x: Math.round((50 + 41 * Math.cos(a)) * 10) / 10, y: Math.round((44 + 34 * Math.sin(a)) * 10) / 10 };
+    return { x: Math.round((50 + 41 * Math.cos(a)) * 10) / 10, y: Math.round((47 + 33 * Math.sin(a)) * 10) / 10 };
   });
 }
 
@@ -1342,17 +1309,6 @@ function LobbyStage({ state, send, pending }: { state: BaseGameSnapshot; send: S
 
 /* --------------------------------------------------------------------- room */
 
-/** Seat slots by opponent count (clockwise after you): left edge, top row (corners first), right edge. */
-function seatSlots(count: number): string[] {
-  switch (count) {
-    case 1: return ["top-c"];
-    case 2: return ["top-cl", "top-cr"];
-    case 3: return ["left", "top-c", "right"];
-    case 4: return ["left", "top-cl", "top-cr", "right"];
-    default: return ["left", "top-l", "top-c", "top-r", "right"];
-  }
-}
-
 export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: { state: BaseGameSnapshot; send: Send; pending: boolean; serverNow: number; notice: string; onLobby: () => void }) {
   const game = state.game;
   const me = state.you.playerId;
@@ -1445,9 +1401,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const rotated = myIndex >= 0 ? [...order.slice(myIndex + 1), ...order.slice(0, myIndex)] : order.filter((id) => id !== me);
   const opponents = rotated.map((id) => state.players.find((p) => p.playerId === id)).filter((p): p is Player => Boolean(p));
   for (const p of state.players) if (p.playerId !== me && !opponents.includes(p)) opponents.push(p);
-  // 7–8 players: compact seats on an ellipse; Party details open in a drawer. 2–6 keep the full clusters.
-  const compactSeats = opponents.length >= 6;
-  const slots = seatSlots(opponents.length);
+  // Every table size: opponents are compact seats on an ellipse; Party details open in a drawer.
   const ellipse = ellipseSeats(opponents.length);
   const detailPlayer = detailFor ? state.players.find((p) => p.playerId === detailFor) : undefined;
   const railPlayers = order.map((id) => state.players.find((p) => p.playerId === id)).filter((p): p is Player => Boolean(p));
@@ -1514,7 +1468,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
             </nav>
 
-            <section className={`t3-felt t3-felt--p${opponents.length + 1}${compactSeats ? " is-compact" : ""}`} aria-label="Base game table">
+            <section className={`t3-felt t3-felt--p${opponents.length + 1} is-compact`} aria-label="Base game table">
               <button className="t3-corner t3-corner--menu" onClick={() => setPanel("menu")} aria-label="Menu">≡</button>
               <div className="t3-corner t3-corner--status" aria-label="Turn status">
                 {chain ? <span className="t3-status-timer">⧗ {Math.max(0, Math.ceil((chain.deadlineAt - serverNow) / 1000))}s</span> : null}
@@ -1525,18 +1479,11 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
                 <span className="t3-ap" aria-label={`${ap} action points`}>{Array.from({ length: Math.max(3, ap) }, (_, i) => <i key={i} className={i < ap ? "on" : ""} />)}</span>
               </div>
 
-              {compactSeats
-                ? opponents.map((player, i) => (
-                  <div key={player.playerId} className="t3-seat t3-seat--ellipse" style={{ "--x": `${ellipse[i].x}%`, "--y": `${ellipse[i].y}%` } as CSSProperties} aria-label={`${player.nickname}'s party`}>
-                    <CompactSeat player={player} game={game} selected={detailFor === player.playerId} onOpen={() => tableHover.openSeat(player.playerId)} />
-                  </div>
-                ))
-                : opponents.map((player, i) => (
-                  <div key={player.playerId} className={`t3-seat t3-seat--${slots[i] ?? "top-c"}`} aria-label={`${player.nickname}'s party`}>
-                    <SeatCluster player={player} game={game} me={me} target={targetApi} />
-                    <PartyTokens player={player} target={targetApi} vertical={slots[i] === "left" || slots[i] === "right"} />
-                  </div>
-                ))}
+              {opponents.map((player, i) => (
+                <div key={player.playerId} className="t3-seat t3-seat--ellipse" style={{ "--x": `${ellipse[i].x}%`, "--y": `${ellipse[i].y}%` } as CSSProperties} aria-label={`${player.nickname}'s party`}>
+                  <CompactSeat player={player} game={game} selected={detailFor === player.playerId} onOpen={() => tableHover.openSeat(player.playerId)} />
+                </div>
+              ))}
               {detailPlayer && <SeatDetail key={detailPlayer.playerId} player={detailPlayer} game={game} me={me} onClose={() => setDetailFor(null)} />}
 
               <div className="t3-center">
@@ -1576,11 +1523,12 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
 
               {mySeat && (
-                <div className="t3-seat t3-seat--me" aria-label="Your party">
-                  <SeatCluster player={mySeat} game={game} me={me} target={targetApi} />
+                <div className={`t3-seat t3-seat--me t3-me${mySeat.playerId === game.currentPlayerId ? " is-active" : ""}`} aria-label="Your party">
+                  <MyPanelHead player={mySeat} game={game} />
                   <PartyTokens
                     player={mySeat}
                     target={targetApi}
+                    freeSlots={game.partyLimit - mySeat.party.length}
                     heroAction={(entry) => {
                       if (!active || game.phase !== "turn_active") return null;
                       const used = game.heroRollsUsed.includes(entry.hero.cardId);
