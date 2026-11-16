@@ -9,7 +9,27 @@ import type { BaseCardView, BaseGameSnapshot } from "@here-to-slay/protocol";
 import { CardRenderer } from "./CardRenderer";
 
 type Box = { left: number; top: number; width: number; height: number };
-type Flight = { id: number; card: BaseCardView | null; variant: "full" | "art"; from: Box; to: Box; delay: number };
+type Flight = { id: number; card: BaseCardView | null; variant: "full" | "art"; from: Box; to: Box; delay: number; target?: HTMLElement };
+/** A ghost never takes off as an empty frame: it waits (at most this long) for its picture to be decoded. */
+const IMAGE_WAIT_MS = 700;
+
+/** Resolves once every picture drawn inside `el` (<img> or CSS background) is decoded, or after `IMAGE_WAIT_MS`. */
+function picturesReady(el: HTMLElement): Promise<void> {
+  const waits: Promise<unknown>[] = [];
+  for (const img of el.querySelectorAll("img")) {
+    img.loading = "eager"; // faces are lazy by default; a ghost is always on screen
+    waits.push(img.decode().catch(() => undefined));
+  }
+  for (const node of [el, ...el.querySelectorAll<HTMLElement>("*")]) {
+    const url = /url\("?([^")]+)"?\)/.exec(node.style.backgroundImage)?.[1];
+    if (!url) continue;
+    const probe = new Image();
+    probe.src = url;
+    waits.push(probe.decode().catch(() => undefined));
+  }
+  if (!waits.length) return Promise.resolve();
+  return Promise.race([Promise.all(waits).then(() => undefined), new Promise<void>((resolve) => window.setTimeout(resolve, IMAGE_WAIT_MS))]);
+}
 
 const DURATION_MS = 580;
 const STAGGER_MS = 110;
@@ -91,7 +111,7 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
       const deckEl = document.querySelector(".t3-deck");
       const discardEl = document.querySelector(".t3-discard");
       const me = state.you.playerId;
-      const planned: Array<Omit<Flight, "id" | "delay"> & { target?: Element; landsInParty?: boolean }> = [];
+      const planned: Array<Omit<Flight, "id" | "delay" | "target"> & { target?: Element; landsInParty?: boolean }> = [];
       // Who lost cards from a hidden hand in this step (source of a card that appears from nowhere).
       const shrunk = state.players.filter((p) => (previous.hands.get(p.playerId) ?? p.handCount) > p.handCount).map((p) => p.playerId);
 
@@ -135,9 +155,8 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
       if (planned.length) {
         const batch = planned.slice(0, MAX_FLIGHTS).map((flight, i) => {
           const delay = i * STAGGER_MS;
-          // The real card stays hidden until its ghost lands, so nothing appears twice.
-          flight.target?.animate([{ opacity: 0 }, { opacity: 0, offset: 0.9 }, { opacity: 1 }], { duration: delay + DURATION_MS, easing: "linear" });
-          return { id: nextId.current++, card: flight.card, variant: flight.variant, from: flight.from, to: flight.to, delay };
+          // The real card stays hidden until its ghost lands (the ghost does it), so nothing appears twice.
+          return { id: nextId.current++, card: flight.card, variant: flight.variant, from: flight.from, to: flight.to, delay, target: flight.target instanceof HTMLElement ? flight.target : undefined };
         });
         setFlights((current) => [...current, ...batch]);
         const lastLanding = planned.slice(0, MAX_FLIGHTS).reduce((latest, flight, i) => (flight.landsInParty ? i * STAGGER_MS + DURATION_MS : latest), 0);
@@ -195,25 +214,34 @@ function Ghost({ flight, onDone }: { flight: Flight; onDone: () => void }) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const target = flight.target;
+    const reveal = () => { if (target) target.style.opacity = ""; };
+    if (target) target.style.opacity = "0";
     const at = (b: Box, lift = 1) => `translate(${b.left}px, ${b.top}px) scale(${(b.width / width) * lift})`;
     const mid: Box = { left: (from.left + to.left) / 2, top: (from.top + to.top) / 2 - 18, width: (from.width + to.width) / 2, height: 0 };
-    const animation = el.animate(
-      [
-        { transform: at(from), opacity: 0.2 },
-        { transform: at(from), opacity: 1, offset: 0.08 },
-        { transform: at(mid, 1.08), opacity: 1, offset: 0.55 },
-        { transform: at(to), opacity: 1 },
-      ],
-      { duration: DURATION_MS, delay: flight.delay, easing: "cubic-bezier(.3,.7,.3,1)", fill: "both" },
-    );
-    animation.onfinish = onDone;
+    let cancelled = false;
+    let animation: Animation | undefined;
+    // The card leaves the deck as a full picture, not as an empty frame that fills in on arrival.
+    void picturesReady(el).then(() => {
+      if (cancelled) return;
+      animation = el.animate(
+        [
+          { transform: at(from), opacity: 0.2 },
+          { transform: at(from), opacity: 1, offset: 0.08 },
+          { transform: at(mid, 1.08), opacity: 1, offset: 0.55 },
+          { transform: at(to), opacity: 1 },
+        ],
+        { duration: DURATION_MS, delay: flight.delay, easing: "cubic-bezier(.3,.7,.3,1)", fill: "both" },
+      );
+      animation.onfinish = () => { reveal(); onDone(); };
+    });
     // Cancelling (unmount, or React StrictMode's mount → unmount → mount in dev) must not end the flight.
-    return () => { animation.onfinish = null; animation.cancel(); };
+    return () => { cancelled = true; reveal(); if (animation) { animation.onfinish = null; animation.cancel(); } };
     // One flight per mounted ghost: its boxes never change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div ref={ref} className="t3-flight" style={{ width } as CSSProperties}>
+    <div ref={ref} className="t3-flight" style={{ width, opacity: 0 } as CSSProperties}>
       {flight.card
         ? <CardRenderer card={flight.card} variant={flight.variant} size="xs" inspect={false} style={{ "--w": `${width}px` } as CSSProperties} />
         : <span className="t3-flight-back" />}

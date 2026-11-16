@@ -82,19 +82,19 @@ button{font:inherit;color:inherit;cursor:pointer}
 #hand.open .card:hover{transform:translate(var(--hx),-44px) scale(1.06);z-index:50}
 #hand .card.sel{outline:4px solid var(--gold)}
 /* right rail: narrow, vertical, glued to the right edge */
-#rail{position:absolute;right:0;top:50%;transform:translateY(-50%);width:64px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 6px;border-radius:var(--r) 0 0 var(--r);background:var(--navy);color:#fff;border:3px solid #07111c;border-right:0}
-#rail .who{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:800;letter-spacing:2px;color:var(--gold);max-height:150px;overflow:hidden;white-space:nowrap}
-#rail .timer{width:12px;height:150px;border-radius:6px;background:#0b1420;border:2px solid #5d7186;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+#rail{position:absolute;right:0;bottom:12px;width:58px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 5px;border-radius:var(--r) 0 0 var(--r);background:var(--navy);color:#fff;border:3px solid #07111c;border-right:0}
+#rail .who{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10px;font-weight:800;letter-spacing:1px;color:var(--gold);max-height:84px;overflow:hidden;white-space:nowrap}
+#rail .timer{width:10px;height:84px;border-radius:6px;background:#0b1420;border:2px solid #5d7186;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
 #rail .timer i{display:block;width:100%;background:linear-gradient(#2fbf5b,#ffc31d);border-radius:4px}
 #rail .sec{font-size:13px;font-weight:800}
-#rail .ap{display:flex;flex-direction:column;gap:4px}
+#rail .ap{display:flex;gap:3px}
 #rail .ap i{width:11px;height:11px;border-radius:50%;border:2px solid var(--gold)}#rail .ap i.on{background:var(--gold)}
-#rail button{width:50px;height:46px;border-radius:10px;border:2px solid #07111c;background:#f3f3ed;color:var(--ink);font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 3px 0 #07111c}
-#rail button b{font-size:14px}
+#rail button{width:46px;height:38px;border-radius:10px;border:2px solid #07111c;background:#f3f3ed;color:var(--ink);font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 3px 0 #07111c}
+#rail button b{font-size:12px}
 #rail button.go{background:var(--green)}
 #rail button:disabled{opacity:.4;cursor:default}
 /* drawer */
-#drawer{position:absolute;top:10px;right:10px;bottom:10px;width:460px;z-index:80;display:none;flex-direction:column;gap:12px;padding:16px;border-radius:18px;background:var(--navy);color:#ecf4f6;border:3px solid #07111c;box-shadow:-10px 0 0 rgb(11 20 32/.3)}
+#drawer{position:absolute;top:10px;right:10px;bottom:10px;width:460px;z-index:80;display:none;flex-direction:column;gap:10px;padding:16px 16px 10px;border-radius:18px;background:var(--navy);color:#ecf4f6;border:3px solid #07111c;box-shadow:-10px 0 0 rgb(11 20 32/.3)}
 #drawer.show{display:flex;animation:slide calc(.25s/var(--speed)) ease-out}
 #drawer .head{display:flex;align-items:center;gap:12px}
 #drawer .leader{width:66px;height:92px}
@@ -108,10 +108,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 #dparty .hero>.card{width:var(--cw);height:calc(var(--cw)*1.38)}
 #dparty .card span{font-size:14px}#dparty .card small{font-size:10px}
 #dparty .none{color:#7d8b97;font-size:13px}
-#dslain{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#dslain{display:grid;grid-template-columns:repeat(3,96px);justify-content:center;gap:12px}
 #dslain .card,#dslain .free{width:100%;height:auto;aspect-ratio:.66}
 #dslain .free{border-color:#4b5d70;background:transparent;display:grid;place-items:center;color:#4b5d70;font-size:22px}
-#dslain .card span{font-size:13px}
+#dslain .card span{font-size:11px}
 /* overlays */
 #scrim{position:absolute;inset:0;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgb(11 20 32/.72);backdrop-filter:blur(3px);color:#fff}
 #scrim.show{display:flex;animation:fade calc(.2s/var(--speed)) ease-out}
@@ -199,7 +199,7 @@ const classRow=p=>{const have=classesOf(p);return `<div class="classes">${CLASSE
 function render(){
   const T=$("#table"),W=T.clientWidth,H=T.clientHeight,opp=S.players.slice(1),m=opp.length;
   const span=m<=1?0:m===2?70:m===3?120:m===4?156:180;
-  $("#seats").innerHTML=opp.map((p,i)=>{const a=(m<=1?270:270-span/2+span*i/(m-1))*Math.PI/180,x=47+39*Math.cos(a),y=47+34*Math.sin(a),have=classesOf(p),idx=i+1;
+  $("#seats").innerHTML=opp.map((p,i)=>{const a=(m<=1?270:270-span/2+span*i/(m-1))*Math.PI/180,x=48+36.5*Math.cos(a),y=47+34*Math.sin(a),have=classesOf(p),idx=i+1;
     return `<button class="seat ${S.turn===idx?"turn":""}" data-seat="${idx}" style="left:${x}%;top:${y}%">${leaderH(p)}<span class="col">
       <span class="row"><span class="name">${p.name}</span><span>🃏 ${p.hand}</span></span>
       <span class="row"><span class="bar">${Array.from({length:GOAL},(_,k)=>`<i class="${k<have.length?"on":""}" style="${k<have.length?"background:"+CLS[have[k]]:""}"></i>`).join("")}</span><span>${Math.min(have.length,GOAL)}/${GOAL}</span></span>
@@ -222,8 +222,7 @@ function render(){
   hand.style.left=start+"px";hand.style.width=usedIdle+"px";
   hand.innerHTML=cards.map((c,i)=>{const t=n>1?i/(n-1)-.5:0;return cardH(c,"","",`--x:${idleStep*i}px;--hx:${openStart-start+openStep*i}px;--y:${24+Math.abs(t)*12}%;--a:${t*14}deg;z-index:${i+1}`)}).join("");
   const mine=S.turn===0;
-  $("#rail").innerHTML=`<span class="who">${mine?"LƯỢT CỦA BẠN":"LƯỢT "+S.players[S.turn].name.toUpperCase()}</span>
-    <span class="timer"><i id="tfill" style="height:100%"></i></span><span class="sec" id="tsec">60</span>
+  $("#rail").innerHTML=`<span style="display:flex;align-items:flex-end;gap:5px"><span class="who">${mine?"LƯỢT BẠN":S.players[S.turn].name.toUpperCase()}</span><span class="timer"><i id="tfill" style="height:100%"></i></span></span><span class="sec" id="tsec">60</span>
     <span class="ap">${[0,1,2].map(k=>`<i class="${k<S.ap?"on":""}"></i>`).join("")}</span>
     <button data-a="draw" ${mine?"":"disabled"}><b>D</b>RÚT</button><button data-a="redeal" ${mine?"":"disabled"}><b>R</b>ĐỔI</button><button class="go" data-a="turn" ${mine?"":"disabled"}><b>E</b>HẾT</button>`;
   drawDrawer();
@@ -233,11 +232,10 @@ function drawDrawer(){
   const p=S.players[S.focus],have=classesOf(p);d.className="show";
   d.innerHTML=`<div class="head">${leaderH(p)}<div><h2>${p.name}</h2><div class="sub">Leader ${p.leader} · 🃏 ${Array.isArray(p.hand)?p.hand.length:p.hand} lá trên tay</div></div><button class="x" data-a="close" aria-label="Đóng">✕</button></div>
     <div class="lab">CLASS ${Math.min(have.length,GOAL)}/${GOAL}</div>${classRow(p)}
-    <div class="lab">PARTY ${p.party.length}/${LIMIT}${p.party.length<LIMIT?` · còn ${LIMIT-p.party.length} ô trống`:""}</div>
+    <div class="lab">PARTY ${p.party.length}/${LIMIT}</div>
     <div id="dparty">${p.party.length?p.party.map(e=>heroH(e)).join(""):`<span class="none">Chưa có Hero</span>`}</div>
     <div class="lab">MONSTER ĐÃ SLAY ${p.slain.length}/3</div>
-    <div id="dslain">${[0,1,2].map(k=>p.slain[k]?cardH(p.slain[k]):`<div class="free">☠</div>`).join("")}</div>
-    <div class="sub">Rê chuột lên Hero có Item để xem Item · Esc đóng</div>`;
+    <div id="dslain">${[0,1,2].map(k=>p.slain[k]?cardH(p.slain[k]):`<div class="free">☠</div>`).join("")}</div>`;
   // Heroes fill the whole Party area: the largest card width that still fits every Hero
   const box=$("#dparty"),n=p.party.length;if(!n)return;
   const BW=box.clientWidth,BH=box.clientHeight,gap=12;let best=60;
