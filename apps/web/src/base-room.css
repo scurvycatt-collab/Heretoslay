@@ -1154,3 +1154,9 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
   .t3-felt .t3-seat--me.t3-me .t3-party { --tok: clamp(40px, 9cqw, 64px); flex-wrap: wrap; }
   .t3-me-name { max-width: none; }
 }
+
+/* Card flights (cardFlights.tsx): ghosts above the table, below the inspector; never interactive. */
+.t3-flights { position: fixed; inset: 0; z-index: 60; pointer-events: none; overflow: hidden; }
+.t3-flight { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; filter: drop-shadow(0 10px 10px rgb(7 17 28 / 0.35)); }
+.t3-flight .tcard { display: block; }
+.t3-flight-back { display: block; width: 100%; aspect-ratio: 4 / 5; box-sizing: border-box; background: repeating-linear-gradient(135deg, #20344c 0 8px, #1a2b40 8px 16px); border: 3px solid #07111c; border-radius: 6px; }

@@ -149,3 +149,17 @@ test("every table size uses compact seats on an ellipse and the own-seat panel; 
   assert.match(css, /\.t3-seat--ellipse \{ left: var\(--x\); top: var\(--y\);/);
   assert.match(css, /\.t3-felt--p7, \.t3-felt--p8 \{/);
 });
+
+test("card flights are display-only: they replay snapshot differences and respect reduced motion", async () => {
+  const room = await readFile(new URL("../apps/web/src/BaseRoom.tsx", import.meta.url), "utf8");
+  const flights = await readFile(new URL("../apps/web/src/cardFlights.tsx", import.meta.url), "utf8");
+  const renderer = await readFile(new URL("../apps/web/src/CardRenderer.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
+  assert.match(room, /const cardFlights = useCardFlights\(state, playing\);/);
+  assert.match(renderer, /"data-card-id": card\.cardId,/);
+  assert.match(flights, /prefers-reduced-motion: reduce/);
+  assert.match(flights, /const MAX_FLIGHTS = 12;/);
+  // Never talks to the server and never holds game state of its own.
+  assert.doesNotMatch(flights, /send\(|fetch\(|WebSocket/);
+  assert.match(css, /\.t3-flights \{ position: fixed; inset: 0; z-index: 60; pointer-events: none;/);
+});

@@ -324,6 +324,8 @@ export function CardRenderer({ card, size = "md", classes, equipped, selected, d
     onPointerUp: canInspect ? clearPress : undefined,
     onPointerCancel: canInspect ? clearPress : undefined,
     title: art ? card.name : undefined,
+    // Lets the card-flight layer find where this physical card is drawn (cardFlights.tsx).
+    "data-card-id": card.cardId,
     "aria-label": ariaLabel ?? `${card.name} — ${title}${text ? `. ${text}` : ""}`,
   };
 

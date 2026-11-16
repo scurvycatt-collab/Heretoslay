@@ -7,6 +7,7 @@ import { createContext, useContext, useEffect, useRef, useState, type CSSPropert
 import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, AnyHeroClass, TargetRule } from "@here-to-slay/protocol";
 import { CardRenderer, InspectContext, type CardLike, type InspectFn } from "./CardRenderer";
 import { ClassMark, Glyph } from "./ClassIcon";
+import { useCardFlights } from "./cardFlights";
 import { CLASS_COLOR, HERO_CLASSES, cardData, leaderDisplayName, titleCase, webClass } from "./cardCatalog";
 import "./base-room.css";
 
@@ -443,7 +444,7 @@ function CompactSeat({ player, game, selected, onOpen }: { player: Player; game:
           {Array.from({ length: game.partyLimit }, (_, i) => {
             const entry = player.party[i];
             const cls = entry ? webClass(entry.classes[0]) : undefined;
-            return <span key={i} className={entry ? `is-on${entry.attachments.length ? " has-item" : ""}` : ""} style={cls ? { background: CLASS_COLOR[cls] } : undefined} title={entry ? entry.hero.name : undefined} />;
+            return <span key={i} data-card-id={entry?.hero.cardId} className={entry ? `is-on${entry.attachments.length ? " has-item" : ""}` : ""} style={cls ? { background: CLASS_COLOR[cls] } : undefined} title={entry ? entry.hero.name : undefined} />;
           })}
         </span>
         <span className="t3-cseat-slain" aria-hidden>
@@ -1411,6 +1412,8 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const topDiscard = discardPile[discardPile.length - 1];
 
   const preTable = !playing;
+  // Cards travel between zones when a snapshot moves them (display only; see cardFlights.tsx).
+  const cardFlights = useCardFlights(state, playing);
 
   return (
     <InspectContext.Provider value={inspect}>
@@ -1480,7 +1483,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
 
               {opponents.map((player, i) => (
-                <div key={player.playerId} className="t3-seat t3-seat--ellipse" style={{ "--x": `${ellipse[i].x}%`, "--y": `${ellipse[i].y}%` } as CSSProperties} aria-label={`${player.nickname}'s party`}>
+                <div key={player.playerId} data-seat-id={player.playerId} className="t3-seat t3-seat--ellipse" style={{ "--x": `${ellipse[i].x}%`, "--y": `${ellipse[i].y}%` } as CSSProperties} aria-label={`${player.nickname}'s party`}>
                   <CompactSeat player={player} game={game} selected={detailFor === player.playerId} onOpen={() => tableHover.openSeat(player.playerId)} />
                 </div>
               ))}
@@ -1523,7 +1526,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
 
               {mySeat && (
-                <div className={`t3-seat t3-seat--me t3-me${mySeat.playerId === game.currentPlayerId ? " is-active" : ""}`} aria-label="Your party">
+                <div data-seat-id={mySeat.playerId} className={`t3-seat t3-seat--me t3-me${mySeat.playerId === game.currentPlayerId ? " is-active" : ""}`} aria-label="Your party">
                   <MyPanelHead player={mySeat} game={game} />
                   <PartyTokens
                     player={mySeat}
@@ -1665,6 +1668,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
 
         {targetRequest && <TargetDialog key={targetRequest.title} state={state} request={targetRequest} onClose={() => setTargetRequest(null)} />}
 
+        {cardFlights}
         <Inspector hovered={hovered} ready={inspectReady} />
         {preTable && <p className="sr-note" role="status">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED."}</p>}
         {!preTable && notice && <p className="t3-notice" role="status">{notice}</p>}
