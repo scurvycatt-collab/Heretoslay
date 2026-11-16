@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Here to Slay — bàn chơi v3 (low-fi)</title>
+<style>
+:root{--ink:#142336;--navy:#16263a;--felt:#f4f1e8;--line:#b9c1c7;--gold:#ffc31d;--orange:#ff8b20;--red:#e0383e;--green:#2fbf5b;--r:12px;--speed:1}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:600 13px/1.3 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--ink);background:#0b1420;overflow:hidden;display:flex;flex-direction:column}
+button{font:inherit;color:inherit;cursor:pointer}
+/* ---------- test bar ---------- */
+#bar{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 10px;background:#0b1420;color:#cfd9e2;border-bottom:2px solid #22344a}
+#bar b{color:var(--gold);letter-spacing:1px;margin-right:4px}
+#bar button,#bar select{height:28px;padding:0 10px;border-radius:8px;border:2px solid #5d7186;background:#1c2a3a;color:#f4f7f8;font-size:12px}
+#bar button:hover{border-color:var(--gold)}
+#bar .sep{width:1px;height:20px;background:#22344a;margin:0 4px}
+/* ---------- table ---------- */
+#table{position:relative;flex:1;min-height:0;margin:8px;border-radius:28px;background:radial-gradient(ellipse at 50% 45%,#fff 0,#f7f6f2 60%,#e9e6dc 100%);box-shadow:inset 0 0 0 3px #d9d4c6;overflow:hidden}
+.card{position:relative;border-radius:10px;border:3px solid var(--ink);background:#5b5d5c;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:6px;overflow:hidden;box-shadow:0 3px 0 var(--ink);user-select:none}
+.card small{font-size:9px;letter-spacing:1px;opacity:.9}
+.card span{font-size:11px;line-height:1.15}
+.card.back{background:repeating-linear-gradient(135deg,#20344c 0 8px,#1a2b40 8px 16px)}
+.card.monster{background:#2a1d33}
+.card.mini span{font-size:9px}.card.mini small{font-size:7px}.card.mini{padding:3px;border-width:2px;border-radius:7px;box-shadow:0 2px 0 var(--ink)}
+/* centre */
+#centre{position:absolute;left:47%;top:46%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:16px}
+#deck{width:84px;height:118px;display:grid;place-items:center;font-size:18px;box-shadow:4px 4px 0 #0b1420,8px 8px 0 #0b1420}
+#monsters{display:flex;gap:10px}
+#monsters .card{width:104px;height:150px}
+#discard{width:84px;height:118px;border-radius:10px;border:3px dashed #9aa5ae;display:grid;place-items:center;color:#5d6a75;font-size:10px;position:relative}
+#discard .card{position:absolute;inset:-3px;width:auto;height:auto}
+/* opponent seats: bigger banner with the Leader picture */
+.seat{position:absolute;transform:translate(-50%,-50%);width:262px;display:flex;gap:9px;padding:8px;border-radius:var(--r);background:#fff;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);text-align:left}
+.seat:hover{translate:0 -2px}
+.seat.turn{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange),0 4px 0 var(--ink)}
+.seat.hit,#me.hit{animation:hit calc(.5s/var(--speed)) ease-in-out;border-color:var(--red)}
+.leader{flex:none;border-radius:9px;border:3px solid var(--ink);display:grid;place-items:center;color:#fff;font-size:18px;position:relative;overflow:hidden}
+.leader::after{content:"LEADER";position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:6px;letter-spacing:1px;opacity:.85}
+.seat .leader{width:54px;height:76px}
+.seat .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:center}
+.seat .row{display:flex;align-items:center;gap:6px}
+.seat .name{flex:1;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{flex:1;display:flex;gap:2px}.bar i{flex:1;height:9px;border-radius:3px;background:#dfe3e6;border:1px solid var(--line)}
+.bar i.on{border-color:var(--ink);animation:seg calc(.5s/var(--speed)) ease-out both}
+.chips{display:flex;gap:3px}.chips i{width:14px;height:20px;border-radius:4px;border:2px dashed var(--line)}
+.chips i.on{border:2px solid var(--ink)}.chips i.item{box-shadow:0 3px 0 var(--gold)}
+.pips{display:flex;gap:6px;margin-left:auto;padding-right:3px}
+.pips i{width:11px;height:11px;transform:rotate(45deg);border:2px solid var(--ink);border-radius:2px;background:#f2efe6}
+.pips i.on{background:var(--red);animation:pip calc(.6s/var(--speed)) ease-out both}
+/* my banner */
+#me{position:absolute;left:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-radius:var(--r);background:rgb(255 255 255/.92);border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink)}
+#me.turn{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange),0 4px 0 var(--ink)}
+#me .head{display:flex;align-items:center;gap:10px}
+#me .leader{width:50px;height:70px}
+#me .name{font-size:15px;font-weight:800}
+#me .slain{display:flex;gap:6px;margin-left:auto;padding-left:14px}
+#me .slain .slot{width:50px;height:70px;border-radius:8px;border:2px dashed #9aa5ae;display:grid;place-items:center;font-size:16px;color:#9aa5ae}
+#me .slain .card{width:50px;height:70px}
+.classes{display:flex;flex-wrap:wrap;gap:5px}
+.classes i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;color:#7d8b97;background:#eef0f1;border:2px solid var(--line)}
+.classes i.on{color:#fff;border-color:var(--ink);animation:cls calc(.5s/var(--speed)) cubic-bezier(.2,.8,.3,1.2) both}
+#me .party{display:flex;gap:7px;align-items:flex-start}
+.free{border-radius:8px;border:2px dashed #9aa5ae;background:rgb(255 255 255/.5)}
+#me .party .free,#me .party .hero>.card{width:62px;height:86px}
+/* Hero + Items tucked behind: only a corner shows; hover spreads them out */
+.hero{position:relative;transition:margin calc(.22s/var(--speed)) ease}
+.hero>.card{position:relative;z-index:2}
+.hero .it{position:absolute;top:0;left:0;z-index:1;width:100%;height:100%;transition:transform calc(.22s/var(--speed)) ease}
+.hero .it:nth-of-type(1){transform:translate(9px,-7px) rotate(5deg)}
+.hero .it:nth-of-type(2){transform:translate(17px,-12px) rotate(10deg)}
+.hero.has1{margin-right:8px}.hero.has2{margin-right:14px}
+.hero:hover{z-index:5}
+.hero:hover .it:nth-of-type(1){transform:translate(calc(100% + 5px),0)}
+.hero:hover .it:nth-of-type(2){transform:translate(calc(200% + 10px),0)}
+.hero.has1:hover{margin-right:calc(var(--cw) + 5px)}.hero.has2:hover{margin-right:calc(var(--cw)*2 + 10px)}
+/* hand */
+#hand{position:absolute;bottom:0;height:150px}
+#hand .card{position:absolute;bottom:0;left:0;width:118px;height:166px;transform:translate(var(--x),var(--y)) rotate(var(--a));transform-origin:50% 100%;transition:transform calc(.26s/var(--speed)) cubic-bezier(.2,.8,.3,1)}
+#hand.open .card{transform:translate(var(--hx),-18px) rotate(calc(var(--a)*.35))}
+#hand.open .card:hover{transform:translate(var(--hx),-44px) scale(1.06);z-index:50}
+#hand .card.sel{outline:4px solid var(--gold)}
+/* right rail: narrow, vertical, glued to the right edge */
+#rail{position:absolute;right:0;top:50%;transform:translateY(-50%);width:64px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 6px;border-radius:var(--r) 0 0 var(--r);background:var(--navy);color:#fff;border:3px solid #07111c;border-right:0}
+#rail .who{writing-mode:vertical-rl;transform:rotate(180deg);font-size:12px;font-weight:800;letter-spacing:2px;color:var(--gold);max-height:150px;overflow:hidden;white-space:nowrap}
+#rail .timer{width:12px;height:150px;border-radius:6px;background:#0b1420;border:2px solid #5d7186;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}
+#rail .timer i{display:block;width:100%;background:linear-gradient(#2fbf5b,#ffc31d);border-radius:4px}
+#rail .sec{font-size:13px;font-weight:800}
+#rail .ap{display:flex;flex-direction:column;gap:4px}
+#rail .ap i{width:11px;height:11px;border-radius:50%;border:2px solid var(--gold)}#rail .ap i.on{background:var(--gold)}
+#rail button{width:50px;height:46px;border-radius:10px;border:2px solid #07111c;background:#f3f3ed;color:var(--ink);font-size:9px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;box-shadow:0 3px 0 #07111c}
+#rail button b{font-size:14px}
+#rail button.go{background:var(--green)}
+#rail button:disabled{opacity:.4;cursor:default}
+/* drawer */
+#drawer{position:absolute;top:10px;right:10px;bottom:10px;width:460px;z-index:80;display:none;flex-direction:column;gap:12px;padding:16px;border-radius:18px;background:var(--navy);color:#ecf4f6;border:3px solid #07111c;box-shadow:-10px 0 0 rgb(11 20 32/.3)}
+#drawer.show{display:flex;animation:slide calc(.25s/var(--speed)) ease-out}
+#drawer .head{display:flex;align-items:center;gap:12px}
+#drawer .leader{width:66px;height:92px}
+#drawer h2{margin:0;font-size:20px}
+#drawer .sub{font-size:12px;color:#9fb0bf}
+#drawer .x{margin-left:auto;width:40px;height:40px;border-radius:50%;border:2px solid #8b9baa;background:#1c2a3a;color:#fff;font-size:18px}
+#drawer .lab{font-size:11px;letter-spacing:2px;color:#9fb0bf}
+#drawer .classes i:not(.on){background:#1c2a3a;border-color:#4b5d70;color:#7d8b97}
+#drawer .classes i{width:30px;height:30px;font-size:11px}
+#dparty{flex:1;min-height:0;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:12px}
+#dparty .hero>.card{width:var(--cw);height:calc(var(--cw)*1.38)}
+#dparty .card span{font-size:14px}#dparty .card small{font-size:10px}
+#dparty .none{color:#7d8b97;font-size:13px}
+#dslain{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#dslain .card,#dslain .free{width:100%;height:auto;aspect-ratio:.66}
+#dslain .free{border-color:#4b5d70;background:transparent;display:grid;place-items:center;color:#4b5d70;font-size:22px}
+#dslain .card span{font-size:13px}
+/* overlays */
+#scrim{position:absolute;inset:0;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:rgb(11 20 32/.72);backdrop-filter:blur(3px);color:#fff}
+#scrim.show{display:flex;animation:fade calc(.2s/var(--speed)) ease-out}
+#scrim p{margin:0;font-size:16px}
+#scrim .pick{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:820px}
+#scrim .pick .card{width:118px;height:166px;cursor:pointer}
+#scrim .pick .card.sel{outline:4px solid var(--gold);translate:0 -8px}
+#scrim .ok{height:42px;padding:0 22px;border-radius:21px;border:0;background:var(--gold);color:var(--ink);font-weight:800}
+#scrim .ok:disabled{opacity:.4}
+.dice{display:flex;gap:16px}
+.dice i{width:74px;height:74px;border-radius:16px;background:#fff;color:var(--ink);display:grid;place-items:center;font-style:normal;font-size:34px;font-weight:800;border:3px solid #07111c;animation:roll calc(.9s/var(--speed)) ease-out}
+#toast{position:absolute;left:14px;top:12px;z-index:70;padding:6px 12px;border-radius:10px;background:#fff;border:2px solid var(--ink);font-size:12px;opacity:0;transition:opacity .2s}
+#toast.show{opacity:1}
+/* flights */
+#flights{position:fixed;inset:0;z-index:100;pointer-events:none;overflow:hidden}
+#flights .card{position:absolute;left:0;top:0;transform-origin:0 0;filter:drop-shadow(0 10px 10px rgb(7 17 28/.35))}
+@keyframes hit{0%,100%{translate:0 0}15%{translate:-6px 0}30%{translate:5px 0}45%{translate:-4px 0}60%{translate:3px 0}80%{translate:-1px 0}}
+@keyframes seg{0%{transform:scaleY(2.6);filter:brightness(1.9)}100%{transform:none;filter:none}}
+@keyframes pip{0%{transform:rotate(45deg) scale(.4)}45%{transform:rotate(45deg) scale(2.1);box-shadow:0 0 0 4px rgb(224 56 62/.35)}100%{transform:rotate(45deg) scale(1)}}
+@keyframes cls{0%{transform:scale(.5) rotate(-14deg);filter:brightness(2)}60%{transform:scale(1.28)}100%{transform:none;filter:none}}
+@keyframes slide{from{transform:translateX(40px);opacity:0}}
+@keyframes fade{from{opacity:0}}
+@keyframes roll{0%{transform:rotate(-200deg) scale(.4)}60%{transform:rotate(20deg) scale(1.15)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>TEST</b>
+  <select id="n" aria-label="Số người">
+    <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option>
+  </select>
+  <button data-a="deal">Chia bài</button>
+  <button data-a="draw">Rút</button>
+  <button data-a="play">Chơi Hero</button>
+  <button data-a="item">Gắn Item</button>
+  <button data-a="discard">Bỏ bài</button>
+  <span class="sep"></span>
+  <button data-a="bot">Bot hành động</button>
+  <button data-a="slay">SLAY Monster</button>
+  <button data-a="botslay">Bot SLAY</button>
+  <button data-a="destroy">DESTROY Hero</button>
+  <span class="sep"></span>
+  <button data-a="many">Tay +6 lá</button>
+  <button data-a="pick">Hộp chọn bài</button>
+  <button data-a="turn">Đổi lượt</button>
+  <select id="speed" aria-label="Tốc độ"><option value="1">Tốc độ 1×</option><option value="0.5">0.5×</option><option value="0.25">0.25×</option></select>
+  <button data-a="reset">Làm lại</button>
+</div>
+<div id="table">
+  <div id="toast"></div>
+  <div id="seats"></div>
+  <div id="centre">
+    <div id="deck" class="card back">64</div>
+    <div id="monsters"></div>
+    <div id="discard">DISCARD</div>
+  </div>
+  <div id="me"></div>
+  <div id="hand"></div>
+  <div id="rail"></div>
+  <aside id="drawer" aria-label="Chi tiết Party"></aside>
+  <div id="scrim"></div>
+</div>
+<div id="flights" aria-hidden="true"></div>
+<script>
+const CLS={bard:"#c2512f",fighter:"#97282c",guardian:"#ebab21",ranger:"#235e39",thief:"#004e7d",wizard:"#742e89",warrior:"#e06f2b",druid:"#00a593",berserker:"#d22560",necromancer:"#5d2d84",sorcerer:"#1a1a1a"};
+const CLASSES=Object.keys(CLS), SHORT=Object.fromEntries(CLASSES.map(c=>[c,c.slice(0,2).toUpperCase()]));
+const KIND={hero:null,item:"#3d4c59",magic:"#b0306a",modifier:"#8a7a52",challenge:"#e0383e",monster:"#2a1d33"};
+const NAMES=["An","Bình","Chi","Dũng","Giang","Hà","Khoa"];
+const LIMIT=7,GOAL=7,DUR=580,STAG=110,HOLD=500;
+const $=s=>document.querySelector(s), rnd=a=>a[Math.floor(Math.random()*a.length)];
+let uid=0,S,speed=1,timerT=0,pickSel=[];
+const mk=(kind,cls)=>{const id="c"+(++uid);const k=kind||rnd(["hero","hero","hero","item","magic","modifier","challenge"]);const c=k==="hero"?(cls||rnd(CLASSES)):null;
+  return{id,kind:k,cls:c,name:k==="hero"?c[0].toUpperCase()+c.slice(1):k==="monster"?"Monster "+uid:k[0].toUpperCase()+k.slice(1)}};
+function reset(n){uid=0;S={n,turn:0,ap:3,deck:64,discard:[],monsters:[mk("monster"),mk("monster"),mk("monster")],focus:null,
+  players:Array.from({length:n},(_,i)=>({name:i?NAMES[i-1]:"Bạn",leader:CLASSES[(i*3+7)%11],hand:i?0:[],party:[],slain:[]}))};
+  S.players[0].hand=[];render()}
+const color=c=>c.kind==="hero"?CLS[c.cls]:KIND[c.kind];
+const cardH=(c,extra="",tag="",style="")=>`<div class="card ${c.kind==="monster"?"monster":""} ${extra}" data-id="${c.id}" style="background:${color(c)};${style}" ${tag}><small>${c.kind.toUpperCase()}</small><span>${c.name}</span></div>`;
+const heroH=(e,mini)=>`<div class="hero has${e.items.length}">${e.items.map(it=>`<div class="it">${cardH(it,mini?"mini":"","","width:100%;height:100%")}</div>`).join("")}${cardH(e.hero,mini?"mini":"")}</div>`;
+const classesOf=p=>[...new Set([p.leader,...p.party.map(e=>e.hero.cls)])];
+const leaderH=p=>`<div class="leader" style="background:${CLS[p.leader]}">${SHORT[p.leader]}</div>`;
+const classRow=p=>{const have=classesOf(p);return `<div class="classes">${CLASSES.map(c=>`<i class="${have.includes(c)?"on":""}" style="${have.includes(c)?"background:"+CLS[c]:""}" title="${c}">${SHORT[c]}</i>`).join("")}</div>`};
+
+function render(){
+  const T=$("#table"),W=T.clientWidth,H=T.clientHeight,opp=S.players.slice(1),m=opp.length;
+  const span=m<=1?0:m===2?70:m===3?120:m===4?156:180;
+  $("#seats").innerHTML=opp.map((p,i)=>{const a=(m<=1?270:270-span/2+span*i/(m-1))*Math.PI/180,x=47+39*Math.cos(a),y=47+34*Math.sin(a),have=classesOf(p),idx=i+1;
+    return `<button class="seat ${S.turn===idx?"turn":""}" data-seat="${idx}" style="left:${x}%;top:${y}%">${leaderH(p)}<span class="col">
+      <span class="row"><span class="name">${p.name}</span><span>🃏 ${p.hand}</span></span>
+      <span class="row"><span class="bar">${Array.from({length:GOAL},(_,k)=>`<i class="${k<have.length?"on":""}" style="${k<have.length?"background:"+CLS[have[k]]:""}"></i>`).join("")}</span><span>${Math.min(have.length,GOAL)}/${GOAL}</span></span>
+      <span class="row"><span class="chips">${Array.from({length:LIMIT},(_,k)=>{const e=p.party[k];return `<i ${e?`data-id="${e.hero.id}"`:""} class="${e?"on":""} ${e&&e.items.length?"item":""}" style="${e?"background:"+CLS[e.hero.cls]:""}"></i>`}).join("")}</span>
+      <span class="pips">${[0,1,2].map(k=>`<i class="${k<p.slain.length?"on":""}"></i>`).join("")}</span></span></span></button>`}).join("");
+  $("#deck").textContent=S.deck;
+  $("#monsters").innerHTML=S.monsters.map(c=>cardH(c)).join("");
+  const top=S.discard[S.discard.length-1];$("#discard").innerHTML=top?cardH(top):"DISCARD";
+  const me=S.players[0];
+  $("#me").className=S.turn===0?"turn":"";$("#me").dataset.seat=0;
+  $("#me").innerHTML=`<div class="head">${leaderH(me)}<button class="name" data-seat="0" style="background:none;border:0;padding:0">${me.name} ★</button>
+    <div class="slain">${[0,1,2].map(k=>me.slain[k]?cardH(me.slain[k],"mini"):`<div class="slot">☠</div>`).join("")}</div></div>
+    ${classRow(me)}<div class="party" style="--cw:62px">${me.party.map(e=>heroH(e,true)).join("")}${Array.from({length:LIMIT-me.party.length},()=>`<div class="free"></div>`).join("")}</div>`;
+  // hand: idle = packed between my banner and the rail; hover = spread (may cover the banner)
+  const hand=$("#hand"),cards=me.hand,cw=118,n=cards.length,meR=$("#me").getBoundingClientRect(),tR=T.getBoundingClientRect();
+  const left=meR.right-tR.left+22,right=W-64-22,idleW=Math.max(cw,right-left),idleStep=n>1?Math.min(cw*.6,(idleW-cw)/(n-1)):0,usedIdle=cw+idleStep*(n-1);
+  const start=left+(idleW-usedIdle)/2+(idleW-usedIdle)*.18;
+  const openMax=W-64-22-16,openStep=n>1?Math.min(cw+8,(openMax-cw)/(n-1)):0,usedOpen=cw+openStep*(n-1);
+  let openStart=start+usedIdle/2-usedOpen/2;openStart=Math.max(16,Math.min(openStart,right-usedOpen));
+  hand.style.left=start+"px";hand.style.width=usedIdle+"px";
+  hand.innerHTML=cards.map((c,i)=>{const t=n>1?i/(n-1)-.5:0;return cardH(c,"","",`--x:${idleStep*i}px;--hx:${openStart-start+openStep*i}px;--y:${24+Math.abs(t)*12}%;--a:${t*14}deg;z-index:${i+1}`)}).join("");
+  const mine=S.turn===0;
+  $("#rail").innerHTML=`<span class="who">${mine?"LƯỢT CỦA BẠN":"LƯỢT "+S.players[S.turn].name.toUpperCase()}</span>
+    <span class="timer"><i id="tfill" style="height:100%"></i></span><span class="sec" id="tsec">60</span>
+    <span class="ap">${[0,1,2].map(k=>`<i class="${k<S.ap?"on":""}"></i>`).join("")}</span>
+    <button data-a="draw" ${mine?"":"disabled"}><b>D</b>RÚT</button><button data-a="redeal" ${mine?"":"disabled"}><b>R</b>ĐỔI</button><button class="go" data-a="turn" ${mine?"":"disabled"}><b>E</b>HẾT</button>`;
+  drawDrawer();
+}
+function drawDrawer(){
+  const d=$("#drawer");if(S.focus==null){d.className="";return}
+  const p=S.players[S.focus],have=classesOf(p);d.className="show";
+  d.innerHTML=`<div class="head">${leaderH(p)}<div><h2>${p.name}</h2><div class="sub">Leader ${p.leader} · 🃏 ${Array.isArray(p.hand)?p.hand.length:p.hand} lá trên tay</div></div><button class="x" data-a="close" aria-label="Đóng">✕</button></div>
+    <div class="lab">CLASS ${Math.min(have.length,GOAL)}/${GOAL}</div>${classRow(p)}
+    <div class="lab">PARTY ${p.party.length}/${LIMIT}${p.party.length<LIMIT?` · còn ${LIMIT-p.party.length} ô trống`:""}</div>
+    <div id="dparty">${p.party.length?p.party.map(e=>heroH(e)).join(""):`<span class="none">Chưa có Hero</span>`}</div>
+    <div class="lab">MONSTER ĐÃ SLAY ${p.slain.length}/3</div>
+    <div id="dslain">${[0,1,2].map(k=>p.slain[k]?cardH(p.slain[k]):`<div class="free">☠</div>`).join("")}</div>
+    <div class="sub">Rê chuột lên Hero có Item để xem Item · Esc đóng</div>`;
+  // Heroes fill the whole Party area: the largest card width that still fits every Hero
+  const box=$("#dparty"),n=p.party.length;if(!n)return;
+  const BW=box.clientWidth,BH=box.clientHeight,gap=12;let best=60;
+  for(let cols=1;cols<=n;cols++){const rows=Math.ceil(n/cols),w=Math.min((BW-gap*(cols-1))/cols-18,(BH-gap*(rows-1))/rows/1.38);if(w>best)best=w}
+  box.style.setProperty("--cw",Math.floor(Math.min(best,230))+"px");
+}
+/* ---------- flights ---------- */
+const rect=el=>{const r=el.getBoundingClientRect();return{l:r.left,t:r.top,w:r.width,h:r.height}};
+const elOf=id=>document.querySelector(`#table [data-id="${id}"]`);
+const centred=(r,w)=>({l:r.l+r.w/2-w/2,t:r.t+r.h/2-w*.7,w,h:w*1.4});
+function fly(html,from,to,i=0,target){
+  const w=Math.max(from.w,to.w,24),g=document.createElement("div");g.innerHTML=html;const el=g.firstElementChild;
+  el.removeAttribute("data-id");el.className=el.className.replace("mini","");el.style.width=w+"px";el.style.height=w*(to.h/to.w||1.4)+"px";el.style.transform="";
+  $("#flights").appendChild(el);
+  const at=(b,k=1)=>`translate(${b.l}px,${b.t}px) scale(${b.w/w*k})`,mid={l:(from.l+to.l)/2,t:(from.t+to.t)/2-18,w:(from.w+to.w)/2};
+  const d=DUR/speed,delay=i*STAG/speed;
+  if(target)target.animate([{opacity:0},{opacity:0,offset:.92},{opacity:1}],{duration:delay+d});
+  const an=el.animate([{transform:at(from),opacity:.2},{transform:at(from),opacity:1,offset:.08},{transform:at(mid,1.08),opacity:1,offset:.55},{transform:at(to),opacity:1}],{duration:d,delay,easing:"cubic-bezier(.3,.7,.3,1)",fill:"both"});
+  return new Promise(res=>{an.onfinish=()=>{el.remove();res()}});
+}
+const BACK=`<div class="card back"></div>`;
+const seatEl=i=>document.querySelector(`[data-seat="${i}"]`);
+const wait=ms=>new Promise(r=>setTimeout(r,ms/speed));
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),1800)}
+function shake(i){const e=i?seatEl(i):$("#me");e.classList.remove("hit");void e.offsetWidth;e.classList.add("hit");setTimeout(()=>e.classList.remove("hit"),600/speed)}
+/* move a card: remember where it was, change state, render, fly old → new */
+async function move(card,mutate,{fromEl,i=0}={}){
+  const old=fromEl?rect(fromEl):elOf(card.id)?rect(elOf(card.id)):null;mutate();render();
+  const t=elOf(card.id);if(!old||!t)return;
+  const to=rect(t);await fly(cardH(card),old.w<30?centred(old,70):old,to,i,t);
+}
+/* ---------- actions ---------- */
+const A={
+  async deal(){const me=S.players[0],ps=[];
+    for(let k=0;k<5;k++){const c=mk();S.deck--;ps.push(move(c,()=>me.hand.push(c),{fromEl:$("#deck"),i:k}))}
+    S.players.forEach((p,i)=>{if(!i)return;p.hand+=5;for(let k=0;k<2;k++)ps.push(fly(BACK,rect($("#deck")),centred(rect(seatEl(i)),40),5+i*2+k))});
+    S.deck-=5*(S.n-1);render();await Promise.all(ps)},
+  async draw(){const c=mk();S.deck--;S.ap=Math.max(0,S.ap-1);await move(c,()=>S.players[0].hand.push(c),{fromEl:$("#deck")})},
+  async play(card){const me=S.players[0];if(me.party.length>=LIMIT)return toast("Party đã đầy");
+    let c=card||me.hand.find(x=>x.kind==="hero");if(!c){c=mk("hero");me.hand.push(c);render()}
+    await move(c,()=>{me.hand=me.hand.filter(x=>x!==c);me.party.push({hero:c,items:[]});S.ap=Math.max(0,S.ap-1)});
+    await wait(HOLD);roll(c)},
+  async item(card){const me=S.players[0];if(!me.party.length)return toast("Cần 1 Hero trước");
+    let c=card||me.hand.find(x=>x.kind==="item");if(!c){c=mk("item");me.hand.push(c);render()}
+    const e=me.party.find(x=>x.items.length<2)||me.party[0];
+    await move(c,()=>{me.hand=me.hand.filter(x=>x!==c);e.items.push(c)})},
+  async discard(card){const me=S.players[0],c=card||rnd(me.hand);if(!c)return toast("Tay trống");
+    await move(c,()=>{me.hand=me.hand.filter(x=>x!==c);S.discard.push(c)})},
+  async bot(){if(S.n<2)return;const i=1+Math.floor(Math.random()*(S.n-1)),p=S.players[i],r=Math.random();
+    if(r<.4||!p.hand){p.hand++;S.deck--;render();await fly(BACK,rect($("#deck")),centred(rect(seatEl(i)),40));toast(p.name+" rút 1 lá")}
+    else if(r<.8&&p.party.length<LIMIT){const c=mk("hero");p.hand--;await move(c,()=>p.party.push({hero:c,items:[]}),{fromEl:seatEl(i)});toast(p.name+" chơi "+c.name)}
+    else{const c=mk();p.hand--;await move(c,()=>S.discard.push(c),{fromEl:seatEl(i)});toast(p.name+" bỏ "+c.name)}},
+  async slay(){const me=S.players[0];if(me.slain.length>=3)return toast("Đã đủ 3 Monster");const c=rnd(S.monsters);
+    await move(c,()=>{S.monsters[S.monsters.indexOf(c)]=mk("monster");me.slain.push(c)});toast("SLAY "+c.name)},
+  async botslay(){const i=1+Math.floor(Math.random()*(S.n-1)),p=S.players[i];if(p.slain.length>=3)return;const c=rnd(S.monsters),old=rect(elOf(c.id));
+    S.monsters[S.monsters.indexOf(c)]=mk("monster");p.slain.push(c);render();await fly(cardH(c),old,centred(rect(seatEl(i)),34));toast(p.name+" SLAY "+c.name)},
+  async destroy(){const withH=S.players.map((p,i)=>[p,i]).filter(([p])=>p.party.length);if(!withH.length)return toast("Chưa ai có Hero");
+    const [p,i]=rnd(withH),e=rnd(p.party);shake(i);await move(e.hero,()=>{p.party=p.party.filter(x=>x!==e);S.discard.push(...e.items,e.hero)});toast("DESTROY "+e.hero.name+" của "+p.name)},
+  async many(){for(let k=0;k<6;k++){const c=mk();S.deck--;move(c,()=>S.players[0].hand.push(c),{fromEl:$("#deck"),i:k})}},
+  redeal(){toast("Đổi tay (không mô phỏng)")},
+  turn(){S.turn=(S.turn+1)%S.n;S.ap=3;timerT=performance.now();render()},
+  pick(){const cards=S.players[0].hand;if(cards.length<2)return toast("Cần ít nhất 2 lá trên tay");pickSel=[];drawPick()},
+  close(){S.focus=null;render()},
+  reset(){reset(+$("#n").value)},
+};
+function drawPick(){const s=$("#scrim");s.className="show";
+  s.innerHTML=`<p>Pick 2 cards. Hover 2s or right-click for full text.</p><div class="pick">${S.players[0].hand.map(c=>cardH(c,pickSel.includes(c.id)?"sel":"",`data-pick="${c.id}"`)).join("")}</div><button class="ok" data-ok ${pickSel.length===2?"":"disabled"}>XÁC NHẬN ${pickSel.length}/2</button>`}
+function roll(c){const s=$("#scrim"),a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6);s.className="show";
+  s.innerHTML=`<p>${c.name} vào Party — roll hiệu ứng</p><div class="dice"><i>${a}</i><i>${b}</i></div><p>Kết quả ${a+b}</p><button class="ok" data-ok>ĐÓNG</button>`;
+  clearTimeout(roll.t);roll.t=setTimeout(()=>s.className="",2600/speed)}
+/* ---------- events ---------- */
+document.addEventListener("click",async e=>{
+  const a=e.target.closest("[data-a]");if(a&&!a.disabled){A[a.dataset.a]();return}
+  if(e.target.closest("[data-ok]")){const s=$("#scrim");if(pickSel.length===2){const cs=S.players[0].hand.filter(c=>pickSel.includes(c.id));pickSel=[];s.className="";for(const c of cs)await A.discard(c)}s.className="";return}
+  const pk=e.target.closest("[data-pick]");if(pk){const id=pk.dataset.pick;pickSel=pickSel.includes(id)?pickSel.filter(x=>x!==id):pickSel.length<2?[...pickSel,id]:pickSel;drawPick();return}
+  const hc=e.target.closest("#hand .card");if(hc){const c=S.players[0].hand.find(x=>x.id===hc.dataset.id);if(c.kind==="hero")A.play(c);else if(c.kind==="item"&&S.players[0].party.length)A.item(c);else A.discard(c);return}
+  const st=e.target.closest("[data-seat]");if(st&&!e.target.closest("#me .party")){const i=+st.dataset.seat;S.focus=S.focus===i?null:i;render()}
+});
+$("#hand").addEventListener("mouseenter",()=>$("#hand").classList.add("open"));
+$("#hand").addEventListener("mouseleave",()=>$("#hand").classList.remove("open"));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#scrim").className="";A.close()}});
+$("#n").addEventListener("change",A.reset);
+$("#speed").addEventListener("change",e=>{speed=+e.target.value;document.documentElement.style.setProperty("--speed",speed)});
+addEventListener("resize",()=>render());
+(function tick(){const left=Math.max(0,60-(performance.now()-timerT)/1000),f=$("#tfill"),s=$("#tsec");if(f){f.style.height=left/60*100+"%";s.textContent=Math.ceil(left)}requestAnimationFrame(tick)})();
+reset(8);timerT=performance.now();setTimeout(()=>A.deal(),350);
+</script>
+</body>
+</html>
