@@ -7,7 +7,7 @@ import { createContext, useContext, useEffect, useRef, useState, type CSSPropert
 import type { BaseCardView, BaseChainView, BaseGameSnapshot, BaseRollOutcome, BaseRollResultView, BaseRollView, BaseTargets, AnyHeroClass, TargetRule } from "@here-to-slay/protocol";
 import { CardRenderer, InspectContext, type CardLike, type InspectFn } from "./CardRenderer";
 import { ClassMark, Glyph } from "./ClassIcon";
-import { useCardFlights } from "./cardFlights";
+import { useCardFlights, useLossPulse } from "./cardFlights";
 import { CLASS_COLOR, HERO_CLASSES, cardData, leaderDisplayName, titleCase, webClass } from "./cardCatalog";
 import "./base-room.css";
 
@@ -418,10 +418,11 @@ function CompactSeat({ player, game, selected, onOpen }: { player: Player; game:
   const isActive = player.playerId === game.currentPlayerId;
   const progress = classProgress(player, game);
   const have = progress.filter(Boolean).length;
+  const hit = useLossPulse(player.party.length);
   return (
     <button
       type="button"
-      className={`t3-cseat${isActive ? " is-active" : ""}${selected ? " is-selected" : ""}`}
+      className={`t3-cseat${isActive ? " is-active" : ""}${selected ? " is-selected" : ""}${hit ? " is-hit" : ""}`}
       onClick={onOpen}
       aria-label={`${player.nickname}: ${have}/${game.classGoal} classes, ${player.party.length}/${game.partyLimit} Heroes, ${player.slainMonsters.length}/3 Monsters, ${player.handCount} cards in hand — open Party details`}
       aria-expanded={selected}
@@ -1414,6 +1415,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
   const preTable = !playing;
   // Cards travel between zones when a snapshot moves them (display only; see cardFlights.tsx).
   const cardFlights = useCardFlights(state, playing);
+  const myHit = useLossPulse(state.players.find((p) => p.playerId === me)?.party.length ?? 0);
 
   return (
     <InspectContext.Provider value={inspect}>
@@ -1526,7 +1528,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
               </div>
 
               {mySeat && (
-                <div data-seat-id={mySeat.playerId} className={`t3-seat t3-seat--me t3-me${mySeat.playerId === game.currentPlayerId ? " is-active" : ""}`} aria-label="Your party">
+                <div data-seat-id={mySeat.playerId} className={`t3-seat t3-seat--me t3-me${mySeat.playerId === game.currentPlayerId ? " is-active" : ""}${myHit ? " is-hit" : ""}`} aria-label="Your party">
                   <MyPanelHead player={mySeat} game={game} />
                   <PartyTokens
                     player={mySeat}
@@ -1607,7 +1609,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
           </div>
         )}
 
-        {chain && <ReactionStage key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} askTargets={setTargetRequest} />}
+        {chain && !cardFlights.holdStage && <ReactionStage key={chainKey(chain)} state={state} send={send} pending={pending} serverNow={serverNow} askTargets={setTargetRequest} />}
 
         {game.reveals.filter((reveal) => reveal.expiresAt > serverNow).map((reveal) => (
           <aside key={reveal.revealId} className="t3-reveal" role="status" aria-live="polite">
@@ -1668,7 +1670,7 @@ export function BaseRoom({ state, send, pending, serverNow, notice, onLobby }: {
 
         {targetRequest && <TargetDialog key={targetRequest.title} state={state} request={targetRequest} onClose={() => setTargetRequest(null)} />}
 
-        {cardFlights}
+        {cardFlights.layer}
         <Inspector hovered={hovered} ready={inspectReady} />
         {preTable && <p className="sr-note" role="status">{notice || "Server snapshot is authoritative. Card data from community sources; rights UNVERIFIED."}</p>}
         {!preTable && notice && <p className="t3-notice" role="status">{notice}</p>}

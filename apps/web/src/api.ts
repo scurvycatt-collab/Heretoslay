@@ -7,6 +7,8 @@ export type CommandOutcome = { accepted: boolean; code: string; replayed: boolea
 type CommandResponse = { outcome: CommandOutcome; snapshot: Snapshot };
 const key = "hts.reaction.session";
 const publicBase = import.meta.env.BASE_URL.replace(/\/$/, "");
+/** Sandbox build (no server, hosted at an arbitrary path): the room code never goes into the URL. */
+const SANDBOX = import.meta.env.VITE_SANDBOX === "1";
 async function request<T extends object>(path: string, init: RequestInit = {}): Promise<T> { const response = await fetch(`${publicBase}${path}`, init); const body = await response.json() as T | ErrorBody; if (!response.ok) throw new Error("error" in body ? `${body.error.code}: ${body.error.message}` : "Connection failed."); return body as T; }
 type SessionResponse = Omit<Session, "receivedAt">;
 export const createRoom = async (nickname: string, mode: RoomCreateMode = "base", roomCode?: string) => ({ ...(await request<SessionResponse>("/api/rooms", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nickname, mode, ...(roomCode ? { roomCode } : {}) }) })), receivedAt: Date.now() });
@@ -23,6 +25,7 @@ const sessionsKey = "hts.sessions.v1";
 const SESSION_TTL_MS = 6 * 3600_000;
 export type RoutePath = { roomCode: string | null; playerId: string | null };
 export const parseRoute = (): RoutePath => {
+  if (SANDBOX) return { roomCode: null, playerId: null };
   const path = location.pathname.startsWith(publicBase) ? location.pathname.slice(publicBase.length) : location.pathname;
   const [room, player] = path.split("/").filter(Boolean);
   return { roomCode: room && /^[A-Za-z0-9]{3,24}$/.test(room) ? room.toUpperCase() : null, playerId: room && player ? decodeURIComponent(player) : null };
@@ -37,13 +40,13 @@ export const saveSession = (value: Session) => {
   const playerId = value.snapshot.you.playerId;
   const store = readStore(); store[sessionKey(value.roomCode)] = value; delete store[`${value.roomCode.toUpperCase()}/${playerId}`]; writeStore(store);
   const target = routeUrl(value.roomCode.toUpperCase());
-  if (`${location.pathname}${location.search}` !== target) history.replaceState(null, "", target);
+  if (!SANDBOX && `${location.pathname}${location.search}` !== target) history.replaceState(null, "", target);
 };
 export const clearSession = (value?: Session | null) => {
   const route = parseRoute();
   const roomCode = value?.roomCode ?? route.roomCode; const playerId = value?.snapshot.you.playerId ?? route.playerId;
   if (roomCode) { const store = readStore(); delete store[sessionKey(roomCode)]; if (playerId) delete store[`${roomCode.toUpperCase()}/${playerId}`]; writeStore(store); }
-  history.replaceState(null, "", routeUrl(null));
+  if (!SANDBOX) history.replaceState(null, "", routeUrl(null));
 };
 export const leaveRoom = (roomCode: string, token: string) => request<{ ok: true }>(`/api/rooms/${encodeURIComponent(roomCode)}/leave`, { method: "POST", headers: { authorization: `Bearer ${token}` } }).catch(() => undefined);
 export const disconnectRoom = (roomCode: string, token: string) => fetch(`${publicBase}/api/rooms/${encodeURIComponent(roomCode)}/disconnect`, { method: "POST", headers: { authorization: `Bearer ${token}` }, keepalive: true }).catch(() => undefined);

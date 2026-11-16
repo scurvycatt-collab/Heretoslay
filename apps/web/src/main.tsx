@@ -23,10 +23,14 @@ const AssetImportRoute = import.meta.env.DEV && params.has("asset-import")
   })
   : null;
 
-createRoot(document.getElementById("root")!).render(
+// Sandbox build only: answer /api in memory before the app makes its first request. In every other build
+// `VITE_SANDBOX` is undefined, so this import (and the Worker engine behind it) is never bundled.
+const ready: Promise<unknown> = import.meta.env.VITE_SANDBOX === "1" ? import("./sandbox/localServer") : Promise.resolve();
+
+void ready.then(() => createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LanguageProvider>
       {AssetImportRoute ? <Suspense fallback={null}><AssetImportRoute /></Suspense> : params.has("cards") ? <CardGallery /> : <App />}
     </LanguageProvider>
   </StrictMode>,
-);
+));

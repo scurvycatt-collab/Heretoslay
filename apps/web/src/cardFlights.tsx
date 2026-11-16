@@ -4,15 +4,17 @@
 // Display only. The snapshot stays authoritative: this module never delays, blocks or invents state.
 // It compares the previous and the current snapshot (card zones by cardId, hand counts, deck count)
 // and replays the difference. Flights are skipped under `prefers-reduced-motion`.
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import type { BaseCardView, BaseGameSnapshot } from "@here-to-slay/protocol";
 import { CardRenderer } from "./CardRenderer";
 
 type Box = { left: number; top: number; width: number; height: number };
 type Flight = { id: number; card: BaseCardView | null; variant: "full" | "art"; from: Box; to: Box; delay: number };
 
-const DURATION_MS = 430;
-const STAGGER_MS = 85;
+const DURATION_MS = 580;
+const STAGGER_MS = 110;
+/** Owner 2026-11-16: after a card lands in a Party the table stays visible this long before a reaction / roll stage opens. */
+const STAGE_HOLD_AFTER_LANDING_MS = 500;
 /** A single snapshot never spawns more than this many ghosts (8-seat deals stay readable). */
 const MAX_FLIGHTS = 12;
 const MAX_HIDDEN_DRAWS_PER_SEAT = 3;
@@ -63,6 +65,13 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
   // so they fly from where they were when they come back on the table.
   const limbo = useRef(new Map<string, Box>());
   const nextId = useRef(1);
+  // While > 0 the caller keeps full-screen stages closed so the landing is seen (never delays a command).
+  const [holdMs, setHoldMs] = useState(0);
+  useEffect(() => {
+    if (!holdMs) return;
+    const timer = window.setTimeout(() => setHoldMs(0), holdMs);
+    return () => window.clearTimeout(timer);
+  }, [holdMs]);
 
   // No dependency list on purpose: positions are re-read after every render so the "from" box of a card
   // is where the player last saw it (the hand fans out on hover, seats move with the window).
@@ -82,7 +91,7 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
       const deckEl = document.querySelector(".t3-deck");
       const discardEl = document.querySelector(".t3-discard");
       const me = state.you.playerId;
-      const planned: Array<Omit<Flight, "id" | "delay"> & { target?: Element }> = [];
+      const planned: Array<Omit<Flight, "id" | "delay"> & { target?: Element; landsInParty?: boolean }> = [];
       // Who lost cards from a hidden hand in this step (source of a card that appears from nowhere).
       const shrunk = state.players.filter((p) => (previous.hands.get(p.playerId) ?? p.handCount) > p.handCount).map((p) => p.playerId);
 
@@ -109,7 +118,7 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
             from = centred(box(sourceEl), Math.max(64, to.width));
           } else continue;
         }
-        planned.push({ card: now.card, variant: now.zone === "hand" || now.zone === "discard" ? "full" : "art", from, to, target });
+        planned.push({ card: now.card, variant: now.zone === "hand" || now.zone === "discard" ? "full" : "art", from, to, target, landsInParty: now.zone.startsWith("party:") });
       }
 
       // Opponents drawing: face-down cards from the deck to their seat (their hand is hidden).
@@ -131,6 +140,8 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
           return { id: nextId.current++, card: flight.card, variant: flight.variant, from: flight.from, to: flight.to, delay };
         });
         setFlights((current) => [...current, ...batch]);
+        const lastLanding = planned.slice(0, MAX_FLIGHTS).reduce((latest, flight, i) => (flight.landsInParty ? i * STAGGER_MS + DURATION_MS : latest), 0);
+        if (lastLanding) setHoldMs(lastLanding + STAGE_HOLD_AFTER_LANDING_MS);
       }
     }
 
@@ -149,11 +160,31 @@ export function useCardFlights(state: BaseGameSnapshot, enabled: boolean) {
   });
 
   const done = (id: number) => setFlights((current) => current.filter((flight) => flight.id !== id));
-  return flights.length ? (
+  const layer = flights.length ? (
     <div className="t3-flights" aria-hidden>
       {flights.map((flight) => <Ghost key={flight.id} flight={flight} onDone={() => done(flight.id)} />)}
     </div>
   ) : null;
+  return { layer, holdStage: holdMs > 0 };
+}
+
+/**
+ * True for a moment after `value` drops (a Hero destroyed, sacrificed or stolen): the seat shakes once.
+ * Display only; the value itself always comes from the snapshot.
+ */
+export function useLossPulse(value: number, ms = 520): boolean {
+  const last = useRef(value);
+  const [pulse, setPulse] = useState(0);
+  useEffect(() => {
+    if (value < last.current) setPulse((n) => n + 1);
+    last.current = value;
+  }, [value]);
+  useEffect(() => {
+    if (!pulse) return;
+    const timer = window.setTimeout(() => setPulse(0), ms);
+    return () => window.clearTimeout(timer);
+  }, [pulse, ms]);
+  return pulse > 0;
 }
 
 function Ghost({ flight, onDone }: { flight: Flight; onDone: () => void }) {

@@ -156,6 +156,9 @@ test("card flights are display-only: they replay snapshot differences and respec
   const renderer = await readFile(new URL("../apps/web/src/CardRenderer.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../apps/web/src/base-room.css", import.meta.url), "utf8");
   assert.match(room, /const cardFlights = useCardFlights\(state, playing\);/);
+  assert.match(room, /\{chain && !cardFlights\.holdStage && <ReactionStage /);
+  assert.match(flights, /const STAGE_HOLD_AFTER_LANDING_MS = 500;/);
+  assert.match(css, /\.t3-cseat\.is-hit, \.t3-felt \.t3-seat--me\.t3-me\.is-hit \{ animation: t3-seat-hit/);
   assert.match(renderer, /"data-card-id": card\.cardId,/);
   assert.match(flights, /prefers-reduced-motion: reduce/);
   assert.match(flights, /const MAX_FLIGHTS = 12;/);

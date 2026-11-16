@@ -1160,3 +1160,19 @@ kbd { display: inline-block; min-width: 1.5em; padding: 0 4px; border: 2px solid
 .t3-flight { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; filter: drop-shadow(0 10px 10px rgb(7 17 28 / 0.35)); }
 .t3-flight .tcard { display: block; }
 .t3-flight-back { display: block; width: 100%; aspect-ratio: 4 / 5; box-sizing: border-box; background: repeating-linear-gradient(135deg, #20344c 0 8px, #1a2b40 8px 16px); border: 3px solid #07111c; border-radius: 6px; }
+
+/* Seat feedback (step 2): what just changed on a seat is readable without opening its drawer.
+   Pure CSS on the `is-on` classes the snapshot already drives; the shake comes from useLossPulse(). */
+@keyframes t3-chip-in { 0% { transform: translateY(-9px) scale(1.6); opacity: 0; } 55% { transform: translateY(1px) scale(1.15); opacity: 1; } 100% { transform: none; } }
+@keyframes t3-seg-in { 0% { transform: scaleY(2.6); filter: brightness(1.9); } 100% { transform: none; filter: none; } }
+@keyframes t3-pip-in { 0% { transform: rotate(45deg) scale(0.4); } 45% { transform: rotate(45deg) scale(2.1); box-shadow: 0 0 0 4px rgb(224 56 62 / 0.35); } 100% { transform: rotate(45deg) scale(1); box-shadow: none; } }
+@keyframes t3-class-in { 0% { transform: scale(0.5) rotate(-14deg); filter: brightness(2); } 60% { transform: scale(1.28); } 100% { transform: none; filter: none; } }
+@keyframes t3-seat-hit { 0%, 100% { translate: 0 0; } 15% { translate: -6px 0; } 30% { translate: 5px 0; } 45% { translate: -4px 0; } 60% { translate: 3px 0; } 80% { translate: -1px 0; } }
+.t3-cseat-party span.is-on { animation: t3-chip-in 0.42s cubic-bezier(.2, .8, .3, 1.2) both; animation-delay: 0.5s; }
+.t3-cseat-bar span.is-on { animation: t3-seg-in 0.5s ease-out both; animation-delay: 0.55s; transform-origin: 50% 100%; }
+.t3-cseat-slain span.is-on { animation: t3-pip-in 0.6s ease-out both; }
+.t3-me-classes span.is-on { animation: t3-class-in 0.5s cubic-bezier(.2, .8, .3, 1.2) both; animation-delay: 0.55s; }
+.t3-cseat.is-hit, .t3-felt .t3-seat--me.t3-me.is-hit { animation: t3-seat-hit 0.5s ease-in-out; border-color: var(--red); }
+@media (prefers-reduced-motion: reduce) {
+  .t3-cseat-party span.is-on, .t3-cseat-bar span.is-on, .t3-cseat-slain span.is-on, .t3-me-classes span.is-on, .t3-cseat.is-hit, .t3-felt .t3-seat--me.t3-me.is-hit { animation: none; }
+}
